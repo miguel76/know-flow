@@ -1,4 +1,4 @@
-import * as S from "./source";
+import * as S from "../src/source";
 import { translate, toSparql  } from 'sparqlalgebrajs';
 
 test("Testing 'Source' structures", () => {
