@@ -1,23 +1,31 @@
 import { Algebra } from 'sparqlalgebrajs';
 import {Term} from "rdf-js";
 
-export interface GraphConsumer {}
-export interface DatasetConsumer {}
-export interface RDFTermConsumer {}
+export interface Component {
+    isObserved(): boolean;
+}
+
+export interface GraphConsumer extends Component {}
+export interface DatasetConsumer extends Component {}
+export interface RDFTermConsumer extends Component {}
 export interface RDFTermObserver {}
 
-export class GraphSource {
+export class GraphSource implements Component {
     // [key:string]: any;
     type: string;
     consumers: GraphConsumer[] = [];
 
     addConsumer(consumer: GraphConsumer) {
-        this.consumers.includes(this) || this.consumers.push(this);
+        this.consumers.includes(consumer) || this.consumers.push(consumer);
     }
 
     removeConsumer(consumer: GraphConsumer) {
         const index = this.consumers.indexOf(consumer);
         (index > -1) && this.consumers.splice(index, 1);
+    }
+
+    isObserved() {
+        return this.consumers.some(c => c.isObserved());
     }
 }
 
@@ -60,18 +68,22 @@ export class ConstructQuery extends GraphSource implements DatasetConsumer {
     }
 }
 
-export class DatasetSource {
+export class DatasetSource implements Component {
     // [key:string]: any;
     type: string;
     consumers: DatasetConsumer[] = [];
 
     addConsumer(consumer: DatasetConsumer) {
-        this.consumers.includes(this) || this.consumers.push(this);
+        this.consumers.includes(consumer) || this.consumers.push(consumer);
     }
 
     removeConsumer(consumer: DatasetConsumer) {
         const index = this.consumers.indexOf(consumer);
         (index > -1) && this.consumers.splice(index, 1);
+    }
+
+    isObserved() {
+        return this.consumers.some(c => c.isObserved());
     }
 }
 
@@ -112,14 +124,14 @@ export class DefaultSparqlEndpoint extends DatasetSource {
     type: 'defaultSparqlEndpoint';
 }
 
-export class RDFTermSource {
+export class RDFTermSource implements Component {
     // [key:string]: any;
     type: string;
     consumers: RDFTermConsumer[] = [];
     observers: RDFTermObserver[] = [];
 
     addConsumer(consumer: RDFTermConsumer) {
-        this.consumers.includes(this) || this.consumers.push(this);
+        this.consumers.includes(consumer) || this.consumers.push(consumer);
     }
 
     removeConsumer(consumer: RDFTermConsumer) {
@@ -136,8 +148,12 @@ export class RDFTermSource {
         (index > -1) && this.observers.splice(index, 1);
     }
 
-    hasObserver() {
-        this.observers.length > 0;
+    hasObserver(): boolean {
+        return this.observers.length > 0;
+    }
+
+    isObserved() {
+        return this.hasObserver() || this.consumers.some(c => c.isObserved());
     }
 
 }
