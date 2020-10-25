@@ -23,6 +23,7 @@
     },
     "homepage": "https://github.com/miguel76/sparql-net#readme",
     "dependencies": {
+        "assert": "^2.0.0",
         "sparqlalgebrajs": "^2.4.0"
     },
     "devDependencies": {

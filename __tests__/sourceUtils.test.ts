@@ -1,30 +1,16 @@
 import * as S from "../src/source";
-import { translate, toSparql  } from 'sparqlalgebrajs';
+import * as U from "../src/sourceUtils";
+import { translate, toSparql, Algebra  } from 'sparqlalgebrajs';
 
-test("Testing 'Source' structures", () => {
+test("Testing sourceUtils methods", () => {
 
     const defaultSparqlEndpointDS = new S.DefaultSparqlEndpoint();
-    expect(defaultSparqlEndpointDS instanceof S.DefaultSparqlEndpoint).toBe(true);
-    expect(defaultSparqlEndpointDS).toEqual({
-        type: "defaultSparqlEndpoint",
-        consumers: []
-    });
-
     const allTermsTS = new S.AllTermsFromDatasetSource(defaultSparqlEndpointDS);
-    expect(allTermsTS instanceof S.AllTermsFromDatasetSource).toBe(true);
-    expect(allTermsTS).toEqual({
-        type: "allTerms",
-        consumers: [],
-        observers: [],
-        datasetSource: defaultSparqlEndpointDS
-    });
-    expect(defaultSparqlEndpointDS).toHaveProperty('consumers', [allTermsTS]);
-
     const selectQueryTxt = 'SELECT ?newThis WHERE { ?this ?p ?newThis }';
     const selectQuery = translate(selectQueryTxt);
+    const selectQueryNoProj = (translate(selectQueryTxt) as Algebra.Project).input;
 
-    const varFromSelectQuery =
-            new S.VarFromSelectQuery(
+    const varFromSelectQuery = U.createRDFTermSourceFromSelectQueryAlgebra(
                     "newThis", selectQuery, defaultSparqlEndpointDS,
                     new Map<string, S.RDFTermSource>([["this", allTermsTS]]));
 
@@ -34,14 +20,19 @@ test("Testing 'Source' structures", () => {
         consumers: [],
         observers: [],
         varName: 'newThis',
-        selectQuery: selectQuery,
+        selectQuery: selectQueryNoProj,
         datasetSource: defaultSparqlEndpointDS,
         params: new Map<string, S.RDFTermSource>([["this", allTermsTS]])
-        // params: {
-        //     'this': allTermsTS
-        // }
     });
     expect(defaultSparqlEndpointDS).toHaveProperty('consumers', [allTermsTS, varFromSelectQuery]);
     expect(allTermsTS).toHaveProperty('consumers', [varFromSelectQuery]);
+
+    const allTerms = new S.DefaultVarAllTerms(defaultSparqlEndpointDS);
+
+    const querySource = U.createSourceFromQuery(selectQuery, {
+        output: {default:  "newThis", named: []},
+        dataset: defaultSparqlEndpointDS,
+        input: [{source: allTerms, var: {default: "this", named: []}}]
+    });
 
 });

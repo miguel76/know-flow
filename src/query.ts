@@ -1,103 +1,60 @@
 import { Algebra } from 'sparqlalgebrajs';
 import {Term} from "rdf-js";
 
-export interface Component {
-    isObserved(): boolean;
-}
+export type DataType = "term" | "graph" | "dataset" | "bindings";
 
-export interface GraphConsumer extends Component {}
-export interface DatasetConsumer extends Component {}
-export interface RDFTermConsumer extends Component {}
-export interface RDFTermObserver {}
-export interface TabularConsumer extends Component {}
-export interface TabularObserver {}
+// type PortMap = {
+//     default?: Port,
+//     named?: {[portName:string]: Port}
+// };
 
-export class GraphSource implements Component {
-    // [key:string]: any;
-    type: string;
-    consumers: GraphConsumer[] = [];
+type PortMap = {
+    default?: Port,
+    named?: {[portName:string]: Port}
+};
 
-    constructor(type: string) {
-        this.type = type;
+type PortMapByType = {
+    [type:string]: PortMap
+};
+
+export type QueryComponent = {
+    queryComponenType: string,
+    ports: {
+        input?: PortMapByType,
+        output?: PortMapByType
     }
+};
 
-    addConsumer(consumer: GraphConsumer) {
-        this.consumers.includes(consumer) || this.consumers.push(consumer);
-    }
+export type Port = {
+    dataType: string,
+    parentComponent: QueryComponent,
+    portName?: string // undefined if is default port
+};
 
-    removeConsumer(consumer: GraphConsumer) {
-        const index = this.consumers.indexOf(consumer);
-        (index > -1) && this.consumers.splice(index, 1);
-    }
+export type DataLink = {
+    dataType: string,
+    from: Port,
+    to: Port
+};
 
-    isObserved() {
-        return this.consumers.some(c => c.isObserved());
-    }
-}
-
-// export interface Graph extends GraphSource {
-//     type: 'graph';
-//     graph: RDFGraph;
-// }
-
-export class GraphSelector extends GraphSource implements DatasetConsumer {
-    type: 'graphSelector';
-    datasetSource: DatasetSource;
-    graphName: Term;
-
-    constructor(datasetSource: DatasetSource, graphName: Term) {
-        super('graphSelector');
-        this.datasetSource = datasetSource;
-        this.graphName = graphName;
-        this.datasetSource.addConsumer(this);
-    }
-
-    detache() {
-        this.datasetSource.removeConsumer(this);
+export type GraphSelector extends QueryComponent {
+    queryComponenType: 'graphSelector';
+    graphsToOutputPorts: PortMap;
+    ports: {
+        input: {dataset: {default: Port}},
+        output: {graph: PortMap}
     }
 }
 
-export class ConstructQuery extends GraphSource implements DatasetConsumer {
+export interface ConstructQuery extends ProviderOf<Graph>, ConsumerOf<Dataset> {
     type: 'constructQuery';
     datasetSource: DatasetSource;
     construct: Algebra.Construct;
-
-    constructor(datasetSource: DatasetSource, construct: Algebra.Construct) {
-        super('constructQuery');
-        this.datasetSource = datasetSource;
-        this.construct = construct;
-        this.datasetSource.addConsumer(this);
-    }
-
-    detache() {
-        this.datasetSource.removeConsumer(this);
-    }
 }
 
-export class DatasetSource implements Component {
-    // [key:string]: any;
-    type: string;
-    consumers: DatasetConsumer[] = [];
+export interface DatasetSource extends Component {}
 
-    constructor(type: string) {
-        this.type = type;
-    }
-
-    addConsumer(consumer: DatasetConsumer) {
-        this.consumers.includes(consumer) || this.consumers.push(consumer);
-    }
-
-    removeConsumer(consumer: DatasetConsumer) {
-        const index = this.consumers.indexOf(consumer);
-        (index > -1) && this.consumers.splice(index, 1);
-    }
-
-    isObserved() {
-        return this.consumers.some(c => c.isObserved());
-    }
-}
-
-export class DatasetBuilder extends DatasetSource implements GraphConsumer {
+export interface DatasetBuilder extends DatasetSource, GraphConsumer {
     type: 'datasetBuilder';
     defaultGraphSource: GraphSource;
     namedGraphSources: Map<RDFTerm, GraphSource>;
