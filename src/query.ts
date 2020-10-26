@@ -8,243 +8,164 @@ export type DataType = "graph" | "dataset" | "bindings"; // "term" |
 //     named?: {[portName:string]: Port}
 // };
 
-type PortMap = {
-    default?: Port,
-    named?: {[portName:string]: Port}
-};
-
-type PortMapByType = {
-    [type:string]: PortMap
-};
-
-export type QueryComponent = {
-    queryComponenType: string,
-    ports: {
-        input?: PortMapByType,
-        output?: PortMapByType
-    }
-};
+export type PortDirection = "in" | "out";
 
 export type Port = {
-    dataType: string,
+    dir: PortDirection,
+    dataType: DataType,
     parentComponent: QueryComponent,
     portName?: string // undefined if is default port
 };
 
-export type DataLink = {
-    dataType: string,
-    from: Port,
-    to: Port
+export type InputPort = Port & {
+    dir: "in",
+    multiple: boolean
 };
 
-export type GraphSelector extends QueryComponent {
-    queryComponenType: 'graphSelector';
-    graphsToOutputPorts: PortMap;
+export type MultiInputPort = InputPort & {
+    multiple: true
+};
+
+export type SingleInputPort = InputPort & {
+    multiple: false
+};
+
+export type OutputPort = Port & {
+    dir: "out"
+};
+
+export type PortMap<PortType typeof Port> = {
+    default?: PortType,
+    named?: {[portName:string]: PortType},
+};
+
+export type PortMapByType<PortType typeof Port> = {
+    [type:DataType]: PortMap<PortType>
+};
+
+export type LinksTo<PortType typeof Port, T> = PortType & {
+    link: T
+};
+
+
+// type InputPortMap = {
+//     default?: InputPort,
+//     named?: {[portName:string]: InputPort},
+// };
+//
+// type InputPortMapByType = {
+//     [type:string]: InputPortMap
+// };
+//
+// type OutputPortMap = {
+//     default?: OutputPort,
+//     named?: {[portName:string]: InputPort},
+// };
+//
+// type InputPortMapByType = {
+//     [type:string]: InputPortMap
+// };
+
+export type DatasetMap<T> = {
+    defaultGraph?: T,
+    namedGraphs?: {[graphName:string]: T},
+};
+
+// export type GraphInDataset = {defaultGraph: boolean};
+export type GraphInDataset = {defaultGraph: true} | {graphName: string};
+
+export type QueryComponent = {
+    queryComponenType: string,
     ports: {
-        input: {dataset: {default: Port}},
-        output: {graph: PortMap}
+        input?: PortMapByType<InputPort>,
+        output?: PortMapByType<OutputPort>
+    }
+};
+
+export type DataLink = {
+    dataType: DataType,
+    from: OutputPort,
+    to: InputPort
+};
+
+// export type PortInternalMapping<InternalType> = {
+//     portToInternal: {[port:Port]: PortMap<PortType>}
+//     internalToPort:
+// };
+
+export type GraphSelector = QueryComponent & {
+    queryComponenType: 'graphSelector',
+    graphsToOutputPorts: DatasetMap<LinksTo<OutputPort, GraphInDataset>>,
+    ports: {
+        input: {dataset: {default: SingleInputPort}},
+        output: {graph: PortMap<LinksTo<OutputPort, GraphInDataset>>}
+    }
+};
+
+export type ConstructQuery = QueryComponent & {
+    type: 'constructQuery',
+    construct: Algebra.Construct,
+    ports: {
+        input: {dataset: {default: SingleInputPort}},
+        output: {graph: {default: OutputPort}}
+    }
+};
+
+export type GraphMerge = QueryComponent & {
+    type: 'graphMerge',
+    ports: {
+        input: {graph: {default: MultiInputPort}},
+        output: {graph: {default: OutputPort}}
+    }
+};
+
+export type DatasetBuilder = QueryComponent & {
+    type: 'datasetBuilder',
+    graphsToInputPorts: DatasetMap<LinksTo<SingleInputPort, GraphInDataset>>,
+    ports: {
+        input: {graph: PortMap<LinksTo<SingleInputPort, GraphInDataset>>},
+        output: {dataset: {default: SinglePort}}
+    }
+};
+
+export type DatasetMerge = QueryComponent & {
+    type: 'datasetMerge',
+    ports: {
+        input: {dataset: {default: MultiInputPort}},
+        output: {dataset: {default: OutputPort}}
+    }
+};
+
+export type SparqlEndpoint = QueryComponent & {
+    type: 'sparqlEndpoint',
+    baseURL: string,
+    ports: {
+        output: {dataset: {default: OutputPort}}
+    }
+};
+
+export type DefaultSparqlEndpoint = QueryComponent & {
+    type: 'defaultSparqlEndpoint',
+    ports: {
+        output: {dataset: {default: OutputPort}}
+    }
+};
+
+export type AllTermsFromDataset = QueryComponent & {
+    type: 'allTermsFromDataset';
+    ports: {
+        input: {dataset: {default: SingleInputPort}},
+        output: {bindings: {default: OutputPort}}
     }
 }
 
-export interface ConstructQuery extends ProviderOf<Graph>, ConsumerOf<Dataset> {
-    type: 'constructQuery';
-    datasetSource: DatasetSource;
-    construct: Algebra.Construct;
-}
-
-export interface DatasetSource extends Component {}
-
-export interface DatasetBuilder extends DatasetSource, GraphConsumer {
-    type: 'datasetBuilder';
-    defaultGraphSource: GraphSource;
-    namedGraphSources: Map<RDFTerm, GraphSource>;
-
-    constructor(defaultGraphSource: GraphSource, namedGraphSources: Map<RDFTerm, GraphSource>) {
-        super('datasetBuilder');
-        this.defaultGraphSource = defaultGraphSource;
-        this.namedGraphSources = namedGraphSources;
-        this.defaultGraphSource.addConsumer(this);
-        Object.values(this.namedGraphSources).forEach(namedGraphSource => {
-            namedGraphSource.addConsumer(this);
-        });
-    }
-
-    detache() {
-        this.defaultGraphSource.removeConsumer(this);
-        Object.values(this.namedGraphSources).forEach(namedGraphSource => {
-            namedGraphSource.removeConsumer(this);
-        });
+export type AllTermsFromGraph = QueryComponent & {
+    type: 'allTermsFromDataset';
+    ports: {
+        input: {graph: {default: SingleInputPort}},
+        output: {bindings: {default: OutputPort}}
     }
 }
-
-export class DatasetMerge extends DatasetSource implements DatasetConsumer {
-    type: 'datasetMerge';
-    inputDatasetSources: DatasetSource[];
-
-    constructor(inputDatasetSources: DatasetSource[]) {
-        super('datasetMerge');
-        this.inputDatasetSources = inputDatasetSources;
-        this.inputDatasetSources.forEach(inputSource => {
-            inputSource.addConsumer(this);
-        });
-    }
-
-    detache() {
-        this.inputDatasetSources.forEach(inputSource => {
-            inputSource.removeConsumer(this);
-        });
-    }
-}
-
-export class SparqlEndpoint extends DatasetSource {
-    type: 'sparqlEndpoint';
-    baseURL: string;
-
-    constructor(baseURL: string) {
-        super('sparqlEndpoint');
-        this.baseURL = baseURL;
-    }
-}
-
-export class DefaultSparqlEndpoint extends DatasetSource {
-    type: 'defaultSparqlEndpoint';
-
-    constructor() {
-        super('defaultSparqlEndpoint');
-    }
-}
-
-export class RDFTermSource implements Component {
-    // [key:string]: any;
-    type: string;
-    consumers: RDFTermConsumer[] = [];
-    observers: RDFTermObserver[] = [];
-
-    constructor(type: string) {
-        this.type = type;
-    }
-
-    addConsumer(consumer: RDFTermConsumer) {
-        this.consumers.includes(consumer) || this.consumers.push(consumer);
-    }
-
-    removeConsumer(consumer: RDFTermConsumer) {
-        const index = this.consumers.indexOf(consumer);
-        (index > -1) && this.consumers.splice(index, 1);
-    }
-
-    addObserver(consumer: RDFTermConsumer) {
-        this.observers.includes(this) || this.observers.push(this);
-    }
-
-    removeObserver(consumer: RDFTermConsumer) {
-        const index = this.observers.indexOf(consumer);
-        (index > -1) && this.observers.splice(index, 1);
-    }
-
-    hasObserver(): boolean {
-        return this.observers.length > 0;
-    }
-
-    isObserved() {
-        return this.hasObserver() || this.consumers.some(c => c.isObserved());
-    }
-
-}
-
-export class RDFTerm extends RDFTermSource {
-    type: 'rdfTerm';
-    rdfTerm: Term;
-
-    constructor(rdfTerm: Term) {
-        super('rdfTerm');
-        this.rdfTerm = rdfTerm;
-    }
-}
-
-export class VarFromSelectQuery extends RDFTermSource implements DatasetConsumer, RDFTermConsumer {
-    type: 'varFromSelect';
-    varName: string;
-    selectQuery: Algebra.Operation;
-    datasetSource: DatasetSource;
-    params: Map<string, RDFTermSource>;
-
-    constructor(varName: string, selectQuery: Algebra.Operation, datasetSource: DatasetSource, params: Map<string, RDFTermSource>) {
-        super('varFromSelect');
-        this.varName = varName;
-        this.selectQuery = selectQuery;
-        this.datasetSource = datasetSource;
-        this.params = params;
-        this.datasetSource.addConsumer(this);
-        // this.params.values().forEach(x => x.addConsumer(this));
-        for (let source of this.params.values()) {
-            source.addConsumer(this);
-        }
-    }
-
-    detache() {
-        this.datasetSource.removeConsumer(this);
-    }
-}
-
-export class AllTermsFromDatasetSource extends RDFTermSource implements DatasetConsumer {
-    type: 'allTerms';
-    datasetSource: DatasetSource;
-
-    constructor(datasetSource: DatasetSource) {
-        super('allTerms');
-        this.datasetSource = datasetSource;
-        this.datasetSource.addConsumer(this);
-    }
-
-    detache() {
-        this.datasetSource.removeConsumer(this);
-    }
-}
-
-export class TabularSource implements Component {
-    // [key:string]: any;
-    type: string;
-    consumers: TabularConsumer[] = [];
-    observers: TabularObserver[] = [];
-
-    constructor(type: string) {
-        this.type = type;
-    }
-
-    addConsumer(consumer: TabularConsumer) {
-        this.consumers.includes(consumer) || this.consumers.push(consumer);
-    }
-
-    removeConsumer(consumer: TabularConsumer) {
-        const index = this.consumers.indexOf(consumer);
-        (index > -1) && this.consumers.splice(index, 1);
-    }
-
-    addObserver(consumer: TabularObserver) {
-        this.observers.includes(this) || this.observers.push(this);
-    }
-
-    removeObserver(consumer: TabularObserver) {
-        const index = this.observers.indexOf(consumer);
-        (index > -1) && this.observers.splice(index, 1);
-    }
-
-    hasObserver(): boolean {
-        return this.observers.length > 0;
-    }
-
-    isObserved() {
-        return this.hasObserver() || this.consumers.some(c => c.isObserved());
-    }
-
-    getDatasetSource(): DatasetSource {
-        return undefined;
-    }
-
-}
-
-// Record<Keys,Type>
 
 export type NamedVarMapping = {name: string, nameInQuery: string};
 
@@ -258,55 +179,51 @@ export type TabularSourceAndMapping = {
     var: VarMapping;
 };
 
-export class SelectQuerySource extends TabularSource implements DatasetConsumer, TabularConsumer {
-    type: 'selectQuery';
-    output: VarMapping;
-    selectQuery: Algebra.Operation;
-    datasetSource: DatasetSource;
-    bindingSources: TabularSourceAndMapping[];
+export type VarName = string;
 
-    constructor(
-            output: VarMapping,
-            selectQuery: Algebra.Operation,
-            datasetSource: DatasetSource,
-            bindingSources: TabularSourceAndMapping[]) {
-        super('selectQuery');
-        this.output = output;
-        this.selectQuery = selectQuery;
-        this.datasetSource = datasetSource;
-        this.bindingSources = bindingSources;
-        this.datasetSource.addConsumer(this);
-        this.bindingSources.forEach(s => s.source.addConsumer(this));
-    }
-
-    detache() {
-        this.datasetSource.removeConsumer(this);
-    }
-
-    getDatasetSource(): DatasetSource {
-        return this.datasetSource;
+export type SelectQuery = QueryComponent & {
+    type: 'selectQuery',
+    selectQuery: Algebra.Operation,
+    ports: {
+        input: {
+            dataset: {default: SingleInputPort},
+            term: PortMap<SingleInputPort> // PortMap<SingleInputPort>
+        },
+        output: {term: PortMap<OutputPort>}
     }
 }
 
-export class DefaultVarAllTerms extends TabularSource implements DatasetConsumer {
-    type: 'defaultVarAllTerms';
-    datasetSource: DatasetSource;
-
-    constructor(datasetSource: DatasetSource) {
-        super('defaultVarAllTerms');
-        this.datasetSource = datasetSource;
-        this.datasetSource.addConsumer(this);
-    }
-
-    detache() {
-        this.datasetSource.removeConsumer(this);
-    }
-
-
-    getDatasetSource(): DatasetSource {
-        return this.datasetSource;
-    }
-}
+// export type SelectQuery = QueryComponent & {
+//     type: 'selectQuery',
+//     selectQuery: Algebra.Operation,
+//     ports: {
+//         input: {
+//             dataset: {default: SingleInputPort},
+//             bindings: {default: SingleInputPort} // PortMap<SingleInputPort>
+//         },
+//         output: {bindings: {default: OutputPort}}
+//     }
+// }
+//
+// export class DefaultVarAllTerms extends TabularSource implements DatasetConsumer {
+//     type: 'defaultVarAllTerms';
+//     datasetSource: DatasetSource;
+//
+//     constructor(datasetSource: DatasetSource) {
+//         super('defaultVarAllTerms');
+//         this.datasetSource = datasetSource;
+//         this.datasetSource.addConsumer(this);
+//     }
+//
+//     detache() {
+//         this.datasetSource.removeConsumer(this);
+//     }
+//
+//
+//     getDatasetSource(): DatasetSource {
+//         return this.datasetSource;
+//     }
+// }
 
 export interface NodeSource {
     graphSource: GraphSource;
