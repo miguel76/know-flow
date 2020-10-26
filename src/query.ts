@@ -1,7 +1,7 @@
 import { Algebra } from 'sparqlalgebrajs';
 import {Term} from "rdf-js";
 
-export type DataType = "term" | "graph" | "dataset" | "bindings";
+export type DataType = "graph" | "dataset" | "bindings"; // "term" |
 
 // type PortMap = {
 //     default?: Port,
