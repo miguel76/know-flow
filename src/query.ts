@@ -3,18 +3,14 @@ import {Term} from "rdf-js";
 
 export type DataType = "graph" | "dataset" | "bindings"; // "term" |
 
-// type PortMap = {
-//     default?: Port,
-//     named?: {[portName:string]: Port}
-// };
-
 export type PortDirection = "in" | "out";
 
 export type Port = {
     dir: PortDirection,
     dataType: DataType,
     parentComponent: QueryComponent,
-    portName?: string // undefined if is default port
+    portName?: string, // undefined if is default port
+    links: DataLink[]
 };
 
 export type InputPort = Port & {
@@ -27,24 +23,25 @@ export type MultiInputPort = InputPort & {
 };
 
 export type SingleInputPort = InputPort & {
-    multiple: false
+    multiple: false,
+    link?: DataLink
 };
 
 export type OutputPort = Port & {
     dir: "out"
 };
 
-export type PortMap<PortType typeof Port> = {
+export type PortMap<PortType> = {
     default?: PortType,
     named?: {[portName:string]: PortType},
 };
 
-export type PortMapByType<PortType typeof Port> = {
-    [type:DataType]: PortMap<PortType>
+export type PortMapByType<PortType> = {
+    [type in DataType]?: PortMap<PortType>
 };
 
-export type LinksTo<PortType typeof Port, T> = PortType & {
-    link: T
+export type RefTo<PortType, T> = PortType & {
+    ref: T
 };
 
 
@@ -95,10 +92,10 @@ export type DataLink = {
 
 export type GraphSelector = QueryComponent & {
     queryComponenType: 'graphSelector',
-    graphsToOutputPorts: DatasetMap<LinksTo<OutputPort, GraphInDataset>>,
+    graphsToOutputPorts: DatasetMap<RefTo<OutputPort, GraphInDataset>>,
     ports: {
         input: {dataset: {default: SingleInputPort}},
-        output: {graph: PortMap<LinksTo<OutputPort, GraphInDataset>>}
+        output: {graph: PortMap<RefTo<OutputPort, GraphInDataset>>}
     }
 };
 
@@ -121,10 +118,10 @@ export type GraphMerge = QueryComponent & {
 
 export type DatasetBuilder = QueryComponent & {
     type: 'datasetBuilder',
-    graphsToInputPorts: DatasetMap<LinksTo<SingleInputPort, GraphInDataset>>,
+    graphsToInputPorts: DatasetMap<RefTo<SingleInputPort, GraphInDataset>>,
     ports: {
-        input: {graph: PortMap<LinksTo<SingleInputPort, GraphInDataset>>},
-        output: {dataset: {default: SinglePort}}
+        input: {graph: PortMap<RefTo<SingleInputPort, GraphInDataset>>},
+        output: {dataset: {default: OutputPort}}
     }
 };
 
@@ -167,31 +164,23 @@ export type AllTermsFromGraph = QueryComponent & {
     }
 }
 
-export type NamedVarMapping = {name: string, nameInQuery: string};
+// export type NamedVarMapping = {name: string, nameInQuery: string};
 
-export type VarMapping = {
-    default?: string;
-    named: NamedVarMapping[];
+export type QueryVarName = string;
+
+export type BindingVarToQueryVar = {
+    default?: QueryVarName;
+    named: {[varName: string]: QueryVarName};
 };
 
-export type TabularSourceAndMapping = {
-    source: TabularSource;
-    var: VarMapping;
+export type QueryVarToBindingVar = {
+    [queryVarName in QueryVarName]: {varType: 'default'} | {varType: 'named', varName: string}
 };
 
-export type VarName = string;
-
-export type SelectQuery = QueryComponent & {
-    type: 'selectQuery',
-    selectQuery: Algebra.Operation,
-    ports: {
-        input: {
-            dataset: {default: SingleInputPort},
-            term: PortMap<SingleInputPort> // PortMap<SingleInputPort>
-        },
-        output: {term: PortMap<OutputPort>}
-    }
-}
+export type QueryPortVarMapping = {
+    portToQuery: BindingVarToQueryVar,
+    queryToPort: QueryVarToBindingVar
+};
 
 // export type SelectQuery = QueryComponent & {
 //     type: 'selectQuery',
@@ -199,38 +188,22 @@ export type SelectQuery = QueryComponent & {
 //     ports: {
 //         input: {
 //             dataset: {default: SingleInputPort},
-//             bindings: {default: SingleInputPort} // PortMap<SingleInputPort>
+//             term: PortMap<SingleInputPort> // PortMap<SingleInputPort>
 //         },
-//         output: {bindings: {default: OutputPort}}
-//     }
-// }
-//
-// export class DefaultVarAllTerms extends TabularSource implements DatasetConsumer {
-//     type: 'defaultVarAllTerms';
-//     datasetSource: DatasetSource;
-//
-//     constructor(datasetSource: DatasetSource) {
-//         super('defaultVarAllTerms');
-//         this.datasetSource = datasetSource;
-//         this.datasetSource.addConsumer(this);
-//     }
-//
-//     detache() {
-//         this.datasetSource.removeConsumer(this);
-//     }
-//
-//
-//     getDatasetSource(): DatasetSource {
-//         return this.datasetSource;
+//         output: {term: PortMap<OutputPort>}
 //     }
 // }
 
-export interface NodeSource {
-    graphSource: GraphSource;
-    rdfTermSource: RDFTermSource;
-}
-
-export interface Context {
-    nodeSource: NodeSource;
-    rdfTermSource: RDFTermSource;
+export type SelectQuery = QueryComponent & {
+    type: 'selectQuery',
+    selectQuery: Algebra.Operation,
+    inputMap: QueryPortVarMapping,
+    outputMap: QueryPortVarMapping,
+    ports: {
+        input: {
+            dataset: {default: SingleInputPort},
+            bindings: {default: SingleInputPort} // PortMap<SingleInputPort>
+        },
+        output: {bindings: {default: OutputPort}}
+    }
 }
