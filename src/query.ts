@@ -1,5 +1,4 @@
 import { Algebra } from 'sparqlalgebrajs';
-import {Term} from "rdf-js";
 
 export type DataType = "graph" | "dataset" | "bindings"; // "term" |
 
@@ -10,12 +9,14 @@ export type Port = {
     dataType: DataType,
     parentComponent: QueryComponent,
     portName?: string, // undefined if is default port
-    links: DataLink[]
+    links: DataLink[],
+    multiple: boolean,
+    connect(link: DataLink): void,
+    disconnect(link: DataLink): void
 };
 
 export type InputPort = Port & {
     dir: "in",
-    multiple: boolean
 };
 
 export type MultiInputPort = InputPort & {
@@ -28,7 +29,8 @@ export type SingleInputPort = InputPort & {
 };
 
 export type OutputPort = Port & {
-    dir: "out"
+    dir: "out",
+    multiple: true
 };
 
 export type PortMap<PortType> = {
@@ -38,6 +40,11 @@ export type PortMap<PortType> = {
 
 export type PortMapByType<PortType> = {
     [type in DataType]?: PortMap<PortType>
+};
+
+export type PortMapping = {
+    input?: PortMapByType<InputPort>,
+    output?: PortMapByType<OutputPort>
 };
 
 export type RefTo<PortType, T> = PortType & {
@@ -68,15 +75,12 @@ export type DatasetMap<T> = {
     namedGraphs?: {[graphName:string]: T},
 };
 
-// export type GraphInDataset = {defaultGraph: boolean};
-export type GraphInDataset = {defaultGraph: true} | {graphName: string};
+export type GraphInDataset = {graphName?: string};
+// export type GraphInDataset = {defaultGraph: true} | {graphName: string};
 
 export type QueryComponent = {
     queryComponenType: string,
-    ports: {
-        input?: PortMapByType<InputPort>,
-        output?: PortMapByType<OutputPort>
-    }
+    ports: PortMapping
 };
 
 export type DataLink = {
