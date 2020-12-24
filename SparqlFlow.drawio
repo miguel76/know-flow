@@ -1,4 +1,4 @@
-<mxfile host="app.diagrams.net" modified="2020-12-24T21:43:34.638Z" agent="5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36" etag="LxuNdQqIBQnHoamn03-q" version="14.1.1" type="github" pages="3">
+<mxfile host="app.diagrams.net" modified="2020-12-24T21:45:05.187Z" agent="5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36" etag="RftX1tMWlffgZeoy7WI7" version="14.1.1" type="github" pages="3">
   <diagram id="S_u-7egdxXdtT8W5jfEN" name="A-main">
     <mxGraphModel dx="786" dy="523" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
@@ -97,6 +97,15 @@
         </mxCell>
         <mxCell id="_-n6WY9V38BHHPCgg3qf-10" value="" style="shape=parallelMarker;direction=south;html=1;outlineConnect=0;" vertex="1" parent="_-n6WY9V38BHHPCgg3qf-1">
           <mxGeometry x="280" y="60" width="14" height="14" as="geometry" />
+        </mxCell>
+        <mxCell id="_-n6WY9V38BHHPCgg3qf-11" value="Pool" style="swimlane;html=1;childLayout=stackLayout;resizeParent=1;resizeParentMax=0;horizontal=1;startSize=20;horizontalStack=0;" vertex="1" parent="_-n6WY9V38BHHPCgg3qf-1">
+          <mxGeometry x="135" y="380" width="480" height="260" as="geometry" />
+        </mxCell>
+        <mxCell id="_-n6WY9V38BHHPCgg3qf-12" value="Logic" style="swimlane;html=1;startSize=20;horizontal=0;" vertex="1" parent="_-n6WY9V38BHHPCgg3qf-11">
+          <mxGeometry y="20" width="480" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="_-n6WY9V38BHHPCgg3qf-13" value="Data Access" style="swimlane;html=1;startSize=20;horizontal=0;" vertex="1" parent="_-n6WY9V38BHHPCgg3qf-11">
+          <mxGeometry y="140" width="480" height="120" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
