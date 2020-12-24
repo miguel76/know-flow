@@ -1,4 +1,4 @@
-<mxfile host="app.diagrams.net" modified="2020-12-24T11:33:55.406Z" agent="5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36" etag="0uCaKueN7gYreCcv72ok" version="14.1.1" type="github" pages="2">
+<mxfile host="app.diagrams.net" modified="2020-12-24T21:43:34.638Z" agent="5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36" etag="LxuNdQqIBQnHoamn03-q" version="14.1.1" type="github" pages="3">
   <diagram id="S_u-7egdxXdtT8W5jfEN" name="A-main">
     <mxGraphModel dx="786" dy="523" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
@@ -60,6 +60,43 @@
         </mxCell>
         <mxCell id="SWLs8ngIYZkhadwKjU-u-7" value="&lt;p class=&quot;p1&quot; style=&quot;margin: 0px ; font-stretch: normal ; line-height: normal&quot;&gt;τ&lt;sub&gt;?philLabel&lt;/sub&gt;&lt;/p&gt;" style="shape=ext;rounded=1;html=1;whiteSpace=wrap;" vertex="1" parent="SWLs8ngIYZkhadwKjU-u-1">
           <mxGeometry x="260" y="120" width="230" height="40" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram name="A-main-lanes" id="qPdzyJXR-Bz_9I3PEe3P">
+    <mxGraphModel dx="786" dy="523" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="_-n6WY9V38BHHPCgg3qf-0" />
+        <mxCell id="_-n6WY9V38BHHPCgg3qf-1" parent="_-n6WY9V38BHHPCgg3qf-0" />
+        <mxCell id="_-n6WY9V38BHHPCgg3qf-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="_-n6WY9V38BHHPCgg3qf-1" source="_-n6WY9V38BHHPCgg3qf-3" target="_-n6WY9V38BHHPCgg3qf-7">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="_-n6WY9V38BHHPCgg3qf-3" value="&lt;p class=&quot;p1&quot; style=&quot;margin: 0px 0px 2px ; font-stretch: normal ; line-height: normal&quot;&gt;σ&lt;sub&gt;langMatches(lang(?schoolLabel), &quot;EN&quot;)&lt;/sub&gt;&lt;/p&gt;" style="shape=ext;rounded=1;html=1;whiteSpace=wrap;" vertex="1" parent="_-n6WY9V38BHHPCgg3qf-1">
+          <mxGeometry x="270" y="200" width="210" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="_-n6WY9V38BHHPCgg3qf-4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="_-n6WY9V38BHHPCgg3qf-1" source="_-n6WY9V38BHHPCgg3qf-5" target="_-n6WY9V38BHHPCgg3qf-3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="_-n6WY9V38BHHPCgg3qf-5" value="&lt;p class=&quot;p1&quot; style=&quot;margin: 0px ; font-stretch: normal ; line-height: normal ; font-family: &amp;#34;helvetica neue&amp;#34;&quot;&gt;?school ^dbo:philosophicalSchool []; rdfs:label ?schoolLabel&lt;/p&gt;" style="shape=ext;rounded=1;html=1;whiteSpace=wrap;" vertex="1" parent="_-n6WY9V38BHHPCgg3qf-1">
+          <mxGeometry x="270" y="280" width="210" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="_-n6WY9V38BHHPCgg3qf-6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="_-n6WY9V38BHHPCgg3qf-1" source="_-n6WY9V38BHHPCgg3qf-7" target="_-n6WY9V38BHHPCgg3qf-9">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="_-n6WY9V38BHHPCgg3qf-7" value="&lt;p class=&quot;p1&quot; style=&quot;margin: 0px ; font-stretch: normal ; line-height: normal ; font-family: &amp;#34;helvetica neue&amp;#34;&quot;&gt;δ&lt;/p&gt;" style="shape=ext;rounded=1;html=1;whiteSpace=wrap;" vertex="1" parent="_-n6WY9V38BHHPCgg3qf-1">
+          <mxGeometry x="270" y="120" width="210" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="_-n6WY9V38BHHPCgg3qf-8" value="listPhilosophers" style="html=1;whiteSpace=wrap;rounded=1;dropTarget=0;" vertex="1" parent="_-n6WY9V38BHHPCgg3qf-1">
+          <mxGeometry x="270" width="210" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="_-n6WY9V38BHHPCgg3qf-9" value="" style="html=1;shape=plus;outlineConnect=0;" vertex="1" parent="_-n6WY9V38BHHPCgg3qf-8">
+          <mxGeometry x="0.5" y="1" width="14" height="14" relative="1" as="geometry">
+            <mxPoint x="-7" y="-14" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="_-n6WY9V38BHHPCgg3qf-10" value="" style="shape=parallelMarker;direction=south;html=1;outlineConnect=0;" vertex="1" parent="_-n6WY9V38BHHPCgg3qf-1">
+          <mxGeometry x="280" y="60" width="14" height="14" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
