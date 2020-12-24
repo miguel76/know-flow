@@ -1,4 +1,4 @@
-<mxfile host="app.diagrams.net" modified="2020-12-24T10:53:29.010Z" agent="5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36" etag="f7qV0fgE744Xy_GxndBE" version="14.1.1" type="github" pages="2">
+<mxfile host="app.diagrams.net" modified="2020-12-24T10:58:46.843Z" agent="5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36" etag="zBACGWrQ1smGsEq9OUah" version="14.1.1" type="github" pages="2">
   <diagram id="S_u-7egdxXdtT8W5jfEN" name="A-main">
     <mxGraphModel dx="786" dy="523" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
@@ -56,7 +56,7 @@
         <mxCell id="SWLs8ngIYZkhadwKjU-u-6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="SWLs8ngIYZkhadwKjU-u-1" source="SWLs8ngIYZkhadwKjU-u-7" target="SWLs8ngIYZkhadwKjU-u-9">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="SWLs8ngIYZkhadwKjU-u-7" value="&lt;p class=&quot;p1&quot; style=&quot;margin: 0px ; font-stretch: normal ; line-height: normal ; font-family: &amp;#34;helvetica neue&amp;#34;&quot;&gt;δ&lt;/p&gt;" style="shape=ext;rounded=1;html=1;whiteSpace=wrap;" vertex="1" parent="SWLs8ngIYZkhadwKjU-u-1">
+        <mxCell id="SWLs8ngIYZkhadwKjU-u-7" value="&lt;p class=&quot;p1&quot; style=&quot;margin: 0px ; font-stretch: normal ; line-height: normal&quot;&gt;τ&lt;sub&gt;?philLabel&lt;/sub&gt;&lt;/p&gt;" style="shape=ext;rounded=1;html=1;whiteSpace=wrap;" vertex="1" parent="SWLs8ngIYZkhadwKjU-u-1">
           <mxGeometry x="260" y="120" width="230" height="40" as="geometry" />
         </mxCell>
         <mxCell id="SWLs8ngIYZkhadwKjU-u-8" value="listPhilosophers" style="html=1;whiteSpace=wrap;rounded=1;dropTarget=0;" vertex="1" parent="SWLs8ngIYZkhadwKjU-u-1">
