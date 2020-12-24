@@ -1,4 +1,4 @@
-<mxfile host="app.diagrams.net" modified="2020-12-24T10:32:55.476Z" agent="5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36" etag="d8Bnb8nvQOjjkmsBUvuG" version="14.1.1" type="github">
+<mxfile host="app.diagrams.net" modified="2020-12-24T10:39:00.905Z" agent="5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36" etag="68eUvXYEokukuzRB3rmX" version="14.1.1" type="github">
   <diagram id="S_u-7egdxXdtT8W5jfEN" name="Page-1">
     <mxGraphModel dx="786" dy="523" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
@@ -6,6 +6,9 @@
         <mxCell id="1" parent="0" />
         <mxCell id="AQJjQPF6UAxq5596MzEB-1" value="&lt;p class=&quot;p1&quot; style=&quot;margin: 0px 0px 2px ; font-stretch: normal ; line-height: normal&quot;&gt;σ&lt;sub&gt;langMatches(lang(?schoolLabel), &quot;EN&quot;)&lt;/sub&gt;&lt;/p&gt;" style="shape=ext;rounded=1;html=1;whiteSpace=wrap;" vertex="1" parent="1">
           <mxGeometry x="270" y="200" width="210" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="AQJjQPF6UAxq5596MzEB-2" value="&lt;p class=&quot;p1&quot; style=&quot;margin: 0px ; font-stretch: normal ; line-height: normal ; font-family: &amp;#34;helvetica neue&amp;#34;&quot;&gt;?school ^dbo:philosophicalSchool []; rdfs:label ?schoolLabel&lt;/p&gt;" style="shape=ext;rounded=1;html=1;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="270" y="280" width="210" height="40" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
