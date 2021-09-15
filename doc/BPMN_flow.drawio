@@ -1,4 +1,4 @@
-<mxfile host="app.diagrams.net" modified="2021-09-15T11:28:37.587Z" agent="5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.63 Safari/537.36" etag="dU3KopC-oUZ7zvzYPm_j" version="15.2.5" type="github" pages="4">
+<mxfile host="app.diagrams.net" modified="2021-09-15T11:29:48.613Z" agent="5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.63 Safari/537.36" etag="1yQDGDLiwaP84lIfw0zM" version="15.2.5" type="github" pages="4">
   <diagram name="Page-1" id="52a04d89-c75d-2922-d76d-85b35f80e030">
     <mxGraphModel dx="786" dy="523" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="850" background="none" math="0" shadow="0">
       <root>
@@ -430,6 +430,9 @@
         </mxCell>
         <mxCell id="7PixXPHsmLf8P9jdlNox-12" value="⨝" style="points=[[0.25,0,0],[0.5,0,0],[0.75,0,0],[1,0.25,0],[1,0.5,0],[1,0.75,0],[0.75,1,0],[0.5,1,0],[0.25,1,0],[0,0.75,0],[0,0.5,0],[0,0.25,0]];shape=mxgraph.bpmn.task;whiteSpace=wrap;rectStyle=rounded;size=10;taskMarker=businessRule;spacing=2;fontSize=32;" vertex="1" parent="7PixXPHsmLf8P9jdlNox-1">
           <mxGeometry x="230" y="320" width="120" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="7PixXPHsmLf8P9jdlNox-13" value="" style="points=[[0.25,0,0],[0.5,0,0],[0.75,0,0],[1,0.25,0],[1,0.5,0],[1,0.75,0],[0.75,1,0],[0.5,1,0],[0.25,1,0],[0,0.75,0],[0,0.5,0],[0,0.25,0]];shape=mxgraph.bpmn.task;whiteSpace=wrap;rectStyle=rounded;size=10;taskMarker=abstract;isLoopMultiSeq=1;fontSize=32;" vertex="1" parent="7PixXPHsmLf8P9jdlNox-1">
+          <mxGeometry x="490" y="410" width="120" height="80" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
