@@ -1,51 +1,89 @@
-import { Algebra } from 'sparqlalgebrajs';
+import { Algebra, translate, Factory } from 'sparqlalgebrajs';
 import * as rdfjs from "rdf-js";
 import {Task, Action, TaskSequence, ForEach, Traverse, Join, Filter} from './task';
+import { Path } from 'sparqlalgebrajs/lib/algebra';
 
-export function createAction(
-        exec: ( variables: rdfjs.Variable[],
-                bindings: {[key: string]: rdfjs.Term}[] ) => void): Action {
-    return {
-        type: 'action',
-        exec
-    };
+function isString(str: any): str is string {
+    return typeof str === 'string';
 }
 
-export function createTaskSequence(subtasks: Task[]): TaskSequence {
-    return {
-        type: 'task-sequence',
-        subtasks
-    };
-}
+export default class TaskFactory {
 
-export function createForEach(subtask: Task): ForEach {
-    return {
-        type: 'for-each',
-        subtask
-    };
-}
+    algebraFactory: Factory;
+    defaultInput: rdfjs.Term;
+    defaultOutput: rdfjs.Term;
 
-export function createTraverse(
-        next: Task,
-        predicate: Algebra.PropertyPathSymbol,
-        graph: rdfjs.Term ): Traverse {
-    return {
-        type: 'traverse', next,
-        predicate, graph
-    };
-}
+    constructor(algebraFactory?: Factory) {
+        this.algebraFactory = algebraFactory || new Factory();
+        this.defaultInput = algebraFactory.createTerm('$_');
+        this.defaultOutput = algebraFactory.createTerm('$_out');
+    }
 
-export function createJoin(next: Task, rightPattern: Algebra.Operation, focus?: rdfjs.Term): Join {
-    return {
-        type: 'join', next,
-        right: rightPattern,
-        focus
-    };
-}
+    createAction(
+            exec: ( variables: rdfjs.Variable[],
+                    bindings: {[key: string]: rdfjs.Term}[] ) => void): Action {
+        return {
+            type: 'action',
+            exec
+        };
+    }
 
-export function createFilter(next: Task, expression: Algebra.Expression ): Filter {
-    return {
-        type: 'filter', next,
-        expression 
-    };
+    createTaskSequence(subtasks: Task[]): TaskSequence {
+        return {
+            type: 'task-sequence',
+            subtasks
+        };
+    }
+
+    createForEach(subtask: Task): ForEach {
+        return {
+            type: 'for-each',
+            subtask
+        };
+    }
+
+    private selectEnvelope(patternStr: string): string {
+        return 'SELECT * WHERE { ' + patternStr + ' }';
+    }
+
+    private translateOp(patternStr: string): Algebra.Operation {
+        return translate(this.selectEnvelope(patternStr));
+    }
+
+    createTraverse(
+            next: Task,
+            predicate: Algebra.PropertyPathSymbol | string,
+            graph: rdfjs.Term ): Join {
+        if (isString(predicate)) {
+            predicate = (<Path> this.translateOp('$_ ' + predicate + ' $_out')).predicate;
+        }
+        return {
+            type: 'join', next,
+            right: this.algebraFactory.createPath(
+                    this.defaultInput, predicate, this.defaultOutput, graph),
+            focus: this.defaultOutput
+        };
+    }
+
+    createJoin(next: Task, rightPattern: Algebra.Operation | string, focus?: rdfjs.Term): Join {
+        if (isString(rightPattern)) {
+            rightPattern = this.translateOp(rightPattern);
+        }
+        return {
+            type: 'join', next,
+            right: rightPattern,
+            focus
+        };
+    }
+
+    createFilter(next: Task, expression: Algebra.Expression | string): Filter {
+        if (isString(expression)) {
+            expression = (<Algebra.Filter> translate('SELECT * WHERE { FILTER(' + expression + ') }')).expression;
+        }
+        return {
+            type: 'filter', next,
+            expression 
+        };
+    }
+
 }
