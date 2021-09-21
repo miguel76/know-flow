@@ -1,8 +1,15 @@
-import { toSparql } from 'sparqlalgebrajs';
+import { Algebra, toSparql, Factory } from 'sparqlalgebrajs';
 import {Task, Action, TaskSequence, ForEach, Traverse, Join, Filter, QueryAndTask} from './task';
-import {Generator} from 'sparqljs';
+import {Generator, Wildcard} from 'sparqljs';
 // let generator = new Generator(options);
 
+let algebraFactory = new Factory();
+let WILDCARD = new Wildcard();
+
+function toSparqlFragment(op: Algebra.Operation, options = {}): string {
+    let sparqlStr = toSparql(algebraFactory.createProject(op, [WILDCARD]), options);
+    return sparqlStr.substring("SELECT * WHERE { ".length, sparqlStr.length - " }".length);
+}
 
 export function stringifyTask(task: Task, options = {}) {
     const cases: { [index:string] : () => any } = {
@@ -22,7 +29,7 @@ export function stringifyTask(task: Task, options = {}) {
         // }),
         'join': () => ({
             type: 'join',
-            right: toSparql((<Join> task).right, options),
+            right: toSparqlFragment((<Join> task).right, options),
             focus: new Generator(options).createGenerator().toEntity((<Join> task).focus),
             next: stringifyTask((<QueryAndTask> task).next, options)
         }),
@@ -35,6 +42,6 @@ export function stringifyTask(task: Task, options = {}) {
     // const cases: ([k:string]: () => Task) = {
     //     'action': () => task,
     // }:
-    cases[task.type]();
+    return cases[task.type]();
 
 }

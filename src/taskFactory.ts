@@ -7,6 +7,22 @@ function isString(str: any): str is string {
     return typeof str === 'string';
 }
 
+function isPropertyPathSymbol(p: any): p is Algebra.PropertyPathSymbol {
+    return p.type in [
+            Algebra.types.ALT, Algebra.types.INV, Algebra.types.LINK,
+            Algebra.types.NPS, Algebra.types.ONE_OR_MORE_PATH,
+            Algebra.types.SEQ, Algebra.types.ZERO_OR_MORE_PATH,
+            Algebra.types.ZERO_OR_ONE_PATH];
+}
+
+function isPath(op: Algebra.Operation): op is Algebra.Path {
+    return op.type == Algebra.types.PATH;
+}
+
+function isBgp(op: Algebra.Operation): op is Algebra.Bgp {
+    return op.type == Algebra.types.BGP;
+}
+
 export default class TaskFactory {
 
     algebraFactory: Factory;
@@ -15,8 +31,8 @@ export default class TaskFactory {
 
     constructor(algebraFactory?: Factory) {
         this.algebraFactory = algebraFactory || new Factory();
-        this.defaultInput = algebraFactory.createTerm('$_');
-        this.defaultOutput = algebraFactory.createTerm('$_out');
+        this.defaultInput = this.algebraFactory.createTerm('$_');
+        this.defaultOutput = this.algebraFactory.createTerm('$_out');
     }
 
     createAction(
@@ -47,20 +63,29 @@ export default class TaskFactory {
     }
 
     private translateOp(patternStr: string): Algebra.Operation {
-        return translate(this.selectEnvelope(patternStr));
+        return (<Algebra.Project> translate(this.selectEnvelope(patternStr))).input;
     }
 
     createTraverse(
             next: Task,
-            predicate: Algebra.PropertyPathSymbol | string,
-            graph: rdfjs.Term ): Join {
+            predicate: Algebra.PropertyPathSymbol | rdfjs.Term | string,
+            graph?: rdfjs.Term ): Join {
         if (isString(predicate)) {
-            predicate = (<Path> this.translateOp('$_ ' + predicate + ' $_out')).predicate;
+            let op = this.translateOp('$_ ' + predicate + ' $_out');
+            if (isPath(op)) {
+                predicate = op.predicate;
+            } else {
+                predicate = (<Algebra.Bgp> op).patterns[0].predicate;
+            }
         }
         return {
             type: 'join', next,
-            right: this.algebraFactory.createPath(
-                    this.defaultInput, predicate, this.defaultOutput, graph),
+            right: (isPropertyPathSymbol(predicate)) ?
+                    this.algebraFactory.createPath(
+                            this.defaultInput, predicate, this.defaultOutput, graph):
+                    this.algebraFactory.createBgp([
+                            this.algebraFactory.createPattern(
+                                    this.defaultInput, predicate, this.defaultOutput, graph)]),
             focus: this.defaultOutput
         };
     }
