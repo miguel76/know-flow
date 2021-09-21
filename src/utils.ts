@@ -8,7 +8,7 @@ let WILDCARD = new Wildcard();
 
 function toSparqlFragment(op: Algebra.Operation, options = {}): string {
     let sparqlStr = toSparql(algebraFactory.createProject(op, [WILDCARD]), options);
-    return sparqlStr.substring("SELECT * WHERE { ".length, sparqlStr.length - " }".length);
+    return sparqlStr.substring('SELECT * WHERE { '.length, sparqlStr.length - ' }'.length);
 }
 
 export function stringifyTask(task: Task, options = {}) {
@@ -27,17 +27,25 @@ export function stringifyTask(task: Task, options = {}) {
         //     predicate: (<Traverse> task).predicate,
         //     graph: (<Traverse> task).graph
         // }),
-        'join': () => ({
-            type: 'join',
-            right: toSparqlFragment((<Join> task).right, options),
-            focus: new Generator(options).createGenerator().toEntity((<Join> task).focus),
-            next: stringifyTask((<QueryAndTask> task).next, options)
-        }),
-        'filter': () => ({
-            type: 'filter',
-            expression: new Generator(options).createGenerator().toExpression((<Filter> task).expression),
-            next: stringifyTask((<QueryAndTask> task).next, options)
-        })
+        'join': () => {
+            let join = <Join> task;
+            return {
+                type: 'join',
+                right: toSparqlFragment(join.right, options),
+                focus: join.focus && new Generator(options).createGenerator().toEntity(join.focus),
+                next: stringifyTask(join.next, options)
+            }
+        },
+        'filter': () => {
+            let filter = <Filter> task;
+            let filterSparql = toSparqlFragment(
+                        algebraFactory.createFilter(algebraFactory.createBgp([]), filter.expression), options);
+            return {
+                type: 'filter',
+                expression: filterSparql.substring('FILTER('.length, filterSparql.length - ')'.length),
+                next: stringifyTask(filter.next, options)
+            }
+        }
     };
     // const cases: ([k:string]: () => Task) = {
     //     'action': () => task,

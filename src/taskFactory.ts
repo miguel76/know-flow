@@ -28,11 +28,28 @@ export default class TaskFactory {
     algebraFactory: Factory;
     defaultInput: rdfjs.Term;
     defaultOutput: rdfjs.Term;
+    options: {
+        dataFactory?: rdfjs.DataFactory,
+        algebraFactory?: Factory,
+        quads?: boolean,
+        prefixes?: {[prefix: string]: string},
+        baseIRI?: string,
+        blankToVariable?: boolean
+        sparqlStar?: boolean
+    };
 
-    constructor(algebraFactory?: Factory) {
-        this.algebraFactory = algebraFactory || new Factory();
+    constructor(options: {
+            dataFactory?: rdfjs.DataFactory,
+            algebraFactory?: Factory,
+            quads?: boolean,
+            prefixes?: {[prefix: string]: string},
+            baseIRI?: string,
+            blankToVariable?: boolean
+            sparqlStar?: boolean } = {}) {
+        this.algebraFactory = options.algebraFactory || new Factory(options.dataFactory);
         this.defaultInput = this.algebraFactory.createTerm('$_');
         this.defaultOutput = this.algebraFactory.createTerm('$_out');
+        this.options = options;
     }
 
     createAction(
@@ -63,7 +80,7 @@ export default class TaskFactory {
     }
 
     private translateOp(patternStr: string): Algebra.Operation {
-        return (<Algebra.Project> translate(this.selectEnvelope(patternStr))).input;
+        return (<Algebra.Project> translate(this.selectEnvelope(patternStr), this.options)).input;
     }
 
     createTraverse(
@@ -103,7 +120,8 @@ export default class TaskFactory {
 
     createFilter(next: Task, expression: Algebra.Expression | string): Filter {
         if (isString(expression)) {
-            expression = (<Algebra.Filter> translate('SELECT * WHERE { FILTER(' + expression + ') }')).expression;
+            console.log(this.translateOp('FILTER(' + expression + ')'));
+            expression = (<Algebra.Filter> this.translateOp('FILTER(' + expression + ')')).expression;
         }
         return {
             type: 'filter', next,
