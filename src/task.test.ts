@@ -10,7 +10,7 @@ let options = {
 
 let taskFactory = new TaskFactory(options);
 
-let action1 = taskFactory.createAction(() => {console.log('Action 1')});
+let action1 = taskFactory.createAction<string>(() => 'Action 1');
 let action2 = taskFactory.createAction(() => {console.log('Action 2')});
 let action3 = taskFactory.createAction(() => {console.log('Action 3')});
 let action4 = taskFactory.createAction(() => {console.log('Action 4')});

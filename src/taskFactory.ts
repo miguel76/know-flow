@@ -1,7 +1,7 @@
 import { Algebra, translate, Factory } from 'sparqlalgebrajs';
 import * as rdfjs from "rdf-js";
 import {Task, Action, TaskSequence, ForEach, Traverse, Join, Filter} from './task';
-import { Path } from 'sparqlalgebrajs/lib/algebra';
+import {Bindings, BindingsStream} from '@comunica/types';
 
 function isString(str: any): str is string {
     return typeof str === 'string';
@@ -34,9 +34,10 @@ export default class TaskFactory {
         quads?: boolean,
         prefixes?: {[prefix: string]: string},
         baseIRI?: string,
-        blankToVariable?: boolean
+        blankToVariable?: boolean,
         sparqlStar?: boolean
     };
+    onError: (error: any) => void;
 
     constructor(options: {
             dataFactory?: rdfjs.DataFactory,
@@ -44,31 +45,120 @@ export default class TaskFactory {
             quads?: boolean,
             prefixes?: {[prefix: string]: string},
             baseIRI?: string,
-            blankToVariable?: boolean
-            sparqlStar?: boolean } = {}) {
+            blankToVariable?: boolean,
+            sparqlStar?: boolean,
+            onError?: (error: any) => void } = {}) {
         this.algebraFactory = options.algebraFactory || new Factory(options.dataFactory);
         this.defaultInput = this.algebraFactory.createTerm('$_');
         this.defaultOutput = this.algebraFactory.createTerm('$_out');
         this.options = options;
+        this.onError = options.onError || ((e) => {console.error(e);});
     }
 
-    createAction(
-            exec: ( variables: rdfjs.Variable[],
-                    bindings: {[key: string]: rdfjs.Term}[] ) => void): Action {
+    // createAction(
+    //         exec: BindingsStream => void | {[key: string]: rdfjs.Term}[] => void): Action {
+    //     return {
+    //         type: 'action',
+    //         exec
+    //     };
+    // }
+
+    createAction<ReturnType>(exec: (bindings: BindingsStream) => Promise<ReturnType>): Action<ReturnType> {
         return {
             type: 'action',
             exec
         };
     }
 
-    createTaskSequence(subtasks: Task[]): TaskSequence {
+    createActionOnAll<ReturnType>(execOnAll: (bindingsArray: Bindings[]) => Promise<ReturnType>): Action<ReturnType> {
+        return {
+            type: 'action',
+            exec: (bindingsStream: BindingsStream) => {
+                return new Promise<ReturnType>((resolve, reject) => {
+                    let bindingsArray: Bindings[] = [];
+                    bindingsStream.on('data', (binding) => {
+                        bindingsArray.push(binding);
+                    });
+                    bindingsStream.on('end', () => {
+                        execOnAll(bindingsArray).then((res) => {
+                            resolve(res);
+                        }, (err) => {
+                            reject(err);
+                        });
+                    });
+                    bindingsStream.on('error', (e) => {
+                        if (this.onError) {
+                            this.onError(e)
+                        }
+                        reject(e);
+                    });
+                });
+            }
+        }
+    }
+
+    createActionOnFirst<ReturnType>(execOnFirst: (bindings: Bindings) => Promise<ReturnType>): Action<ReturnType> {
+        return {
+            type: 'action',
+            exec: (bindingsStream: BindingsStream) => {
+                return new Promise<ReturnType>((resolve, reject) => {
+                    var firstTime = true;
+                    bindingsStream.on('data', (binding) => {
+                        if (firstTime) {
+                            execOnFirst(binding).then((res) => {
+                                resolve(res);
+                            }, (err) => {
+                                reject(err);
+                            });
+                            firstTime = false;
+                        }
+                    });
+                    bindingsStream.on('error', (e) => {
+                        if (this.onError) {
+                            this.onError(e)
+                        }
+                        reject(e);
+                    });
+                });
+            }
+        }
+    }
+
+    createForEachAndAction<EachReturnType>(execForEach: (bindings: Bindings) => Promise<EachReturnType>): Action<EachReturnType[]> {
+        return {
+            type: 'action',
+            exec: (bindingsStream: BindingsStream) => {
+                return new Promise<EachReturnType[]>((resolve, reject) => {
+                    let results: EachReturnType[] = [];
+                    bindingsStream.on('data', (binding) => {
+                        execForEach(binding).then((res) => {
+                            results.push(res);
+                        }, (err) => {
+                            reject(err);
+                        });
+                    });
+                    bindingsStream.on('end', () => {
+                        resolve(results);
+                    });
+                    bindingsStream.on('error', (e) => {
+                        if (this.onError) {
+                            this.onError(e)
+                        }
+                        reject(e);
+                    });
+                });
+            }
+        }
+    }
+
+    createTaskSequence<SeqReturnType>(subtasks: Task<SeqReturnType>[]): TaskSequence<SeqReturnType> {
         return {
             type: 'task-sequence',
             subtasks
         };
     }
 
-    createForEach(subtask: Task): ForEach {
+    createForEach<EachReturnType>(subtask: Task<EachReturnType>): ForEach<EachReturnType> {
         return {
             type: 'for-each',
             subtask
@@ -83,10 +173,10 @@ export default class TaskFactory {
         return (<Algebra.Project> translate(this.selectEnvelope(patternStr), this.options)).input;
     }
 
-    createTraverse(
-            next: Task,
+    createTraverse<ReturnType>(
+            next: Task<ReturnType>,
             predicate: Algebra.PropertyPathSymbol | rdfjs.Term | string,
-            graph?: rdfjs.Term ): Join {
+            graph?: rdfjs.Term ): Join<ReturnType> {
         if (isString(predicate)) {
             let op = this.translateOp('$_ ' + predicate + ' $_out');
             if (isPath(op)) {
@@ -107,7 +197,10 @@ export default class TaskFactory {
         };
     }
 
-    createJoin(next: Task, rightPattern: Algebra.Operation | string, focus?: rdfjs.Term): Join {
+    createJoin<ReturnType>(
+            next: Task<ReturnType>,
+            rightPattern: Algebra.Operation | string,
+            focus?: rdfjs.Term): Join<ReturnType> {
         if (isString(rightPattern)) {
             rightPattern = this.translateOp(rightPattern);
         }
@@ -118,7 +211,7 @@ export default class TaskFactory {
         };
     }
 
-    createFilter(next: Task, expression: Algebra.Expression | string): Filter {
+    createFilter<ReturnType>(next: Task<ReturnType>, expression: Algebra.Expression | string): Filter<ReturnType> {
         if (isString(expression)) {
             console.log(this.translateOp('FILTER(' + expression + ')'));
             expression = (<Algebra.Filter> this.translateOp('FILTER(' + expression + ')')).expression;

@@ -23,7 +23,9 @@
     },
     "homepage": "https://github.com/miguel76/sparql-net#readme",
     "dependencies": {
+        "@comunica/types": "^1.22.0",
         "assert": "^2.0.0",
+        "asynciterator": "^3.2.0",
         "sparqlalgebrajs": "^3.0.3",
         "sparqljs": "^3.4.3"
     },

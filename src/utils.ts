@@ -47,9 +47,6 @@ export function stringifyTask(task: Task, options = {}) {
             }
         }
     };
-    // const cases: ([k:string]: () => Task) = {
-    //     'action': () => task,
-    // }:
     return cases[task.type]();
 
 }
