@@ -1,5 +1,5 @@
 import { Algebra, toSparql, Factory } from 'sparqlalgebrajs';
-import {Task, Action, TaskSequence, ForEach, Traverse, Join, Filter, QueryAndTask} from './task';
+import {Task, Action, TaskSequence, ForEach, Traverse, Join, Filter, QueryAndTask, Cascade} from './task';
 import {Generator, Wildcard} from 'sparqljs';
 // let generator = new Generator(options);
 
@@ -11,24 +11,27 @@ function toSparqlFragment(op: Algebra.Operation, options = {}): string {
     return sparqlStr.substring('SELECT * WHERE { '.length, sparqlStr.length - ' }'.length);
 }
 
-export function stringifyTask(task: Task, options = {}) {
+export function stringifyTask<ReturnType>(task: Task<ReturnType>, options = {}) {
     const cases: { [index:string] : () => any } = {
         'action': () => task,
+        'cascade': () => {
+            let innerTask = (<any> task).task;
+            let cascade = <Cascade<typeof innerTask, ReturnType>> task;
+            return {
+                task: stringifyTask(cascade.task, options),
+                action: cascade.action
+            };
+        },
         'task-sequence': () => ({
                 type: 'task-sequence',
-                subtasks: (<TaskSequence> task).subtasks.map(t => stringifyTask(t,options))
+                subtasks: (<TaskSequence<ReturnType[keyof ReturnType]>> task).subtasks.map(t => stringifyTask(t,options))
         }),
         'for-each': () => ({
             type: 'for-each',
-            subtask: (<ForEach> task).subtask
+            subtask: (<ForEach<ReturnType[keyof ReturnType]>> task).subtask
         }),
-        // 'traverse': () => ({
-        //     type: 'traverse',
-        //     predicate: (<Traverse> task).predicate,
-        //     graph: (<Traverse> task).graph
-        // }),
         'join': () => {
-            let join = <Join> task;
+            let join = <Join<ReturnType>> task;
             return {
                 type: 'join',
                 right: toSparqlFragment(join.right, options),
@@ -37,7 +40,7 @@ export function stringifyTask(task: Task, options = {}) {
             }
         },
         'filter': () => {
-            let filter = <Filter> task;
+            let filter = <Filter<ReturnType>> task;
             let filterSparql = toSparqlFragment(
                         algebraFactory.createFilter(algebraFactory.createBgp([]), filter.expression), options);
             return {

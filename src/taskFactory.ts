@@ -1,6 +1,6 @@
 import { Algebra, translate, Factory } from 'sparqlalgebrajs';
 import * as rdfjs from "rdf-js";
-import {Task, Action, TaskSequence, ForEach, Traverse, Join, Filter} from './task';
+import {Task, Action, TaskSequence, ForEach, Traverse, Join, Filter, Cascade} from './task';
 import {Bindings, BindingsStream} from '@comunica/types';
 
 function isString(str: any): str is string {
@@ -21,6 +21,19 @@ function isPath(op: Algebra.Operation): op is Algebra.Path {
 
 function isBgp(op: Algebra.Operation): op is Algebra.Bgp {
     return op.type == Algebra.types.BGP;
+}
+
+function promisifyFromSync<Domain, Range>(f: (x: Domain) => Range):
+        (x: Domain) => Promise<Range> {
+    return (x: Domain) => (
+        new Promise<Range>((resolve, reject) => {
+            try {
+                resolve(f(x));
+            } catch(e) {
+                reject(e);
+            }
+        })
+    );
 }
 
 export default class TaskFactory {
@@ -63,11 +76,33 @@ export default class TaskFactory {
     //     };
     // }
 
+    createCascade<TaskReturnType, ActionReturnType>(
+                task: Task<TaskReturnType>,
+                action: (taskResult: TaskReturnType) => Promise<ActionReturnType>
+            ): Cascade<TaskReturnType, ActionReturnType> {
+        return {type: 'cascade', task, action};
+    }
+
+    createSimpleCascade<TaskReturnType, ActionReturnType>(
+                task: Task<TaskReturnType>,
+                syncAction: (taskResult: TaskReturnType) => ActionReturnType
+            ): Cascade<TaskReturnType, ActionReturnType> {
+        return this.createCascade(task, promisifyFromSync(syncAction));
+    }
+
     createAction<ReturnType>(exec: (bindings: BindingsStream) => Promise<ReturnType>): Action<ReturnType> {
         return {
             type: 'action',
             exec
         };
+    }
+
+    createSimpleAction<ReturnType>(syncExec: (bindings: BindingsStream) => ReturnType): Action<ReturnType> {
+        return this.createAction(promisifyFromSync(syncExec));
+    }
+
+    createConstant<ReturnType>(value: ReturnType): Action<ReturnType> {
+        return this.createSimpleAction(() => value);
     }
 
     createActionOnAll<ReturnType>(execOnAll: (bindingsArray: Bindings[]) => Promise<ReturnType>): Action<ReturnType> {
@@ -97,6 +132,10 @@ export default class TaskFactory {
         }
     }
 
+    createSimpleActionOnAll<ReturnType>(syncExecOnAll: (bindingsArray: Bindings[]) => ReturnType): Action<ReturnType> {
+        return this.createActionOnAll(promisifyFromSync(syncExecOnAll));
+    }
+
     createActionOnFirst<ReturnType>(execOnFirst: (bindings: Bindings) => Promise<ReturnType>): Action<ReturnType> {
         return {
             type: 'action',
@@ -124,6 +163,10 @@ export default class TaskFactory {
         }
     }
 
+    createSimpleActionOnFirst<ReturnType>(syncExecOnFirst: (bindings: Bindings) => ReturnType): Action<ReturnType> {
+        return this.createActionOnFirst(promisifyFromSync(syncExecOnFirst));
+    }
+
     createForEachAndAction<EachReturnType>(execForEach: (bindings: Bindings) => Promise<EachReturnType>): Action<EachReturnType[]> {
         return {
             type: 'action',
@@ -149,6 +192,10 @@ export default class TaskFactory {
                 });
             }
         }
+    }
+
+    createForEachAndSimpleAction<EachReturnType>(syncExecForEach: (bindings: Bindings) => EachReturnType): Action<EachReturnType[]> {
+        return this.createForEachAndAction(promisifyFromSync(syncExecForEach));
     }
 
     createTaskSequence<SeqReturnType>(subtasks: Task<SeqReturnType>[]): TaskSequence<SeqReturnType> {

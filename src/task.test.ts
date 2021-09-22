@@ -10,11 +10,11 @@ let options = {
 
 let taskFactory = new TaskFactory(options);
 
-let action1 = taskFactory.createAction<string>(() => 'Action 1');
-let action2 = taskFactory.createAction(() => {console.log('Action 2')});
-let action3 = taskFactory.createAction(() => {console.log('Action 3')});
-let action4 = taskFactory.createAction(() => {console.log('Action 4')});
-let action5 = taskFactory.createAction(() => {console.log('Action 5')});
+let action1 = taskFactory.createConstant('Action 1');
+let action2 = taskFactory.createConstant('Action 2');
+let action3 = taskFactory.createConstant('Action 3');
+let action4 = taskFactory.createConstant('Action 4');
+let action5 = taskFactory.createConstant('Action 5');
 
 let taskSeq = taskFactory.createTaskSequence([action1, action2, action3]);
 let forEach = taskFactory.createForEach(action1);
