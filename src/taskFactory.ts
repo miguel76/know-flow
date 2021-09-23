@@ -1,7 +1,8 @@
 import { Algebra, translate, Factory } from 'sparqlalgebrajs';
 import * as rdfjs from "rdf-js";
-import {Task, Action, TaskSequence, ForEach, Traverse, Join, Filter, Cascade} from './task';
+import {Table, TableSync, Task, Action, TaskSequence, ForEach, Traverse, Join, Filter, Cascade} from './task';
 import {Bindings, BindingsStream} from '@comunica/types';
+import {syncTable} from './utils';
 
 function isString(str: any): str is string {
     return typeof str === 'string';
@@ -90,14 +91,11 @@ export default class TaskFactory {
         return this.createCascade(task, promisifyFromSync(syncAction));
     }
 
-    createAction<ReturnType>(exec: (bindings: BindingsStream) => Promise<ReturnType>): Action<ReturnType> {
-        return {
-            type: 'action',
-            exec
-        };
+    createAction<ReturnType>(exec: (input: Table) => Promise<ReturnType>): Action<ReturnType> {
+        return {type: 'action', exec};
     }
 
-    createSimpleAction<ReturnType>(syncExec: (bindings: BindingsStream) => ReturnType): Action<ReturnType> {
+    createSimpleAction<ReturnType>(syncExec: (input: Table) => ReturnType): Action<ReturnType> {
         return this.createAction(promisifyFromSync(syncExec));
     }
 
@@ -105,44 +103,36 @@ export default class TaskFactory {
         return this.createSimpleAction(() => value);
     }
 
-    createActionOnAll<ReturnType>(execOnAll: (bindingsArray: Bindings[]) => Promise<ReturnType>): Action<ReturnType> {
+    createActionOnAll<ReturnType>(execOnAll: (input: TableSync) => Promise<ReturnType>): Action<ReturnType> {
         return {
             type: 'action',
-            exec: (bindingsStream: BindingsStream) => {
+            exec: (table) => {
                 return new Promise<ReturnType>((resolve, reject) => {
-                    let bindingsArray: Bindings[] = [];
-                    bindingsStream.on('data', (binding) => {
-                        bindingsArray.push(binding);
-                    });
-                    bindingsStream.on('end', () => {
-                        execOnAll(bindingsArray).then((res) => {
+                    syncTable(table).then((tableSync) => {
+                        execOnAll(tableSync).then((res) => {
                             resolve(res);
-                        }, (err) => {
-                            reject(err);
+                        }, (error) => {
+                            reject(error);
                         });
-                    });
-                    bindingsStream.on('error', (e) => {
-                        if (this.onError) {
-                            this.onError(e)
-                        }
-                        reject(e);
+                    }, (error) => {
+                        reject(error);
                     });
                 });
             }
         }
     }
 
-    createSimpleActionOnAll<ReturnType>(syncExecOnAll: (bindingsArray: Bindings[]) => ReturnType): Action<ReturnType> {
+    createSimpleActionOnAll<ReturnType>(syncExecOnAll: (input: TableSync) => ReturnType): Action<ReturnType> {
         return this.createActionOnAll(promisifyFromSync(syncExecOnAll));
     }
 
     createActionOnFirst<ReturnType>(execOnFirst: (bindings: Bindings) => Promise<ReturnType>): Action<ReturnType> {
         return {
             type: 'action',
-            exec: (bindingsStream: BindingsStream) => {
+            exec: (table) => {
                 return new Promise<ReturnType>((resolve, reject) => {
                     var firstTime = true;
-                    bindingsStream.on('data', (binding) => {
+                    table.bindingsStream.on('data', (binding) => {
                         if (firstTime) {
                             execOnFirst(binding).then((res) => {
                                 resolve(res);
@@ -152,7 +142,7 @@ export default class TaskFactory {
                             firstTime = false;
                         }
                     });
-                    bindingsStream.on('error', (e) => {
+                    table.bindingsStream.on('error', (e) => {
                         if (this.onError) {
                             this.onError(e)
                         }
@@ -170,20 +160,20 @@ export default class TaskFactory {
     createForEachAndAction<EachReturnType>(execForEach: (bindings: Bindings) => Promise<EachReturnType>): Action<EachReturnType[]> {
         return {
             type: 'action',
-            exec: (bindingsStream: BindingsStream) => {
+            exec: (table) => {
                 return new Promise<EachReturnType[]>((resolve, reject) => {
                     let results: EachReturnType[] = [];
-                    bindingsStream.on('data', (binding) => {
+                    table.bindingsStream.on('data', (binding) => {
                         execForEach(binding).then((res) => {
                             results.push(res);
                         }, (err) => {
                             reject(err);
                         });
                     });
-                    bindingsStream.on('end', () => {
+                    table.bindingsStream.on('end', () => {
                         resolve(results);
                     });
-                    bindingsStream.on('error', (e) => {
+                    table.bindingsStream.on('error', (e) => {
                         if (this.onError) {
                             this.onError(e)
                         }

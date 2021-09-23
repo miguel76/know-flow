@@ -1,10 +1,18 @@
-import {Task, Action, TaskSequence, ForEach, Traverse, Join, Filter, Cascade} from './task';
+import {Task, Action, TaskSequence, ForEach, Traverse, Join, Filter, Cascade, Table} from './task';
 import * as rdfjs from 'rdf-js';
 import {IQueryEngine, BindingsStream, Bindings} from '@comunica/types';
 import {SingletonIterator} from 'asynciterator';
+import {fromTableToValuesOp} from './utils';
 
 function oneTupleBindingsStream(bindings: Bindings): BindingsStream {
     return new SingletonIterator<Bindings>(bindings);
+}
+
+function oneTupleTable(variables: string[], bindings: Bindings, canContainUndefs: boolean): Table {
+    return {
+        bindingsStream: new SingletonIterator<Bindings>(bindings),
+        variables, canContainUndefs
+    };
 }
 
 function collectPromises<T>(promises: Promise<T>[]): Promise<T[]> {
@@ -27,15 +35,15 @@ function collectPromises<T>(promises: Promise<T>[]): Promise<T[]> {
 
 export function executeTask<ReturnType>(
         task: Task<ReturnType>,
-        bindingsStream: BindingsStream,
+        input: Table,
         engine: IQueryEngine,
         queryContext: any = {}): Promise<ReturnType> {
     const cases: { [index:string] : () => any } = {
-        'action': () => (<Action<ReturnType>> task).exec(bindingsStream),
+        'action': () => (<Action<ReturnType>> task).exec(input),
         'cascade': () => {
             let cascade = <Cascade<any, ReturnType>> task;
             return new Promise<ReturnType>((resolve, reject) => {
-                executeTask(cascade.task, bindingsStream, engine, queryContext).then((taskResult) => {
+                executeTask(cascade.task, input, engine, queryContext).then((taskResult) => {
                     cascade.action(taskResult).then((actionResult) => {
                         resolve(actionResult);
                     }, (error) => {
@@ -49,13 +57,29 @@ export function executeTask<ReturnType>(
         'task-sequence': () => {
             let taskSequence = <TaskSequence<ReturnType[keyof ReturnType]>> task;
             return collectPromises(
-                    taskSequence.subtasks.map(t => executeTask(t, bindingsStream, engine, queryContext)));
+                    taskSequence.subtasks.map(t => executeTask(t, input, engine, queryContext)));
         },
         'for-each': () => {
-            let subtask = (<ForEach<ReturnType[keyof ReturnType]>> task).subtask;
-            var promises: Promise<ReturnType[keyof ReturnType]>[] = [];
-            bindingsStream.on('data', (bindings) => {
-                promises.push(executeTask(subtask, oneTupleBindingsStream(bindings), engine, queryContext));
+            let forEach = <ForEach<any>> task;
+            // let subtask = (<ForEach<ReturnType[keyof ReturnType]>> task).subtask;
+            return new Promise<ReturnType>((resolve, reject) => {
+                var promises: Promise<unknown>[] = [];
+                input.bindingsStream.on('data', (bindings) => {
+                    promises.push(executeTask(
+                            forEach.subtask,
+                            oneTupleTable(input.variables, bindings, input.canContainUndefs),
+                            engine, queryContext));
+                });
+                input.bindingsStream.on('end', () => {
+                    collectPromises(promises).then((result) => {
+                        resolve(<ReturnType> <unknown> result);
+                    }, (error) => {
+                        reject(error);
+                    });
+                });
+                input.bindingsStream.on('error', (error) => {
+                    reject(error);
+                });
             });
         },
         // 'traverse': () => ({

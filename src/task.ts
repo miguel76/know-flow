@@ -1,6 +1,18 @@
 import { Algebra } from 'sparqlalgebrajs';
 import * as rdfjs from "rdf-js";
-import {BindingsStream} from '@comunica/types';
+import {Bindings, BindingsStream} from '@comunica/types';
+
+export interface Table {
+    bindingsStream: BindingsStream;
+    variables: string[];
+    canContainUndefs: boolean;
+}
+
+export interface TableSync {
+    bindingsArray: Bindings[];
+    variables: string[];
+    canContainUndefs: boolean;
+}
 
 export interface Task<ReturnType> {
     type: string;
@@ -8,7 +20,7 @@ export interface Task<ReturnType> {
 
 export interface Action<ReturnType> extends Task<ReturnType> {
     type: 'action';
-    exec: (bindings: BindingsStream) => Promise<ReturnType>;
+    exec: (input: Table) => Promise<ReturnType>;
 }
 
 export interface Cascade<TaskReturnType, ActionReturnType> extends Task<ActionReturnType> {
