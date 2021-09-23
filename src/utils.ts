@@ -15,8 +15,7 @@ export function stringifyTask<ReturnType>(task: Task<ReturnType>, options = {}) 
     const cases: { [index:string] : () => any } = {
         'action': () => task,
         'cascade': () => {
-            let innerTask = (<any> task).task;
-            let cascade = <Cascade<typeof innerTask, ReturnType>> task;
+            let cascade = <Cascade<any, ReturnType>> task;
             return {
                 task: stringifyTask(cascade.task, options),
                 action: cascade.action

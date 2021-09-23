@@ -7,6 +7,24 @@ function oneTupleBindingsStream(bindings: Bindings): BindingsStream {
     return new SingletonIterator<Bindings>(bindings);
 }
 
+function collectPromises<T>(promises: Promise<T>[]): Promise<T[]> {
+    return new Promise<T[]>((resolve, reject) => {
+        var missing =  promises.length;
+        var results: T[] = [];
+        promises.forEach((promise, index) => {
+            promise.then((result) => {
+                results[index] = result;
+                missing--;
+                if (missing == 0) {
+                    resolve(results);
+                }
+            }, (error) => {
+                reject(error);
+            })
+        });
+    });
+}
+
 export function executeTask<ReturnType>(
         task: Task<ReturnType>,
         bindingsStream: BindingsStream,
@@ -15,8 +33,7 @@ export function executeTask<ReturnType>(
     const cases: { [index:string] : () => any } = {
         'action': () => (<Action<ReturnType>> task).exec(bindingsStream),
         'cascade': () => {
-            let innerTask = (<any> task).task;
-            let cascade = <Cascade<typeof innerTask, ReturnType>> task;
+            let cascade = <Cascade<any, ReturnType>> task;
             return new Promise<ReturnType>((resolve, reject) => {
                 executeTask(cascade.task, bindingsStream, engine, queryContext).then((taskResult) => {
                     cascade.action(taskResult).then((actionResult) => {
@@ -30,12 +47,15 @@ export function executeTask<ReturnType>(
             });
         },
         'task-sequence': () => {
-            (<TaskSequence<ReturnType[keyof ReturnType]>> task).subtasks.forEach(t => executeTask(t, bindingsStream, engine, queryContext));
+            let taskSequence = <TaskSequence<ReturnType[keyof ReturnType]>> task;
+            return collectPromises(
+                    taskSequence.subtasks.map(t => executeTask(t, bindingsStream, engine, queryContext)));
         },
         'for-each': () => {
             let subtask = (<ForEach<ReturnType[keyof ReturnType]>> task).subtask;
+            var promises: Promise<ReturnType[keyof ReturnType]>[] = [];
             bindingsStream.on('data', (bindings) => {
-                executeTask(subtask, oneTupleBindingsStream(bindings), engine, queryContext);
+                promises.push(executeTask(subtask, oneTupleBindingsStream(bindings), engine, queryContext));
             });
         },
         // 'traverse': () => ({
