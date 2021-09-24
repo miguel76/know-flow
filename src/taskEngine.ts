@@ -5,8 +5,10 @@ import {IQueryEngine, BindingsStream, Bindings, IActorQueryOperationOutputBindin
 import {ArrayIterator, SingletonIterator, UnionIterator} from 'asynciterator';
 import {fromTableToValuesOp} from './utils';
 import { Map } from 'immutable';
+import { Wildcard } from 'sparqljs';
 
 let algebraFactory = new Factory();
+let WILDCARD = new Wildcard();
 
 function oneTupleTable(variables: string[], bindings: Bindings, canContainUndefs: boolean): Table {
     return {
@@ -121,9 +123,11 @@ export function executeTask<ReturnType>(
         },
         'join': async () => {
             let join = <Join<ReturnType>> task;
-            const valuesOp = await fromTableToValuesOp(input);
-            const queryOp = algebraFactory.createJoin(valuesOp, join.right);
-            const res = <IActorQueryOperationOutputBindings> await engine.query(queryOp);
+            const queryOp =
+                    (input === NO_BINDING_SINGLETON_TABLE) ?
+                            join.right :
+                            algebraFactory.createJoin(await fromTableToValuesOp(input), join.right);
+            const res = <IActorQueryOperationOutputBindings> await engine.query(queryOp, queryContext);
             const resAfterFocus = join.focus ? replaceFocus(res, join.focus.value) : res;
             return await executeTask(join.next, resAfterFocus, engine, queryContext);
         },
@@ -131,7 +135,7 @@ export function executeTask<ReturnType>(
             let filter = <Filter<ReturnType>> task;
             const valuesOp = await fromTableToValuesOp(input);
             const queryOp = algebraFactory.createFilter(valuesOp, filter.expression);
-            const res = <IActorQueryOperationOutputBindings> await engine.query(queryOp);
+            const res = <IActorQueryOperationOutputBindings> await engine.query(queryOp, queryContext);
             return await executeTask(filter.next, res, engine, queryContext);
         }
     };

@@ -14,7 +14,7 @@ let options = {
 };
 
 let queryContext = {
-    sources: ['https://dbpedia.org/sparql']
+    sources: [{ type: 'sparql', value: 'https://dbpedia.org/sparql' }]
 };
 
 let taskFactory = new TaskFactory(options);
@@ -36,7 +36,7 @@ let traverse = taskFactory.createTraverse(action4, 'rdf:type');
 
 let join = taskFactory.createJoin(action4, '$_ rdf:type rdf:List; rdfs:label "ciccio"');
 
-let showLanguageList = action4;
+let showLanguageList = taskFactory.createSimpleActionOnAll(ts => ts.bindingsArray.map(b => b.get('?_')));
 
 let showLanguages = taskFactory.createJoin(showLanguageList, '$_ rdf:type dbo:Language');
 
