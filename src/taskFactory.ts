@@ -1,5 +1,5 @@
 import { Algebra, translate, Factory } from 'sparqlalgebrajs';
-import * as rdfjs from "rdf-js";
+import * as RDF from "rdf-js";
 import {Table, TableSync, Task, Action, TaskSequence, ForEach, Traverse, Join, Filter, Cascade} from './task';
 import {Bindings, BindingsStream} from '@comunica/types';
 import {syncTable} from './utils';
@@ -40,10 +40,10 @@ function promisifyFromSync<Domain, Range>(f: (x: Domain) => Range):
 export default class TaskFactory {
 
     algebraFactory: Factory;
-    defaultInput: rdfjs.Term;
-    defaultOutput: rdfjs.Term;
+    defaultInput: RDF.Variable;
+    defaultOutput: RDF.Variable;
     options: {
-        dataFactory?: rdfjs.DataFactory,
+        dataFactory?: RDF.DataFactory,
         algebraFactory?: Factory,
         quads?: boolean,
         prefixes?: {[prefix: string]: string},
@@ -54,7 +54,7 @@ export default class TaskFactory {
     onError: (error: any) => void;
 
     constructor(options: {
-            dataFactory?: rdfjs.DataFactory,
+            dataFactory?: RDF.DataFactory,
             algebraFactory?: Factory,
             quads?: boolean,
             prefixes?: {[prefix: string]: string},
@@ -63,8 +63,8 @@ export default class TaskFactory {
             sparqlStar?: boolean,
             onError?: (error: any) => void } = {}) {
         this.algebraFactory = options.algebraFactory || new Factory(options.dataFactory);
-        this.defaultInput = this.algebraFactory.createTerm('$_');
-        this.defaultOutput = this.algebraFactory.createTerm('$_out');
+        this.defaultInput = <RDF.Variable> this.algebraFactory.createTerm('$_');
+        this.defaultOutput = <RDF.Variable> this.algebraFactory.createTerm('$_out');
         this.options = options;
         this.onError = options.onError || ((e) => {console.error(e);});
     }
@@ -212,8 +212,8 @@ export default class TaskFactory {
 
     createTraverse<ReturnType>(
             next: Task<ReturnType>,
-            predicate: Algebra.PropertyPathSymbol | rdfjs.Term | string,
-            graph?: rdfjs.Term ): Join<ReturnType> {
+            predicate: Algebra.PropertyPathSymbol | RDF.Term | string,
+            graph?: RDF.Term ): Join<ReturnType> {
         if (isString(predicate)) {
             let op = this.translateOp('$_ ' + predicate + ' $_out');
             if (isPath(op)) {
@@ -237,7 +237,7 @@ export default class TaskFactory {
     createJoin<ReturnType>(
             next: Task<ReturnType>,
             rightPattern: Algebra.Operation | string,
-            focus?: rdfjs.Term): Join<ReturnType> {
+            focus?: RDF.Variable): Join<ReturnType> {
         if (isString(rightPattern)) {
             rightPattern = this.translateOp(rightPattern);
         }

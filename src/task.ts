@@ -1,5 +1,5 @@
 import { Algebra } from 'sparqlalgebrajs';
-import * as rdfjs from "rdf-js";
+import * as RDF from "rdf-js";
 import {Bindings, BindingsStream} from '@comunica/types';
 
 export interface Table {
@@ -46,13 +46,13 @@ export interface QueryAndTask<ReturnType> extends Task<ReturnType> {
 export interface Traverse<ReturnType> extends QueryAndTask<ReturnType> {
     type: 'traverse';
     predicate: Algebra.PropertyPathSymbol;
-    graph: rdfjs.Term;
+    graph: RDF.Term;
 }
 
 export interface Join<ReturnType> extends QueryAndTask<ReturnType> {
     type: 'join';
     right: Algebra.Operation;
-    focus?: rdfjs.Term;
+    focus?: RDF.Variable;
 }
 
 export interface Filter<ReturnType> extends QueryAndTask<ReturnType> {

@@ -1,17 +1,38 @@
 import {Task, Action, TaskSequence, ForEach, Traverse, Join, Filter, Cascade, Table} from './task';
-import * as rdfjs from 'rdf-js';
-import {IQueryEngine, BindingsStream, Bindings} from '@comunica/types';
+import * as RDF from 'rdf-js';
+import { Algebra, toSparql, Factory } from 'sparqlalgebrajs';
+import {IQueryEngine, BindingsStream, Bindings, IActorQueryOperationOutputBindings} from '@comunica/types';
 import {SingletonIterator} from 'asynciterator';
 import {fromTableToValuesOp} from './utils';
+import { Map } from 'immutable';
 
-function oneTupleBindingsStream(bindings: Bindings): BindingsStream {
-    return new SingletonIterator<Bindings>(bindings);
-}
+let algebraFactory = new Factory();
 
 function oneTupleTable(variables: string[], bindings: Bindings, canContainUndefs: boolean): Table {
     return {
         bindingsStream: new SingletonIterator<Bindings>(bindings),
         variables, canContainUndefs
+    };
+}
+
+function replaceFocus(input: Table, newFocus: string): Table {
+    if (!(newFocus in input.variables)) {
+        throw 'New focus ?' + newFocus + ' not found among the variables.';
+    }
+    return {
+        variables: '_' in input.variables ? input.variables.concat('_') : input.variables,
+        bindingsStream: input.bindingsStream.map(bindings => {
+            let newBindings: {[key: string]: RDF.Term} = {};
+            bindings.forEach((value, varname) => {
+                if (varname === newFocus) {
+                    newBindings['_'] = value;
+                } else if (varname !== '_') {
+                    newBindings[varname] = value;
+                }
+            });
+            return Map<string, RDF.Term>(newBindings);
+        }),
+        canContainUndefs: input.canContainUndefs
     };
 }
 
@@ -38,25 +59,16 @@ export function executeTask<ReturnType>(
         input: Table,
         engine: IQueryEngine,
         queryContext: any = {}): Promise<ReturnType> {
-    const cases: { [index:string] : () => any } = {
+    const cases: { [index:string] : () => Promise<ReturnType> } = {
         'action': () => (<Action<ReturnType>> task).exec(input),
         'cascade': () => {
             let cascade = <Cascade<any, ReturnType>> task;
-            return new Promise<ReturnType>((resolve, reject) => {
-                executeTask(cascade.task, input, engine, queryContext).then((taskResult) => {
-                    cascade.action(taskResult).then((actionResult) => {
-                        resolve(actionResult);
-                    }, (error) => {
-                        reject(error);
-                    });
-                }, (error) => {
-                    reject(error);
-                })
-            });
+            return executeTask(cascade.task, input, engine, queryContext)
+                    .then(cascade.action);
         },
         'task-sequence': () => {
-            let taskSequence = <TaskSequence<ReturnType[keyof ReturnType]>> task;
-            return collectPromises(
+            let taskSequence = <TaskSequence<any>> task;
+            return <Promise<ReturnType>> <unknown> collectPromises(
                     taskSequence.subtasks.map(t => executeTask(t, input, engine, queryContext)));
         },
         'for-each': () => {
@@ -65,10 +77,11 @@ export function executeTask<ReturnType>(
             return new Promise<ReturnType>((resolve, reject) => {
                 var promises: Promise<unknown>[] = [];
                 input.bindingsStream.on('data', (bindings) => {
-                    promises.push(executeTask(
-                            forEach.subtask,
-                            oneTupleTable(input.variables, bindings, input.canContainUndefs),
-                            engine, queryContext));
+                    promises.push(
+                            executeTask(
+                                    forEach.subtask,
+                                    oneTupleTable(input.variables, bindings, input.canContainUndefs),
+                                    engine, queryContext));
                 });
                 input.bindingsStream.on('end', () => {
                     collectPromises(promises).then((result) => {
@@ -82,45 +95,23 @@ export function executeTask<ReturnType>(
                 });
             });
         },
-        'join': () => {
+        'join': async () => {
             let join = <Join<ReturnType>> task;
-            // const result = await myEngine.query(`
-            //     SELECT ?s ?p ?o WHERE {
-            //         ?s ?p <http://dbpedia.org/resource/Belgium>.
-            //         ?s ?p ?o
-            //     } LIMIT 100`, {
-            //     sources: ['http://fragments.dbpedia.org/2015/en'],
-            //     });
-            return {
-                type: 'join',
-                right: toSparqlFragment(join.right, options),
-                focus: join.focus && new Generator(options).createGenerator().toEntity(join.focus),
-                next: stringifyTask(join.next, options)
-            }
+            const valuesOp = await fromTableToValuesOp(input);
+            const queryOp = algebraFactory.createJoin(valuesOp, join.right);
+            const res = <IActorQueryOperationOutputBindings> await engine.query(queryOp);
+            const resAfterFocus = join.focus ? replaceFocus(res, join.focus.value) : res;
+            return await executeTask(join.next, resAfterFocus, engine, queryContext);
         },
-        'filter': () => {
+        'filter': async () => {
             let filter = <Filter<ReturnType>> task;
-            let filterSparql = toSparqlFragment(
-                        algebraFactory.createFilter(algebraFactory.createBgp([]), filter.expression), options);
-            return {
-                type: 'filter',
-                expression: filterSparql.substring('FILTER('.length, filterSparql.length - ')'.length),
-                next: stringifyTask(filter.next, options)
-            }
+            const valuesOp = await fromTableToValuesOp(input);
+            const queryOp = algebraFactory.createFilter(valuesOp, filter.expression);
+            const res = <IActorQueryOperationOutputBindings> await engine.query(queryOp);
+            return await executeTask(filter.next, res, engine, queryContext);
         }
     };
     return cases[task.type]();
-}
-
-export function executeCascade<TaskReturnType, ActionReturnType>(
-        task: Cascade<TaskReturnType, ActionReturnType>,
-        bindingsStream: BindingsStream,
-        engine: IQueryEngine,
-        queryContext: any = {}): Promise<ActionReturnType> {
-    return new Promise<ActionReturnType>((resolve, reject) => {
-
-    });
-        // executeTask(task.task, bindingsStream, engine, queryContext)
 }
 
 export function generateQuery<ReturnType>(task: Task<ReturnType>): void {
