@@ -1,5 +1,6 @@
 import TaskFactory from './taskFactory';
-import {stringifyTask} from './utils'
+import {stringifyTask} from './utils';
+import {executeTask} from './taskEngine';
 
 let options = {
     prefixes: {
@@ -37,3 +38,5 @@ console.log(stringifyTask(join));
 
 console.log(filter);
 console.log(stringifyTask(filter));
+
+// executeTask(action1).then(console.log, console.error)
