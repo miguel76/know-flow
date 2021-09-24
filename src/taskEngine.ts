@@ -82,13 +82,15 @@ export function executeTask<ReturnType>(
                 });
             });
         },
-        // 'traverse': () => ({
-        //     type: 'traverse',
-        //     predicate: (<Traverse> task).predicate,
-        //     graph: (<Traverse> task).graph
-        // }),
         'join': () => {
             let join = <Join<ReturnType>> task;
+            // const result = await myEngine.query(`
+            //     SELECT ?s ?p ?o WHERE {
+            //         ?s ?p <http://dbpedia.org/resource/Belgium>.
+            //         ?s ?p ?o
+            //     } LIMIT 100`, {
+            //     sources: ['http://fragments.dbpedia.org/2015/en'],
+            //     });
             return {
                 type: 'join',
                 right: toSparqlFragment(join.right, options),
