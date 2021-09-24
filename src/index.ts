@@ -1,19 +1,11 @@
-import * as Source from "./source";
-import { translate, toSparql  } from 'sparqlalgebrajs';
+import {Table, TableSync, Task, Action, TaskSequence, ForEach, Traverse, Join, Filter, Cascade} from './task';
+import TaskFactory from './taskFactory';
+import {stringifyTask} from './utils';
+import {executeTask} from './taskEngine';
 
-export { Source };
+export {
+    Table, TableSync, Task, Action, TaskSequence, ForEach, Traverse, Join, Filter, Cascade,
+    TaskFactory, stringifyTask, executeTask
+};
 
-// const defaultSparqlEndpointDS = new Source.DefaultSparqlEndpoint();
-//
-// console.log(defaultSparqlEndpoint);
-//
-// const allTermsTS = new Source.AllTermsFromDatasetSource(defaultSparqlEndpoint);
-//
-// console.log(allTerms);
-//
-// const selectQueryTxt = 'SELECT * WHERE { ?x ?y ?pippo. {SELECT * WHERE {?s ?p ?pippo} } }';
-// const selectQuery = translate(selectQueryTxt);
-//
-// const varFromSelectQuery = new Source.VarFromSelectQuery("newThis", selectQuery, defaultSparqlEndpointDS, {"this": allTermsTS});
-//
-// console.log(varFromSelectQuery);
+
