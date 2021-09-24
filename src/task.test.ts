@@ -8,7 +8,8 @@ const engine = newEngine();
 let options = {
     prefixes: {
         'rdf': 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
-        'rdfs': 'http://www.w3.org/2000/01/rdf-schema#'
+        'rdfs': 'http://www.w3.org/2000/01/rdf-schema#',
+        'dbo': 'http://dbpedia.org/ontology/'
     }
 };
 
@@ -35,6 +36,10 @@ let traverse = taskFactory.createTraverse(action4, 'rdf:type');
 
 let join = taskFactory.createJoin(action4, '$_ rdf:type rdf:List; rdfs:label "ciccio"');
 
+let showLanguageList = action4;
+
+let showLanguages = taskFactory.createJoin(showLanguageList, '$_ rdf:type dbo:Language');
+
 let filter = taskFactory.createFilter(action5, '$_ = "pluto"');
 
 console.log(action1);
@@ -55,3 +60,5 @@ console.log(stringifyTask(filter));
 executeTask(action1, table3, engine, queryContext).then(console.log, console.error);
 executeTask(taskSeq, table3, engine, queryContext).then(console.log, console.error);
 executeTask(forEach, table3, engine, queryContext).then(console.log, console.error);
+
+executeTask(showLanguages, NO_BINDING_SINGLETON_TABLE, engine, queryContext).then(console.log, console.error);
