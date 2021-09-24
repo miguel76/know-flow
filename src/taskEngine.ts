@@ -2,7 +2,7 @@ import {Task, Action, TaskSequence, ForEach, Traverse, Join, Filter, Cascade, Ta
 import * as RDF from 'rdf-js';
 import { Algebra, toSparql, Factory } from 'sparqlalgebrajs';
 import {IQueryEngine, BindingsStream, Bindings, IActorQueryOperationOutputBindings} from '@comunica/types';
-import {SingletonIterator} from 'asynciterator';
+import {ArrayIterator, SingletonIterator, UnionIterator} from 'asynciterator';
 import {fromTableToValuesOp} from './utils';
 import { Map } from 'immutable';
 
@@ -13,6 +13,30 @@ function oneTupleTable(variables: string[], bindings: Bindings, canContainUndefs
         bindingsStream: new SingletonIterator<Bindings>(bindings),
         variables, canContainUndefs
     };
+}
+
+export const NO_BINDING_SINGLETON_TABLE = oneTupleTable([], Map<string, RDF.Term>({}), false);
+
+function arrayUnion<T>(arrays: T[][]): T[] {
+    return arrays.reduce((vars, newVars) => vars.concat(newVars.filter(v => !(v in vars))))
+}
+
+export function tableUnion(tables: Table[]): Table {
+    return {
+        bindingsStream: new UnionIterator<Bindings>(tables.map(t => t.bindingsStream)),
+        variables: arrayUnion(tables.map(t => t.variables)),
+        canContainUndefs: tables.some(t => t.canContainUndefs)
+    };
+}
+
+export function tableFromArray(bindingsArray: {[varname: string]: RDF.Term}[]): Table {
+    let variables = arrayUnion(bindingsArray.map(a => Object.keys(a)));
+    return {
+        variables,
+        bindingsStream: new ArrayIterator(bindingsArray.map(obj => Map(obj))),
+        canContainUndefs: bindingsArray.some(b => variables.some(v => !(v in b)))
+    }
+
 }
 
 function replaceFocus(input: Table, newFocus: string): Table {

@@ -1,6 +1,9 @@
 import TaskFactory from './taskFactory';
 import {stringifyTask} from './utils';
-import {executeTask} from './taskEngine';
+import {executeTask, NO_BINDING_SINGLETON_TABLE, tableUnion, tableFromArray} from './taskEngine';
+import {newEngine} from '@comunica/actor-init-sparql';
+
+const engine = newEngine();
 
 let options = {
     prefixes: {
@@ -9,7 +12,15 @@ let options = {
     }
 };
 
+let queryContext = {
+    sources: ['https://dbpedia.org/sparql']
+};
+
 let taskFactory = new TaskFactory(options);
+
+let table3 = tableFromArray([
+    {}, {}, {}
+]);
 
 let action1 = taskFactory.createConstant('Action 1');
 let action2 = taskFactory.createConstant('Action 2');
@@ -40,3 +51,7 @@ console.log(filter);
 console.log(stringifyTask(filter));
 
 // executeTask(action1).then(console.log, console.error)
+
+executeTask(action1, table3, engine, queryContext).then(console.log, console.error);
+executeTask(taskSeq, table3, engine, queryContext).then(console.log, console.error);
+executeTask(forEach, table3, engine, queryContext).then(console.log, console.error);

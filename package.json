@@ -30,6 +30,7 @@
         "sparqljs": "^3.4.3"
     },
     "devDependencies": {
+        "@comunica/actor-init-sparql": "^1.22.1",
         "@types/jest": "^26.0.14",
         "@types/rdf-js": "^4.0.0",
         "jest": "^26.5.2",
