@@ -7,8 +7,9 @@ import * as RDF from '@rdfjs/types';
 
 let algebraFactory = new Factory();
 let WILDCARD = new Wildcard();
+let dataFactory = algebraFactory.dataFactory;
 
-function toSparqlFragment(op: Algebra.Operation, options = {}): string {
+export function toSparqlFragment(op: Algebra.Operation, options = {}): string {
     let sparqlStr = toSparql(algebraFactory.createProject(op, [WILDCARD]), options);
     return sparqlStr.substring('SELECT * WHERE { '.length, sparqlStr.length - ' }'.length);
 }
@@ -36,7 +37,7 @@ export function fromTableToValuesOp(table: Table): Promise<Algebra.Values> {
     return new Promise<Algebra.Values>((resolve, reject) => {
         syncTable(table).then((tableSync) => {
             resolve(algebraFactory.createValues(
-                    table.variables.map((varname) => (<RDF.Variable> algebraFactory.createTerm('?' + varname))),
+                    table.variables.map((varname) => (dataFactory.variable(varname.substr(1)))),
                     tableSync.bindingsArray.map((bindings) => Object.fromEntries(<any> bindings))));
         }, (error) => {
             reject(error);

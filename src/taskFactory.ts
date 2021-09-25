@@ -9,11 +9,11 @@ function isString(str: any): str is string {
 }
 
 function isPropertyPathSymbol(p: any): p is Algebra.PropertyPathSymbol {
-    return p.type in [
+    return [
             Algebra.types.ALT, Algebra.types.INV, Algebra.types.LINK,
             Algebra.types.NPS, Algebra.types.ONE_OR_MORE_PATH,
             Algebra.types.SEQ, Algebra.types.ZERO_OR_MORE_PATH,
-            Algebra.types.ZERO_OR_ONE_PATH];
+            Algebra.types.ZERO_OR_ONE_PATH].includes(p.type);
 }
 
 function isPath(op: Algebra.Operation): op is Algebra.Path {
@@ -40,11 +40,10 @@ function promisifyFromSync<Domain, Range>(f: (x: Domain) => Range):
 export default class TaskFactory {
 
     algebraFactory: Factory;
+    dataFactory: RDF.DataFactory;
     defaultInput: RDF.Variable;
     defaultOutput: RDF.Variable;
     options: {
-        dataFactory?: RDF.DataFactory,
-        algebraFactory?: Factory,
         quads?: boolean,
         prefixes?: {[prefix: string]: string},
         baseIRI?: string,
@@ -63,8 +62,9 @@ export default class TaskFactory {
             sparqlStar?: boolean,
             onError?: (error: any) => void } = {}) {
         this.algebraFactory = options.algebraFactory || new Factory(options.dataFactory);
-        this.defaultInput = <RDF.Variable> this.algebraFactory.createTerm('$_');
-        this.defaultOutput = <RDF.Variable> this.algebraFactory.createTerm('$_out');
+        this.dataFactory = this.algebraFactory.dataFactory;
+        this.defaultInput = this.dataFactory.variable('_');
+        this.defaultOutput = this.dataFactory.variable('_out');
         this.options = options;
         this.onError = options.onError || ((e) => {console.error(e);});
     }
@@ -230,7 +230,8 @@ export default class TaskFactory {
                     this.algebraFactory.createBgp([
                             this.algebraFactory.createPattern(
                                     this.defaultInput, predicate, this.defaultOutput, graph)]),
-            focus: this.defaultOutput
+            focus: this.defaultOutput,
+            hideVar: true
         };
     }
 

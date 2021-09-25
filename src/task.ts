@@ -53,6 +53,7 @@ export interface Join<ReturnType> extends QueryAndTask<ReturnType> {
     type: 'join';
     right: Algebra.Operation;
     focus?: RDF.Variable;
+    hideVar?: boolean;
 }
 
 export interface Filter<ReturnType> extends QueryAndTask<ReturnType> {

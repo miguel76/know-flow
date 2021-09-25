@@ -3,7 +3,7 @@ import * as RDF from 'rdf-js';
 import { Algebra, toSparql, Factory } from 'sparqlalgebrajs';
 import {IQueryEngine, BindingsStream, Bindings, IActorQueryOperationOutputBindings} from '@comunica/types';
 import {ArrayIterator, SingletonIterator, UnionIterator} from 'asynciterator';
-import {fromTableToValuesOp} from './utils';
+import {fromTableToValuesOp, toSparqlFragment} from './utils';
 import { Map } from 'immutable';
 import { Wildcard } from 'sparqljs';
 
@@ -20,7 +20,7 @@ function oneTupleTable(variables: string[], bindings: Bindings, canContainUndefs
 export const NO_BINDING_SINGLETON_TABLE = oneTupleTable([], Map<string, RDF.Term>({}), false);
 
 function arrayUnion<T>(arrays: T[][]): T[] {
-    return arrays.reduce((vars, newVars) => vars.concat(newVars.filter(v => !(v in vars))))
+    return arrays.reduce((vars, newVars) => vars.concat(newVars.filter(v => !vars.includes(v))))
 }
 
 export function tableUnion(tables: Table[]): Table {
@@ -41,18 +41,25 @@ export function tableFromArray(bindingsArray: {[varname: string]: RDF.Term}[]): 
 
 }
 
-function replaceFocus(input: Table, newFocus: string): Table {
-    if (!(newFocus in input.variables)) {
-        throw 'New focus ?' + newFocus + ' not found among the variables.';
+function replaceFocus(input: Table, newFocusVar: RDF.Variable, hideVar:boolean = false): Table {
+    let newFocus = '?' + newFocusVar.value;
+    if (!input.variables.includes(newFocus)) {
+        throw 'New focus ' + newFocus + ' not found among the variables (' + input.variables + ').';
     }
+    let variables = hideVar ?
+            input.variables.filter(v => v !== newFocus) :
+            input.variables;
     return {
-        variables: '_' in input.variables ? input.variables.concat('_') : input.variables,
+        variables: variables.includes('?_') ?
+                variables :
+                variables.concat('?_'),
         bindingsStream: input.bindingsStream.map(bindings => {
             let newBindings: {[key: string]: RDF.Term} = {};
             bindings.forEach((value, varname) => {
                 if (varname === newFocus) {
-                    newBindings['_'] = value;
-                } else if (varname !== '_') {
+                    newBindings['?_'] = value;
+                }
+                if (varname !== '?_') {
                     newBindings[varname] = value;
                 }
             });
@@ -128,7 +135,7 @@ export function executeTask<ReturnType>(
                             join.right :
                             algebraFactory.createJoin(await fromTableToValuesOp(input), join.right);
             const res = <IActorQueryOperationOutputBindings> await engine.query(queryOp, queryContext);
-            const resAfterFocus = join.focus ? replaceFocus(res, join.focus.value) : res;
+            const resAfterFocus = join.focus ? replaceFocus(res, join.focus, join.hideVar) : res;
             return await executeTask(join.next, resAfterFocus, engine, queryContext);
         },
         'filter': async () => {
