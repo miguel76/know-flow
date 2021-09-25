@@ -1,6 +1,6 @@
 import { Algebra, translate, Factory } from 'sparqlalgebrajs';
 import * as RDF from "rdf-js";
-import {Table, TableSync, Task, Action, TaskSequence, ForEach, Traverse, Join, Filter, Cascade} from './task';
+import {Table, TableSync, Task, Action, TaskSequence, ForEach, Traverse, Join, Filter, Cascade, Let} from './task';
 import {Bindings, BindingsStream} from '@comunica/types';
 import {syncTable} from './utils';
 
@@ -210,43 +210,45 @@ export default class TaskFactory {
         return (<Algebra.Project> translate(this.selectEnvelope(patternStr), this.options)).input;
     }
 
+    createLet<ReturnType>(
+            next: Task<ReturnType>,
+            currVarname: string = '?_',
+            newVarname: string = '?_',
+            hideCurrVar: boolean = false): Let<ReturnType> {
+        return {type: 'let', next, currVarname, newVarname, hideCurrVar};
+    }
+
     createTraverse<ReturnType>(
             next: Task<ReturnType>,
             predicate: Algebra.PropertyPathSymbol | RDF.Term | string,
             graph?: RDF.Term ): Join<ReturnType> {
         if (isString(predicate)) {
-            let op = this.translateOp('$_ ' + predicate + ' $_out');
+            let op = this.translateOp('?_ ' + predicate + ' ?_out');
             if (isPath(op)) {
                 predicate = op.predicate;
             } else {
                 predicate = (<Algebra.Bgp> op).patterns[0].predicate;
             }
         }
+        let nextAfterRename = this.createLet(next, '?_out', '?_', true);
         return {
-            type: 'join', next,
+            type: 'join', next: nextAfterRename,
             right: (isPropertyPathSymbol(predicate)) ?
                     this.algebraFactory.createPath(
                             this.defaultInput, predicate, this.defaultOutput, graph):
                     this.algebraFactory.createBgp([
                             this.algebraFactory.createPattern(
-                                    this.defaultInput, predicate, this.defaultOutput, graph)]),
-            focus: this.defaultOutput,
-            hideVar: true
+                                    this.defaultInput, predicate, this.defaultOutput, graph)])
         };
     }
 
     createJoin<ReturnType>(
             next: Task<ReturnType>,
-            rightPattern: Algebra.Operation | string,
-            focus?: RDF.Variable): Join<ReturnType> {
-        if (isString(rightPattern)) {
-            rightPattern = this.translateOp(rightPattern);
+            right: Algebra.Operation | string): Join<ReturnType> {
+        if (isString(right)) {
+            right = this.translateOp(right);
         }
-        return {
-            type: 'join', next,
-            right: rightPattern,
-            focus
-        };
+        return {type: 'join', next, right};
     }
 
     createFilter<ReturnType>(next: Task<ReturnType>, expression: Algebra.Expression | string): Filter<ReturnType> {

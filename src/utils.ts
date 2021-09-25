@@ -1,5 +1,5 @@
 import { Algebra, toSparql, Factory } from 'sparqlalgebrajs';
-import {Table, TableSync, Task, Action, TaskSequence, ForEach, Traverse, Join, Filter, QueryAndTask, Cascade} from './task';
+import {Table, TableSync, Task, Action, TaskSequence, ForEach, Traverse, Join, Filter, QueryAndTask, Cascade, Let} from './task';
 import {Generator, Variable, Wildcard} from 'sparqljs';
 import { Bindings, BindingsStream } from '@comunica/types';
 import * as RDF from '@rdfjs/types';
@@ -63,12 +63,21 @@ export function stringifyTask<ReturnType>(task: Task<ReturnType>, options = {}) 
             type: 'for-each',
             subtask: (<ForEach<ReturnType[keyof ReturnType]>> task).subtask
         }),
+        'let': () => {
+            let letTask = <Let<ReturnType>> task;
+            return {
+                type: 'let',
+                currVarname: letTask.currVarname,
+                newVarname: letTask.newVarname,
+                hideCurrVar: letTask.hideCurrVar,
+                next: stringifyTask(letTask.next, options)
+            }
+        },
         'join': () => {
             let join = <Join<ReturnType>> task;
             return {
                 type: 'join',
                 right: toSparqlFragment(join.right, options),
-                focus: join.focus && new Generator(options).createGenerator().toEntity(join.focus),
                 next: stringifyTask(join.next, options)
             }
         },

@@ -1,4 +1,4 @@
-import {Task, Action, TaskSequence, ForEach, Traverse, Join, Filter, Cascade, Table} from './task';
+import {Task, Action, TaskSequence, ForEach, Traverse, Join, Filter, Cascade, Table, Let} from './task';
 import * as RDF from 'rdf-js';
 import { Algebra, toSparql, Factory } from 'sparqlalgebrajs';
 import {IQueryEngine, BindingsStream, Bindings, IActorQueryOperationOutputBindings} from '@comunica/types';
@@ -41,25 +41,24 @@ export function tableFromArray(bindingsArray: {[varname: string]: RDF.Term}[]): 
 
 }
 
-function replaceFocus(input: Table, newFocusVar: RDF.Variable, hideVar:boolean = false): Table {
-    let newFocus = '?' + newFocusVar.value;
-    if (!input.variables.includes(newFocus)) {
-        throw 'New focus ' + newFocus + ' not found among the variables (' + input.variables + ').';
+function assignVar(input: Table, currVarName: string, newVarName: string, hideCurrVar: boolean): Table {
+    if (!input.variables.includes(currVarName)) {
+        throw 'New focus ' + currVarName + ' not found among the variables (' + input.variables + ').';
     }
-    let variables = hideVar ?
-            input.variables.filter(v => v !== newFocus) :
+    let variables = hideCurrVar ?
+            input.variables.filter(v => v !== currVarName) :
             input.variables;
     return {
-        variables: variables.includes('?_') ?
+        variables: variables.includes(newVarName) ?
                 variables :
-                variables.concat('?_'),
+                variables.concat(newVarName),
         bindingsStream: input.bindingsStream.map(bindings => {
             let newBindings: {[key: string]: RDF.Term} = {};
             bindings.forEach((value, varname) => {
-                if (varname === newFocus) {
-                    newBindings['?_'] = value;
+                if (varname === currVarName) {
+                    newBindings[newVarName] = value;
                 }
-                if (varname !== '?_') {
+                if (varname !== newVarName && (varname !== currVarName || !hideCurrVar)) {
                     newBindings[varname] = value;
                 }
             });
@@ -128,6 +127,11 @@ export function executeTask<ReturnType>(
                 });
             });
         },
+        'let': async () => {
+            let letTask = <Let<ReturnType>> task;
+            let res = assignVar(input, letTask.currVarname, letTask.newVarname, letTask.hideCurrVar);
+            return await executeTask(letTask.next, res, engine, queryContext);
+        },
         'join': async () => {
             let join = <Join<ReturnType>> task;
             const queryOp =
@@ -135,13 +139,13 @@ export function executeTask<ReturnType>(
                             join.right :
                             algebraFactory.createJoin(await fromTableToValuesOp(input), join.right);
             const res = <IActorQueryOperationOutputBindings> await engine.query(queryOp, queryContext);
-            const resAfterFocus = join.focus ? replaceFocus(res, join.focus, join.hideVar) : res;
-            return await executeTask(join.next, resAfterFocus, engine, queryContext);
+            return await executeTask(join.next, res, engine, queryContext);
         },
         'filter': async () => {
             let filter = <Filter<ReturnType>> task;
             const valuesOp = await fromTableToValuesOp(input);
             const queryOp = algebraFactory.createFilter(valuesOp, filter.expression);
+            console.log(toSparqlFragment(queryOp));
             const res = <IActorQueryOperationOutputBindings> await engine.query(queryOp, queryContext);
             return await executeTask(filter.next, res, engine, queryContext);
         }

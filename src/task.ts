@@ -43,6 +43,13 @@ export interface QueryAndTask<ReturnType> extends Task<ReturnType> {
     next: Task<ReturnType>;
 }
 
+export interface Let<ReturnType> extends QueryAndTask<ReturnType> {
+    type: 'let';
+    currVarname: string;
+    newVarname: string;
+    hideCurrVar: boolean;
+}
+
 export interface Traverse<ReturnType> extends QueryAndTask<ReturnType> {
     type: 'traverse';
     predicate: Algebra.PropertyPathSymbol;
@@ -52,8 +59,6 @@ export interface Traverse<ReturnType> extends QueryAndTask<ReturnType> {
 export interface Join<ReturnType> extends QueryAndTask<ReturnType> {
     type: 'join';
     right: Algebra.Operation;
-    focus?: RDF.Variable;
-    hideVar?: boolean;
 }
 
 export interface Filter<ReturnType> extends QueryAndTask<ReturnType> {
