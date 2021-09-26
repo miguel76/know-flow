@@ -65,3 +65,14 @@ export interface Filter<ReturnType> extends QueryAndTask<ReturnType> {
     type: 'filter';
     expression: Algebra.Expression;
 }
+
+export interface Aggregate<ReturnType> extends QueryAndTask<ReturnType> {
+    type: 'aggregate';
+    aggregates: Algebra.BoundAggregate[];
+}
+
+export interface Slice<ReturnType> extends QueryAndTask<ReturnType> {
+    type: 'slice';
+    start: number;
+    length?: number;
+}
