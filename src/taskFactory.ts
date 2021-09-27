@@ -244,9 +244,14 @@ export default class TaskFactory {
 
     createJoin<ReturnType>(
             next: Task<ReturnType>,
-            right: Algebra.Operation | string): Join<ReturnType> {
+            right: Algebra.Operation | string,
+            newDefault?: string,
+            hideCurrVar: boolean = false): Join<ReturnType> {
         if (isString(right)) {
             right = this.translateOp(right);
+        }
+        if (newDefault) {
+            next = this.createLet(next, newDefault, '?_', hideCurrVar);
         }
         return {type: 'join', next, right};
     }
