@@ -16,9 +16,9 @@ export function toSparqlFragment(op: Algebra.Operation, options = {}): string {
 
 export function syncTable(table: Table): Promise<TableSync> {
     return new Promise<TableSync>((resolve, reject) => {
-        let bindingsArray: Bindings[] = [];
-        table.bindingsStream.on('data', (binding) => {
-            bindingsArray.push(binding);
+        let bindingsArray: {[varname: string]: any}[] = [];
+        table.bindingsStream.on('data', (bindings) => {
+            bindingsArray.push(Object.fromEntries(<any> bindings));
         });
         table.bindingsStream.on('end', () => {
             resolve({
@@ -33,16 +33,10 @@ export function syncTable(table: Table): Promise<TableSync> {
     });
 }
 
-export function fromTableToValuesOp(table: Table): Promise<Algebra.Values> {
-    return new Promise<Algebra.Values>((resolve, reject) => {
-        syncTable(table).then((tableSync) => {
-            resolve(algebraFactory.createValues(
-                    table.variables.map((varname) => (dataFactory.variable(varname.substr(1)))),
-                    tableSync.bindingsArray.map((bindings) => Object.fromEntries(<any> bindings))));
-        }, (error) => {
-            reject(error);
-        });
-    });
+export async function fromTableToValuesOp(table: Table): Promise<Algebra.Values> {
+    return algebraFactory.createValues(
+            table.variables.map((varname) => (dataFactory.variable(varname.substr(1)))),
+            (await syncTable(table)).bindingsArray);
 }
 
 export function stringifyTask<ReturnType>(task: Task<ReturnType>, options = {}) {

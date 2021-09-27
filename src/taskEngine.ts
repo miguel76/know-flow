@@ -3,7 +3,7 @@ import * as RDF from 'rdf-js';
 import { Algebra, toSparql, Factory } from 'sparqlalgebrajs';
 import {IQueryEngine, BindingsStream, Bindings, IActorQueryOperationOutputBindings} from '@comunica/types';
 import {ArrayIterator, SingletonIterator, UnionIterator} from 'asynciterator';
-import {fromTableToValuesOp, toSparqlFragment} from './utils';
+import {fromTableToValuesOp, toSparqlFragment, stringifyTask} from './utils';
 import { Map } from 'immutable';
 import { Wildcard } from 'sparqljs';
 
@@ -93,15 +93,15 @@ export function executeTask<ReturnType>(
         queryContext: any = {}): Promise<ReturnType> {
     const cases: { [index:string] : () => Promise<ReturnType> } = {
         'action': () => (<Action<ReturnType>> task).exec(input),
-        'cascade': () => {
+        'cascade': async () => {
             let cascade = <Cascade<any, ReturnType>> task;
-            return executeTask(cascade.task, input, engine, queryContext)
-                    .then(cascade.action);
+            let taskResult = await executeTask(cascade.task, input, engine, queryContext);
+            return await cascade.action(taskResult);
         },
-        'task-sequence': () => {
-            let taskSequence = <TaskSequence<any>> task;
-            return <Promise<ReturnType>> <unknown> collectPromises(
-                    taskSequence.subtasks.map(t => executeTask(t, input, engine, queryContext)));
+        'task-sequence': async () => {
+            let taskSequence = <TaskSequence<unknown>> task;
+            return <ReturnType> <unknown> await Promise.all(taskSequence.subtasks.map(
+                    t => executeTask(t, input, engine, queryContext)));
         },
         'for-each': () => {
             let forEach = <ForEach<any>> task;
@@ -116,7 +116,7 @@ export function executeTask<ReturnType>(
                                     engine, queryContext));
                 });
                 input.bindingsStream.on('end', () => {
-                    collectPromises(promises).then((result) => {
+                    Promise.all(promises).then((result) => {
                         resolve(<ReturnType> <unknown> result);
                     }, (error) => {
                         reject(error);
@@ -145,7 +145,6 @@ export function executeTask<ReturnType>(
             let filter = <Filter<ReturnType>> task;
             const valuesOp = await fromTableToValuesOp(input);
             const queryOp = algebraFactory.createFilter(valuesOp, filter.expression);
-            console.log(toSparqlFragment(queryOp));
             const res = <IActorQueryOperationOutputBindings> await engine.query(queryOp, queryContext);
             return await executeTask(filter.next, res, engine, queryContext);
         }

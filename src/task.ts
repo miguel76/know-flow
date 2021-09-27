@@ -9,7 +9,7 @@ export interface Table {
 }
 
 export interface TableSync {
-    bindingsArray: Bindings[];
+    bindingsArray: {[varname: string]: any}[];
     variables: string[];
     canContainUndefs: boolean;
 }

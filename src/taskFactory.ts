@@ -3,6 +3,8 @@ import * as RDF from "rdf-js";
 import {Table, TableSync, Task, Action, TaskSequence, ForEach, Traverse, Join, Filter, Cascade, Let} from './task';
 import {Bindings, BindingsStream} from '@comunica/types';
 import {syncTable} from './utils';
+import { ArrayIterator } from 'asynciterator';
+import { Map } from 'immutable';
 
 function isString(str: any): str is string {
     return typeof str === 'string';
@@ -126,20 +128,34 @@ export default class TaskFactory {
         return this.createActionOnAll(promisifyFromSync(syncExecOnAll));
     }
 
-    createActionOnFirst<ReturnType>(execOnFirst: (bindings: Bindings) => Promise<ReturnType>): Action<ReturnType> {
+    createActionOnFirst<ReturnType>(
+            execOnFirst: (bindings: Bindings) => Promise<ReturnType>,
+            acceptEmpty: boolean = true): Action<ReturnType> {
         return {
             type: 'action',
             exec: (table) => {
                 return new Promise<ReturnType>((resolve, reject) => {
+                    let cb = (bindings: Bindings) => {
+                        execOnFirst(bindings).then((res) => {
+                            resolve(res);
+                        }, (err) => {
+                            reject(err);
+                        });
+                    };
                     var firstTime = true;
                     table.bindingsStream.on('data', (binding) => {
                         if (firstTime) {
-                            execOnFirst(binding).then((res) => {
-                                resolve(res);
-                            }, (err) => {
-                                reject(err);
-                            });
+                            cb(binding);
                             firstTime = false;
+                        }
+                    });
+                    table.bindingsStream.on('end', () => {
+                        if (firstTime) {
+                            if (acceptEmpty) {
+                                cb(Map<string, RDF.Term>({}));
+                            } else {
+                                reject('Expected at least a value, zero found');
+                            }
                         }
                     });
                     table.bindingsStream.on('error', (e) => {
@@ -258,13 +274,34 @@ export default class TaskFactory {
 
     createFilter<ReturnType>(next: Task<ReturnType>, expression: Algebra.Expression | string): Filter<ReturnType> {
         if (isString(expression)) {
-            console.log(this.translateOp('FILTER(' + expression + ')'));
             expression = (<Algebra.Filter> this.translateOp('FILTER(' + expression + ')')).expression;
         }
         return {
             type: 'filter', next,
             expression 
         };
+    }
+
+    logTaskCount: number = 0;
+    log<ReturnType>(next: Task<ReturnType>, label?: string): Task<ReturnType> {
+        let logTaskId = ++this.logTaskCount;
+        var callCount = 0
+        let loggingTask = this.createSimpleActionOnAll((table: TableSync) => {
+            let callId = ++callCount;
+            console.log('# Input of node ' + logTaskId + (label ? ' (' + label + ')' : '') + ' call n. ' + callId);
+            console.log(table.bindingsArray);
+            console.log('');
+            return callId;
+        });
+        let seq = this.createTaskSequence<any>([loggingTask, next]);
+        return this.createSimpleCascade(seq, (resSeq:any) => {
+            let callId = resSeq[0];
+            let actionRes = resSeq[1];
+            console.log('# Output of node ' + logTaskId + (label ? ' (' + label + ')' : '') + ' call n. ' + callId);
+            console.log(actionRes);
+            console.log('');
+            return actionRes;
+        });
     }
 
 }
