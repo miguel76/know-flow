@@ -1,5 +1,5 @@
 {
-    "name": "sparql-net",
+    "name": "know-flow",
     "version": "0.1.0",
     "description": "Library to manage a network of interdependent SPARQL queries",
     "main": "./dist/index.js",
@@ -14,14 +14,14 @@
     },
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/miguel76/sparql-net.git"
+        "url": "git+https://github.com/miguel76/know-flow.git"
     },
     "author": "Miguel Ceriani <miguel.ceriani@gmail.com>",
     "license": "MIT",
     "bugs": {
-        "url": "https://github.com/miguel76/sparql-net/issues"
+        "url": "https://github.com/miguel76/know-flow/issues"
     },
-    "homepage": "https://github.com/miguel76/sparql-net#readme",
+    "homepage": "https://github.com/miguel76/know-flow#readme",
     "dependencies": {
         "@comunica/types": "^1.22.0",
         "assert": "^2.0.0",
