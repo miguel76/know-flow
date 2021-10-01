@@ -1,5 +1,5 @@
 import { Algebra, toSparql, Factory } from 'sparqlalgebrajs';
-import {Table, TableSync, Task, Action, TaskSequence, ForEach, Traverse, Join, Filter, QueryAndTask, Cascade, Let} from './task';
+import {Table, TableSync, Task, Action, Parallel, ForEach, Traverse, Join, Filter, QueryAndTask, Cascade, Let} from './task';
 import {Generator, Variable, Wildcard} from 'sparqljs';
 import { Bindings, BindingsStream } from '@comunica/types';
 import * as RDF from '@rdfjs/types';
@@ -49,9 +49,9 @@ export function stringifyTask<ReturnType>(task: Task<ReturnType>, options = {}) 
                 action: cascade.action
             };
         },
-        'task-sequence': () => ({
-                type: 'task-sequence',
-                subtasks: (<TaskSequence<ReturnType[keyof ReturnType]>> task).subtasks.map(t => stringifyTask(t,options))
+        'parallel': () => ({
+                type: 'parallel',
+                subtasks: (<Parallel<ReturnType[keyof ReturnType]>> task).subtasks.map(t => stringifyTask(t,options))
         }),
         'for-each': () => ({
             type: 'for-each',

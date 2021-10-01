@@ -1,6 +1,6 @@
 import { Algebra, translate, Factory } from 'sparqlalgebrajs';
 import * as RDF from "rdf-js";
-import {Table, TableSync, Task, Action, TaskSequence, ForEach, Traverse, Join, Filter, Cascade, Let} from './task';
+import {Table, TableSync, Task, Action, ForEach, Join, Filter, Cascade, Let, Parallel} from './task';
 import {Bindings, BindingsStream} from '@comunica/types';
 import {syncTable} from './utils';
 import { ArrayIterator } from 'asynciterator';
@@ -39,6 +39,33 @@ function promisifyFromSync<Domain, Range>(f: (x: Domain) => Range):
     );
 }
 
+function isPromise<Type>(value: Type | Promise<Type>):
+        value is Promise<Type> {
+    return value && typeof (<any> value).then === "function";
+}
+
+function asyncify<Domain, Range>(
+        fn: (x: Domain) => Range | ((x: Domain) => Promise<Range> )):
+        (x: Domain) => Promise<Range> {
+    let isAsync = false;
+    return (x: Domain) => {
+        try {
+            let value = fn(x);
+            if (isPromise(value)) {
+                return <Promise<Range>> value;
+            } else {
+                return new Promise<Range>((resolve, reject) => {
+                    resolve(<Range> value);
+                });
+            }
+        } catch(e) {
+            return new Promise<Range>((resolve, reject) => {
+                reject(e);
+            });
+        }
+    };
+}
+  
 export default class TaskFactory {
 
     algebraFactory: Factory;
@@ -79,39 +106,61 @@ export default class TaskFactory {
     //     };
     // }
 
-    createCascade<TaskReturnType, ActionReturnType>(
+    createCascadeAsync<TaskReturnType, ActionReturnType>(
+            config: {
                 task: Task<TaskReturnType>,
                 action: (taskResult: TaskReturnType) => Promise<ActionReturnType>
-            ): Cascade<TaskReturnType, ActionReturnType> {
-        return {type: 'cascade', task, action};
+            }): Cascade<TaskReturnType, ActionReturnType> {
+        return {
+            type: 'cascade',
+            task: config.task,
+            action: config.action
+        };
     }
 
-    createSimpleCascade<TaskReturnType, ActionReturnType>(
+    createCascade<TaskReturnType, ActionReturnType>(
+            config: {
                 task: Task<TaskReturnType>,
-                syncAction: (taskResult: TaskReturnType) => ActionReturnType
-            ): Cascade<TaskReturnType, ActionReturnType> {
-        return this.createCascade(task, promisifyFromSync(syncAction));
+                action: (taskResult: TaskReturnType) => ActionReturnType
+            }): Cascade<TaskReturnType, ActionReturnType> {
+        return this.createCascadeAsync({
+            task: config.task,
+            action: promisifyFromSync(config.action)
+        });
     }
 
-    createAction<ReturnType>(exec: (input: Table) => Promise<ReturnType>): Action<ReturnType> {
-        return {type: 'action', exec};
+    createActionAsync<ReturnType>(
+        config: {
+            exec: (input: Table) => Promise<ReturnType>
+        }): Action<ReturnType> {
+        return {type: 'action', exec: config.exec};
     }
 
-    createSimpleAction<ReturnType>(syncExec: (input: Table) => ReturnType): Action<ReturnType> {
-        return this.createAction(promisifyFromSync(syncExec));
+    createAction<ReturnType>(
+        config: {
+            exec: (input: Table) => ReturnType
+        }): Action<ReturnType> {
+        return this.createActionAsync({
+            exec: promisifyFromSync(config.exec)
+        });
     }
 
     createConstant<ReturnType>(value: ReturnType): Action<ReturnType> {
-        return this.createSimpleAction(() => value);
+        return this.createAction({
+            exec: () => value
+        });
     }
 
-    createActionOnAll<ReturnType>(execOnAll: (input: TableSync) => Promise<ReturnType>): Action<ReturnType> {
+    createActionAsyncOnAll<ReturnType>(
+            config: {
+                exec: (input: TableSync) => Promise<ReturnType>
+            }): Action<ReturnType> {
         return {
             type: 'action',
             exec: (table) => {
                 return new Promise<ReturnType>((resolve, reject) => {
                     syncTable(table).then((tableSync) => {
-                        execOnAll(tableSync).then((res) => {
+                        config.exec(tableSync).then((res) => {
                             resolve(res);
                         }, (error) => {
                             reject(error);
@@ -124,19 +173,27 @@ export default class TaskFactory {
         }
     }
 
-    createSimpleActionOnAll<ReturnType>(syncExecOnAll: (input: TableSync) => ReturnType): Action<ReturnType> {
-        return this.createActionOnAll(promisifyFromSync(syncExecOnAll));
+    createActionOnAll<ReturnType>(
+            config: {
+                exec: (input: TableSync) => ReturnType
+            }): Action<ReturnType> {
+        return this.createActionAsyncOnAll({
+            exec: promisifyFromSync(config.exec)
+        });
     }
 
-    createActionOnFirst<ReturnType>(
-            execOnFirst: (bindings: Bindings) => Promise<ReturnType>,
-            acceptEmpty: boolean = true): Action<ReturnType> {
+    createActionAsyncOnFirst<ReturnType>(
+            config: {
+                exec: (bindings: Bindings) => Promise<ReturnType>,
+                acceptEmpty?: boolean
+            }): Action<ReturnType> {
+        let acceptEmpty = config.acceptEmpty !== undefined ? config.acceptEmpty : true;
         return {
             type: 'action',
             exec: (table) => {
                 return new Promise<ReturnType>((resolve, reject) => {
                     let cb = (bindings: Bindings) => {
-                        execOnFirst(bindings).then((res) => {
+                        config.exec(bindings).then((res) => {
                             resolve(res);
                         }, (err) => {
                             reject(err);
@@ -169,53 +226,112 @@ export default class TaskFactory {
         }
     }
 
-    createSimpleActionOnFirst<ReturnType>(syncExecOnFirst: (bindings: Bindings) => ReturnType): Action<ReturnType> {
-        return this.createActionOnFirst(promisifyFromSync(syncExecOnFirst));
+    createActionOnFirst<ReturnType>(
+            config: {
+                exec: (bindings: Bindings) => ReturnType
+            }): Action<ReturnType> {
+        return this.createActionAsyncOnFirst({
+            exec: promisifyFromSync(config.exec)
+        });
     }
 
-    createForEachAndAction<EachReturnType>(execForEach: (bindings: Bindings) => Promise<EachReturnType>): Action<EachReturnType[]> {
+    createActionAsyncOnFirstDefault<ReturnType>(
+            config: {
+                exec: (term: RDF.Term) => Promise<ReturnType>
+            }): Action<ReturnType> {
+        return this.createActionAsyncOnFirst({
+            exec: (bindings: Bindings) => config.exec(bindings.get('?_'))
+        });
+    }
+
+    createActionOnFirstDefault<ReturnType>(
+            config: {
+                exec: (term: RDF.Term) => ReturnType
+            }): Action<ReturnType> {
+        return this.createActionOnFirst({
+            exec: (bindings: Bindings) => config.exec(bindings.get('?_'))
+        });
+    }
+
+// createForEachAndAction<EachReturnType>(execForEach: (bindings: Bindings) => Promise<EachReturnType>): Action<EachReturnType[]> {
+    //     return {
+    //         type: 'action',
+    //         exec: (table) => {
+    //             return new Promise<EachReturnType[]>((resolve, reject) => {
+    //                 let results: EachReturnType[] = [];
+    //                 table.bindingsStream.on('data', (binding) => {
+    //                     execForEach(binding).then((res) => {
+    //                         results.push(res);
+    //                     }, (err) => {
+    //                         reject(err);
+    //                     });
+    //                 });
+    //                 table.bindingsStream.on('end', () => {
+    //                     resolve(results);
+    //                 });
+    //                 table.bindingsStream.on('error', (e) => {
+    //                     if (this.onError) {
+    //                         this.onError(e)
+    //                     }
+    //                     reject(e);
+    //                 });
+    //             });
+    //         }
+    //     }
+    // }
+
+    // createForEachAndSimpleAction<EachReturnType>(syncExecForEach: (bindings: Bindings) => EachReturnType): Action<EachReturnType[]> {
+    //     return this.createForEachAndAction(promisifyFromSync(syncExecForEach));
+    // }
+
+    createParallel<EachReturnType>(
+            config: {
+                subtasks: Task<EachReturnType>[]
+            }| Task<EachReturnType>[]): Parallel<EachReturnType> {
+        let subtasks = <Task<EachReturnType>[]> ((<any> config).subtasks || config);
         return {
-            type: 'action',
-            exec: (table) => {
-                return new Promise<EachReturnType[]>((resolve, reject) => {
-                    let results: EachReturnType[] = [];
-                    table.bindingsStream.on('data', (binding) => {
-                        execForEach(binding).then((res) => {
-                            results.push(res);
-                        }, (err) => {
-                            reject(err);
-                        });
-                    });
-                    table.bindingsStream.on('end', () => {
-                        resolve(results);
-                    });
-                    table.bindingsStream.on('error', (e) => {
-                        if (this.onError) {
-                            this.onError(e)
-                        }
-                        reject(e);
-                    });
-                });
-            }
-        }
-    }
-
-    createForEachAndSimpleAction<EachReturnType>(syncExecForEach: (bindings: Bindings) => EachReturnType): Action<EachReturnType[]> {
-        return this.createForEachAndAction(promisifyFromSync(syncExecForEach));
-    }
-
-    createTaskSequence<SeqReturnType>(subtasks: Task<SeqReturnType>[]): TaskSequence<SeqReturnType> {
-        return {
-            type: 'task-sequence',
-            subtasks
+            type: 'parallel',
+            subtasks: subtasks
         };
     }
 
-    createForEach<EachReturnType>(subtask: Task<EachReturnType>): ForEach<EachReturnType> {
-        return {
+    createParallelDict<EachReturnType>(
+            config: {
+                subtasks: {[key: string] : Task<EachReturnType>}
+            } | {[key: string] : Task<EachReturnType>}): Task<{[key: string]: EachReturnType}> {
+        let subtasksMap = <{[key: string] : Task<EachReturnType>}> ((<any> config).subtasks || config);
+        let posToKeys: {[key: number] : string} = {};
+        let subtasks: Task<EachReturnType> [];
+        Object.keys(subtasksMap).forEach((key, index) => {
+            posToKeys[index] = key;
+            subtasks.push(subtasksMap[key]);
+        });
+        return this.createCascade({
+            task: this.createParallel({subtasks}),
+            action: (resultArray: EachReturnType[]) => 
+                    Object.fromEntries(
+                            resultArray.map((singleRes, index) => [posToKeys[index], singleRes]))
+        });
+    }
+
+    createForEach<EachReturnType>(
+            config: {
+                subtask: Task<EachReturnType>,
+                predicate?: Algebra.PropertyPathSymbol | RDF.Term | string,
+                graph?: RDF.Term
+            } | Task<EachReturnType>): Task<EachReturnType[]> {
+        let subtask = <Task<EachReturnType>> ((<any> config).subtask || config);
+        let forEach = <ForEach<EachReturnType>> {
             type: 'for-each',
-            subtask
+            subtask: subtask
         };
+        return (<any> config).predicate ?
+                this.createTraverse({
+                    predicate: (<any> config).predicate,
+                    graph: (<any> config).graph,
+                    next: forEach
+                }) :
+                forEach;
     }
 
     private selectEnvelope(patternStr: string): string {
@@ -227,17 +343,28 @@ export default class TaskFactory {
     }
 
     createLet<ReturnType>(
-            next: Task<ReturnType>,
-            currVarname: string = '?_',
-            newVarname: string = '?_',
-            hideCurrVar: boolean = false): Let<ReturnType> {
-        return {type: 'let', next, currVarname, newVarname, hideCurrVar};
+            config: {
+                next: Task<ReturnType>,
+                currVarname?: string,
+                newVarname?: string,
+                hideCurrVar?: boolean
+            }): Let<ReturnType> {
+        return {
+            type: 'let',
+            next: config.next,
+            currVarname: config.currVarname || '?_',
+            newVarname: config.newVarname || '?_',
+            hideCurrVar: !!config.hideCurrVar
+        };
     }
 
     createTraverse<ReturnType>(
-            next: Task<ReturnType>,
-            predicate: Algebra.PropertyPathSymbol | RDF.Term | string,
-            graph?: RDF.Term ): Join<ReturnType> {
+            config: {
+                next: Task<ReturnType>,
+                predicate: Algebra.PropertyPathSymbol | RDF.Term | string,
+                graph?: RDF.Term
+            }): Join<ReturnType> {
+        let predicate = config.predicate;
         if (isString(predicate)) {
             let op = this.translateOp('?_ ' + predicate + ' ?_out');
             if (isPath(op)) {
@@ -246,61 +373,100 @@ export default class TaskFactory {
                 predicate = (<Algebra.Bgp> op).patterns[0].predicate;
             }
         }
-        let nextAfterRename = this.createLet(next, '?_out', '?_', true);
+        let nextAfterRename = this.createLet({
+            next: config.next,
+            currVarname: '?_out',
+            hideCurrVar: true
+        });
         return {
             type: 'join', next: nextAfterRename,
             right: (isPropertyPathSymbol(predicate)) ?
                     this.algebraFactory.createPath(
-                            this.defaultInput, predicate, this.defaultOutput, graph):
+                            this.defaultInput, predicate, this.defaultOutput, config.graph):
                     this.algebraFactory.createBgp([
                             this.algebraFactory.createPattern(
-                                    this.defaultInput, predicate, this.defaultOutput, graph)])
+                                    this.defaultInput, predicate, this.defaultOutput, config.graph)])
         };
     }
 
     createJoin<ReturnType>(
-            next: Task<ReturnType>,
-            right: Algebra.Operation | string,
-            newDefault?: string,
-            hideCurrVar: boolean = false): Join<ReturnType> {
+            config: {
+                next: Task<ReturnType>,
+                right: Algebra.Operation | string,
+                newDefault?: string,
+                hideCurrVar?: boolean
+            }): Join<ReturnType> {
+        let right = config.right;
         if (isString(right)) {
             right = this.translateOp(right);
         }
-        if (newDefault) {
-            next = this.createLet(next, newDefault, '?_', hideCurrVar);
+        let next = config.next;
+        if (config.newDefault) {
+            next = this.createLet({
+                next,
+                currVarname: config.newDefault,
+                hideCurrVar: config.hideCurrVar
+            });
         }
         return {type: 'join', next, right};
     }
 
-    createFilter<ReturnType>(next: Task<ReturnType>, expression: Algebra.Expression | string): Filter<ReturnType> {
+    createFilter<ReturnType>(
+            config: {
+                next: Task<ReturnType>,
+                expression: Algebra.Expression | string
+            }): Filter<ReturnType> {
+        let expression = config.expression;
         if (isString(expression)) {
             expression = (<Algebra.Filter> this.translateOp('FILTER(' + expression + ')')).expression;
         }
         return {
-            type: 'filter', next,
+            type: 'filter',
+            next: config.next,
             expression 
         };
+    }
+
+    createTermReader(): Task<RDF.Term> {
+        return this.createActionOnFirstDefault({
+            exec: x => x
+        });
+    }
+
+    createValueReader(): Task<any> {
+        // TODO: convert to jsonld formats
+        // TODO: manage arrays of values too
+        return this.createActionOnFirstDefault({
+            exec: x => x
+        });
     }
 
     logTaskCount: number = 0;
     log<ReturnType>(next: Task<ReturnType>, label?: string): Task<ReturnType> {
         let logTaskId = ++this.logTaskCount;
         var callCount = 0
-        let loggingTask = this.createSimpleActionOnAll((table: TableSync) => {
-            let callId = ++callCount;
-            console.log('# Input of node ' + logTaskId + (label ? ' (' + label + ')' : '') + ' call n. ' + callId);
-            console.log(table.bindingsArray);
-            console.log('');
-            return callId;
+        let loggingTask = this.createActionOnAll({
+            exec: (table: TableSync) => {
+                let callId = ++callCount;
+                console.log('# Input of node ' + logTaskId + (label ? ' (' + label + ')' : '') + ' call n. ' + callId);
+                console.log(table.bindingsArray);
+                console.log('');
+                return callId;
+            }
         });
-        let seq = this.createTaskSequence<any>([loggingTask, next]);
-        return this.createSimpleCascade(seq, (resSeq:any) => {
-            let callId = resSeq[0];
-            let actionRes = resSeq[1];
-            console.log('# Output of node ' + logTaskId + (label ? ' (' + label + ')' : '') + ' call n. ' + callId);
-            console.log(actionRes);
-            console.log('');
-            return actionRes;
+        let seq = this.createParallel<any>({
+            subtasks: [loggingTask, next]
+        });
+        return this.createCascade({
+            task: seq,
+            action: (resSeq:any) => {
+                let callId = resSeq[0];
+                let actionRes = resSeq[1];
+                console.log('# Output of node ' + logTaskId + (label ? ' (' + label + ')' : '') + ' call n. ' + callId);
+                console.log(actionRes);
+                console.log('');
+                return actionRes;
+            }
         });
     }
 

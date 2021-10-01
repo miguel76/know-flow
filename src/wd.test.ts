@@ -73,38 +73,53 @@ let wd = {
 }
 
 function showAttr(attrPath: string, attrLabel: string, language?: string): Task<string> {
-    let show = taskFactory.createSimpleActionOnFirst(bindings => {
-        let term = bindings.get('?_');
-        return attrLabel + ': ' + (term ? term.value : '?');
+    let show = taskFactory.createActionOnFirst({
+        exec: bindings => {
+            let term = bindings.get('?_');
+            return attrLabel + ': ' + (term ? term.value : '?');
+        }
     });
     let filterAndShow = language ?
-            taskFactory.createFilter(show, 'langMatches( lang(?_), "' + language + '" )') :
+            taskFactory.createFilter({
+                expression: 'langMatches( lang(?_), "' + language + '" )',
+                next: show
+            }) :
             show;
-    return taskFactory.createTraverse(filterAndShow, attrPath);
+    return taskFactory.createTraverse({
+        predicate: attrPath,
+        next: filterAndShow
+    });
 }
 
-let showLanguage =
-        taskFactory.createSimpleCascade(
-            taskFactory.log(taskFactory.createTaskSequence([
-                    taskFactory.log(showAttr('rdfs:label', 'Name', 'en'), "Show Label"),
-                    taskFactory.log(showAttr(wdt.ISO_639_3_code, 'ISO Code'), "Show Code")
-                ]), "Seq of attrs"), (lines: string[]) => lines.join('\n'));
+let showLanguage = taskFactory.createCascade({
+    task: taskFactory.log(taskFactory.createParallel({
+            subtasks: [
+                taskFactory.log(showAttr('rdfs:label', 'Name', 'en'), "Show Label"),
+                taskFactory.log(showAttr(wdt.ISO_639_3_code, 'ISO Code'), "Show Code")
+            ]
+    }), "Seq of attrs"),
+    action: (lines: string[]) => lines.join('\n')
+});
 
-let showLanguageList =
-        taskFactory.createSimpleCascade(
-                taskFactory.createForEach(showLanguage),
-                (lines: string[]) => lines.join('\n'));
+let showLanguageList = taskFactory.createCascade<string[],string>({
+    task: taskFactory.createForEach({subtask: showLanguage}),
+    action: (lines: string[]) => lines.join('\n')
+});
 
-let showLanguagesForCountrySimple = taskFactory.createTraverse(
-        taskFactory.createFilter(showLanguageList,
-            `EXISTS {?_ ${wdt.instanceOf} ${wd.ModernLanguage}}`),
-        `^${wdt.country}`
-);
+let showLanguagesForCountrySimple = taskFactory.createTraverse({
+    predicate: `^${wdt.country}`,
+    next: taskFactory.createFilter({
+            expression: `EXISTS {?_ ${wdt.instanceOf} ${wd.ModernLanguage}}`,
+            next: showLanguageList
+    }),
+});
 
-let showLanguagesForCountry = taskFactory.createJoin(
-        showLanguageList,
-        `?language ${wdt.instanceOf} ${wd.ModernLanguage}; ${wdt.country} ?_`,
-        '?language', true);
+let showLanguagesForCountry = taskFactory.createJoin({
+    right: `?language ${wdt.instanceOf} ${wd.ModernLanguage}; ${wdt.country} ?_`,
+    newDefault: '?language',
+    hideCurrVar: true,
+    next: showLanguageList
+});
                 
 // executeTask(action1).then(console.log, console.error)
 

@@ -29,9 +29,9 @@ export interface Cascade<TaskReturnType, ActionReturnType> extends Task<ActionRe
     action: (taskResult: TaskReturnType) => Promise<ActionReturnType>;
 }
 
-export interface TaskSequence<SeqReturnType> extends Task<SeqReturnType[]> {
-    type: 'task-sequence';
-    subtasks: Task<SeqReturnType>[];
+export interface Parallel<EachReturnType> extends Task<EachReturnType[]> {
+    type: 'parallel';
+    subtasks: Task<EachReturnType>[];
 }
 
 export interface ForEach<EachReturnType> extends Task<EachReturnType[]> {

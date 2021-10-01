@@ -1,4 +1,4 @@
-import {Task, Action, TaskSequence, ForEach, Traverse, Join, Filter, Cascade, Table, Let} from './task';
+import {Task, Action, Parallel, ForEach, Traverse, Join, Filter, Cascade, Table, Let} from './task';
 import * as RDF from 'rdf-js';
 import { Algebra, toSparql, Factory } from 'sparqlalgebrajs';
 import {IQueryEngine, BindingsStream, Bindings, IActorQueryOperationOutputBindings} from '@comunica/types';
@@ -98,9 +98,9 @@ export function executeTask<ReturnType>(
             let taskResult = await executeTask(cascade.task, input, engine, queryContext);
             return await cascade.action(taskResult);
         },
-        'task-sequence': async () => {
-            let taskSequence = <TaskSequence<unknown>> task;
-            return <ReturnType> <unknown> await Promise.all(taskSequence.subtasks.map(
+        'parallel': async () => {
+            let parallel = <Parallel<unknown>> task;
+            return <ReturnType> <unknown> await Promise.all(parallel.subtasks.map(
                     t => executeTask(t, input, engine, queryContext)));
         },
         'for-each': () => {
