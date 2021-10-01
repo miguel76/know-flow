@@ -130,18 +130,20 @@ export default class TaskFactory {
     }
 
     createActionAsync<ReturnType>(
-        config: {
-            exec: (input: Table) => Promise<ReturnType>
-        }): Action<ReturnType> {
-        return {type: 'action', exec: config.exec};
+            config: {
+                exec: (input: Table) => Promise<ReturnType>
+            } | ((input: Table) => Promise<ReturnType>)): Action<ReturnType> {
+        let exec = <(input: Table) => Promise<ReturnType>> ((<any> config).exec || config);
+        return {type: 'action', exec};
     }
 
     createAction<ReturnType>(
         config: {
             exec: (input: Table) => ReturnType
-        }): Action<ReturnType> {
+        } | ((input: Table) => ReturnType)): Action<ReturnType> {
+        let exec = <(input: Table) => ReturnType> ((<any> config).exec || config);
         return this.createActionAsync({
-            exec: promisifyFromSync(config.exec)
+            exec: promisifyFromSync(exec)
         });
     }
 
@@ -154,13 +156,14 @@ export default class TaskFactory {
     createActionAsyncOnAll<ReturnType>(
             config: {
                 exec: (input: TableSync) => Promise<ReturnType>
-            }): Action<ReturnType> {
+            } | ((input: TableSync) => Promise<ReturnType>)): Action<ReturnType> {
+        let exec = <(input: TableSync) => Promise<ReturnType>> ((<any> config).exec || config);
         return {
             type: 'action',
             exec: (table) => {
                 return new Promise<ReturnType>((resolve, reject) => {
                     syncTable(table).then((tableSync) => {
-                        config.exec(tableSync).then((res) => {
+                        exec(tableSync).then((res) => {
                             resolve(res);
                         }, (error) => {
                             reject(error);
@@ -176,9 +179,10 @@ export default class TaskFactory {
     createActionOnAll<ReturnType>(
             config: {
                 exec: (input: TableSync) => ReturnType
-            }): Action<ReturnType> {
+            } | ((input: TableSync) => ReturnType)): Action<ReturnType> {
+        let exec = <(input: TableSync) => ReturnType> ((<any> config).exec || config);
         return this.createActionAsyncOnAll({
-            exec: promisifyFromSync(config.exec)
+            exec: promisifyFromSync(exec)
         });
     }
 
@@ -186,14 +190,15 @@ export default class TaskFactory {
             config: {
                 exec: (bindings: Bindings) => Promise<ReturnType>,
                 acceptEmpty?: boolean
-            }): Action<ReturnType> {
-        let acceptEmpty = config.acceptEmpty !== undefined ? config.acceptEmpty : true;
+            } | ((bindings: Bindings) => Promise<ReturnType>)): Action<ReturnType> {
+        let exec = <(bindings: Bindings) => Promise<ReturnType>> ((<any> config).exec || config);
+        let acceptEmpty = (<any> config).acceptEmpty !== undefined ? (<any> config).acceptEmpty : true;
         return {
             type: 'action',
             exec: (table) => {
                 return new Promise<ReturnType>((resolve, reject) => {
                     let cb = (bindings: Bindings) => {
-                        config.exec(bindings).then((res) => {
+                        exec(bindings).then((res) => {
                             resolve(res);
                         }, (err) => {
                             reject(err);
@@ -229,27 +234,30 @@ export default class TaskFactory {
     createActionOnFirst<ReturnType>(
             config: {
                 exec: (bindings: Bindings) => ReturnType
-            }): Action<ReturnType> {
+            } | ((bindings: Bindings) => ReturnType)): Action<ReturnType> {
+        let exec = <(bindings: Bindings) => ReturnType> ((<any> config).exec || config);
         return this.createActionAsyncOnFirst({
-            exec: promisifyFromSync(config.exec)
+            exec: promisifyFromSync(exec)
         });
     }
 
     createActionAsyncOnFirstDefault<ReturnType>(
             config: {
                 exec: (term: RDF.Term) => Promise<ReturnType>
-            }): Action<ReturnType> {
+            } | ((term: RDF.Term) => Promise<ReturnType>)): Action<ReturnType> {
+        let exec = <(term: RDF.Term) => Promise<ReturnType>> ((<any> config).exec || config);
         return this.createActionAsyncOnFirst({
-            exec: (bindings: Bindings) => config.exec(bindings.get('?_'))
+            exec: (bindings: Bindings) => exec(bindings.get('?_'))
         });
     }
 
     createActionOnFirstDefault<ReturnType>(
             config: {
                 exec: (term: RDF.Term) => ReturnType
-            }): Action<ReturnType> {
+            } | ((term: RDF.Term) => ReturnType)): Action<ReturnType> {
+        let exec = <(term: RDF.Term) => ReturnType> ((<any> config).exec || config);
         return this.createActionOnFirst({
-            exec: (bindings: Bindings) => config.exec(bindings.get('?_'))
+            exec: (bindings: Bindings) => exec(bindings.get('?_'))
         });
     }
 

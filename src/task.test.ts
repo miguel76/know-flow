@@ -35,37 +35,50 @@ let action3 = taskFactory.createConstant('Action 3');
 let action4 = taskFactory.createConstant('Action 4');
 let action5 = taskFactory.createConstant('Action 5');
 
-let taskSeq = taskFactory.createTaskSequence([action1, action2, action3]);
+let taskSeq = taskFactory.createParallel([action1, action2, action3]);
 let forEach = taskFactory.createForEach(action1);
 
-let traverse = taskFactory.createTraverse(action4, 'rdf:type');
+let traverse = taskFactory.createTraverse({predicate: 'rdf:type', next: action4});
 
-let join = taskFactory.createJoin(action4, '$_ rdf:type rdf:List; rdfs:label "ciccio"');
+let join = taskFactory.createJoin({
+    right: '$_ rdf:type rdf:List; rdfs:label "ciccio"',
+    next: action5
+});
 
 let showList = {};
 
 function showAttr(attrPath: string, attrLabel: string, language?: string): Task<string> {
-    let show = taskFactory.createSimpleActionOnFirst(bindings =>
+    let show = taskFactory.createActionOnFirst(bindings =>
             attrLabel + ': ' + bindings.get('?_').value);
     let filterAndShow = language ?
-            taskFactory.createFilter(show, 'langMatches( lang(?_), "' + language + '" )') :
+            taskFactory.createFilter({
+                expression: 'langMatches( lang(?_), "' + language + '" )',
+                next: show
+            }) :
             show;
-    return taskFactory.createTraverse(filterAndShow, attrPath);
+    return taskFactory.createTraverse({
+        predicate: attrPath,
+        next: filterAndShow
+    });
 }
 
 let showLanguage =
-        taskFactory.createSimpleCascade(
-                taskFactory.createTaskSequence([
+        taskFactory.createCascade({
+            task: taskFactory.createParallel([
                     showAttr('rdf:label', 'Name'),
                     showAttr('dbo:iso6392Code', 'ISO Code'),
                     showAttr('dbo:languageFamily', 'Family')
-                ]), (lines: string[]) => lines.join('\n'));
+            ]),
+            action: (lines: string[]) => lines.join('\n')});
 
-let showLanguageList = taskFactory.createSimpleActionOnAll(ts => ts.bindingsArray.map(b => b.get('?_')));
+// let showLanguageList = taskFactory.createSimpleActionOnAll(ts => ts.bindingsArray.map(b => b.get('?_')));
 
-let showLanguages = taskFactory.createJoin(showLanguageList, '$_ rdf:type dbo:Language; dbo:spokenIn dbr:Italy');
+// let showLanguages = taskFactory.createJoin(showLanguageList, '$_ rdf:type dbo:Language; dbo:spokenIn dbr:Italy');
 
-let filter = taskFactory.createFilter(action5, '$_ = "pluto"');
+let filter = taskFactory.createFilter({
+    expression: '$_ = "pluto"',
+    next: action5
+});
 
 console.log(action1);
 console.log(stringifyTask(action1));
