@@ -1,7 +1,7 @@
 {
     "name": "know-flow",
     "version": "0.1.3",
-    "description": "Library to manage a network of interdependent SPARQL queries",
+    "description": "JS(TS) library to query a knowledge graph (aka linked data source) in a data-flow-oriented way.",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
     "files": [
