@@ -87,19 +87,35 @@ export default class TaskBuilder {
         return this.next(this.taskFactory.createValueReader());
     }
 
+    bind(bindings:
+            {[key: string]: RDF.Term | string}[] |
+            {[key: string]: RDF.Term | string} | 
+            (RDF.Term | string)[] |
+            RDF.Term | string): TaskBuilder {
+        return this.derive((task: Task<any>) => this.taskFactory.createValues({
+            bindings, next: task
+        }));
+    }
+
 }
 
-class TaskApplier<ReturnType> extends Proxy<Task<ReturnType>> implements Task<ReturnType> {
+class TaskApplier<ReturnType> implements Task<ReturnType> {
 
     task: Task<ReturnType>;
     taskFactory: TaskFactory;
     type: string;
 
     constructor(task: Task<ReturnType>, taskFactory: TaskFactory) {
-        super(task, {});
         this.task = task;
         this.type = task.type;
         this.taskFactory = taskFactory;
+        return new Proxy(this, {
+            get: function (target, prop, receiver) {
+                if (typeof prop === 'string' && !["task", "taskFactory"].includes(prop)) {
+                    return (<any> target.task)[prop];
+                }
+            }
+        });
     }
 
     apply<NewReturnType>(exec: (x:ReturnType) => NewReturnType): TaskApplier<NewReturnType> {

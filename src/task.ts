@@ -66,6 +66,11 @@ export interface Filter<ReturnType> extends QueryAndTask<ReturnType> {
     expression: Algebra.Expression;
 }
 
+export interface Values<ReturnType> extends QueryAndTask<ReturnType> {
+    type: 'values';
+    bindings: {[key: string]: RDF.Term}[];
+}
+
 export interface Aggregate<ReturnType> extends QueryAndTask<ReturnType> {
     type: 'aggregate';
     aggregates: Algebra.BoundAggregate[];

@@ -95,24 +95,28 @@ console.log(stringifyTask(filter));
 
 // executeTask(action1).then(console.log, console.error)
 
-executeTask(action1, table3, engine, queryContext).then(console.log, console.error);
-executeTask(taskSeq, table3, engine, queryContext).then(console.log, console.error);
-executeTask(forEach, table3, engine, queryContext).then(console.log, console.error);
+executeTask(action1, {input: table3, engine, queryContext}).then(console.log, console.error);
+executeTask(taskSeq, {input: table3, engine, queryContext}).then(console.log, console.error);
+executeTask(forEach, {input: table3, engine, queryContext}).then(console.log, console.error);
 
 // executeTask(showLanguages, NO_BINDING_SINGLETON_TABLE, engine, queryContext).then(console.log, console.error);
 
 executeTask(
     showLanguage,
-    tableFromArray([{
-        '?_': dataFactory.namedNode('http://dbpedia.org/resource/Bari_dialect')
-    }]),
-    engine, queryContext).then(console.log, console.error);
+    {
+        input: tableFromArray([{
+            '?_': dataFactory.namedNode('http://dbpedia.org/resource/Bari_dialect')
+        }]),
+        engine, queryContext
+    }).then(console.log, console.error);
 
     
 executeTask(
     showAttr('rdfs:label', 'Name', 'EN'),
-    tableFromArray([{
-        '?_': dataFactory.namedNode('http://dbpedia.org/resource/Bari_dialect')
-    }]),
-    engine, queryContext).then(console.log, console.error);
+    {
+        input: tableFromArray([{
+            '?_': dataFactory.namedNode('http://dbpedia.org/resource/Bari_dialect')
+        }]),
+        engine, queryContext
+    }).then(console.log, console.error);
     

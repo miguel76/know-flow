@@ -1,6 +1,6 @@
 import { Algebra, translate, Factory } from 'sparqlalgebrajs';
 import * as RDF from "rdf-js";
-import {Table, TableSync, Task, Action, ForEach, Join, Filter, Cascade, Let, Parallel} from './task';
+import {Table, TableSync, Task, Action, ForEach, Join, Filter, Cascade, Let, Parallel, Values} from './task';
 import {Bindings, BindingsStream} from '@comunica/types';
 import {syncTable} from './utils';
 import { ArrayIterator } from 'asynciterator';
@@ -309,7 +309,7 @@ export default class TaskFactory {
             } | {[key: string] : Task<EachReturnType>}): Task<{[key: string]: EachReturnType}> {
         let subtasksMap = <{[key: string] : Task<EachReturnType>}> ((<any> config).subtasks || config);
         let posToKeys: {[key: number] : string} = {};
-        let subtasks: Task<EachReturnType> [];
+        let subtasks: Task<EachReturnType> [] = [];
         Object.keys(subtasksMap).forEach((key, index) => {
             posToKeys[index] = key;
             subtasks.push(subtasksMap[key]);
@@ -363,6 +363,55 @@ export default class TaskFactory {
             currVarname: config.currVarname || '?_',
             newVarname: config.newVarname || '?_',
             hideCurrVar: !!config.hideCurrVar
+        };
+    }
+
+    private buildTerm(input: RDF.Term | string): RDF.Term {
+        if (typeof input === 'string') {
+            let op = <Algebra.Values> this.translateOp('VALUES ?_ {' + input + '}');
+            return op.bindings[0]['?_'];
+        } else {
+            return input;
+        }
+    }
+
+    private buildBindings(
+            input: {[key: string]: (RDF.Term | string)} | 
+                    RDF.Term | string ): {[key: string]: RDF.Term} {
+        if (typeof input === 'string' || (<any> input).termType !== undefined) {
+            return {'?_': this.buildTerm(<RDF.Term | string> input)};
+        } else {
+            return Object.fromEntries((<any> input).entries().map(
+                (entry: [string, RDF.Term | string]) => [entry[0], this.buildTerm(entry[1])]));
+        }
+    }
+
+    private buildBindingsSeq(
+            input:
+                {[key: string]: RDF.Term | string}[] |
+                {[key: string]: RDF.Term | string} | 
+                (RDF.Term | string)[] |
+                RDF.Term | string ): {[key: string]: RDF.Term}[] {
+        if (Array.isArray(input)) {
+            return input.map(i => this.buildBindings(i));
+        } else {
+            return [this.buildBindings(input)];
+        }
+    }
+
+    createValues<ReturnType>(config: {
+            next: Task<ReturnType>,
+            bindings:
+                {[key: string]: RDF.Term | string}[] |
+                {[key: string]: RDF.Term | string} | 
+                (RDF.Term | string)[] |
+                RDF.Term | string
+    }): Values<ReturnType> {
+        let bindings = this.buildBindingsSeq(config.bindings);
+        return {
+            type: 'values',
+            bindings,
+            next: config.next
         };
     }
 

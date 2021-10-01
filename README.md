@@ -55,7 +55,6 @@ Create a task to list the students of a person (e.g., a philosopher):
 
 ```ts
 let getStudentsInfo = tb.forEach('wdt:P1066').next(getPersonInfo);
-};
 ```
 
 ## Executing the tasks 

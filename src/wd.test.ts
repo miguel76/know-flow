@@ -143,8 +143,10 @@ let showLanguagesForCountry = taskFactory.createJoin({
 
 executeTask(
     showLanguagesForCountry,
-    tableFromArray([{
-        '?_': dataFactory.namedNode('http://www.wikidata.org/entity/Q38')
-    }]),
-    proxyEngine, queryContext).then(console.log, console.error);
+    {
+        input: tableFromArray([{
+            '?_': dataFactory.namedNode('http://www.wikidata.org/entity/Q38')
+        }]),
+        engine: proxyEngine, queryContext
+    }).then(console.log, console.error);
 

@@ -6,6 +6,7 @@ import {ArrayIterator, SingletonIterator, UnionIterator} from 'asynciterator';
 import {fromTableToValuesOp, toSparqlFragment, stringifyTask} from './utils';
 import { Map } from 'immutable';
 import { Wildcard } from 'sparqljs';
+import { TableSync } from '.';
 
 let algebraFactory = new Factory();
 let WILDCARD = new Wildcard();
@@ -88,20 +89,25 @@ function collectPromises<T>(promises: Promise<T>[]): Promise<T[]> {
 
 export function executeTask<ReturnType>(
         task: Task<ReturnType>,
-        input: Table,
-        engine: IQueryEngine,
-        queryContext: any = {}): Promise<ReturnType> {
+        config: {
+            engine: IQueryEngine,
+            input?: Table,
+            queryContext?: any
+        }): Promise<ReturnType> {
+    let engine = config.engine;
+    let input = config.input || NO_BINDING_SINGLETON_TABLE;
+    let queryContext = config.queryContext || {};
     const cases: { [index:string] : () => Promise<ReturnType> } = {
         'action': () => (<Action<ReturnType>> task).exec(input),
         'cascade': async () => {
             let cascade = <Cascade<any, ReturnType>> task;
-            let taskResult = await executeTask(cascade.task, input, engine, queryContext);
+            let taskResult = await executeTask(cascade.task, {input, engine, queryContext});
             return await cascade.action(taskResult);
         },
         'parallel': async () => {
             let parallel = <Parallel<unknown>> task;
             return <ReturnType> <unknown> await Promise.all(parallel.subtasks.map(
-                    t => executeTask(t, input, engine, queryContext)));
+                    t => executeTask(t, {input, engine, queryContext})));
         },
         'for-each': () => {
             let forEach = <ForEach<any>> task;
@@ -111,9 +117,13 @@ export function executeTask<ReturnType>(
                 input.bindingsStream.on('data', (bindings) => {
                     promises.push(
                             executeTask(
-                                    forEach.subtask,
-                                    oneTupleTable(input.variables, bindings, input.canContainUndefs),
-                                    engine, queryContext));
+                                    forEach.subtask, {
+                                        input: oneTupleTable(
+                                                input.variables,
+                                                bindings,
+                                                input.canContainUndefs),
+                                        engine, queryContext
+                                    }));
                 });
                 input.bindingsStream.on('end', () => {
                     Promise.all(promises).then((result) => {
@@ -130,7 +140,7 @@ export function executeTask<ReturnType>(
         'let': async () => {
             let letTask = <Let<ReturnType>> task;
             let res = assignVar(input, letTask.currVarname, letTask.newVarname, letTask.hideCurrVar);
-            return await executeTask(letTask.next, res, engine, queryContext);
+            return await executeTask(letTask.next, {input: res, engine, queryContext});
         },
         'join': async () => {
             let join = <Join<ReturnType>> task;
@@ -139,14 +149,14 @@ export function executeTask<ReturnType>(
                             join.right :
                             algebraFactory.createJoin(await fromTableToValuesOp(input), join.right);
             const res = <IActorQueryOperationOutputBindings> await engine.query(queryOp, queryContext);
-            return await executeTask(join.next, res, engine, queryContext);
+            return await executeTask(join.next, {input: res, engine, queryContext});
         },
         'filter': async () => {
             let filter = <Filter<ReturnType>> task;
             const valuesOp = await fromTableToValuesOp(input);
             const queryOp = algebraFactory.createFilter(valuesOp, filter.expression);
             const res = <IActorQueryOperationOutputBindings> await engine.query(queryOp, queryContext);
-            return await executeTask(filter.next, res, engine, queryContext);
+            return await executeTask(filter.next, {input: res, engine, queryContext});
         }
     };
     return cases[task.type]();
