@@ -36,6 +36,10 @@ const REGEX_BCP47 = /^[a-zA-Z]{1,8}(-[a-zA-Z0-9]{1,8})*$/;
  */
 export function RDFToObject(term: RDF.Term, useNativeTypes: boolean, rdfDirection?: string): any {
   // convert NamedNode/BlankNode object to JSON-LD
+  if (!term) {
+    return null;
+  }
+
   if(term.termType.endsWith('Node')) {
     return {'@id': term.value};
   }
@@ -112,5 +116,5 @@ export function RDFToObject(term: RDF.Term, useNativeTypes: boolean, rdfDirectio
  */
 export function RDFToValueOrObject(term: RDF.Term, rdfDirection?: string): any {
   let rval = RDFToObject(term, true, rdfDirection);
-  return (rval['@value'] === undefined) ? rval : rval['@value'];
+  return (!rval || rval['@value'] === undefined) ? rval : rval['@value'];
 }

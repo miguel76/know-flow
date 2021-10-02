@@ -76,6 +76,7 @@ let hegel = tb.input('wd:Q9235');
 
 let infoOnAdorno = adorno.next(getPersonInfo);
 let infoOnHegel = hegel.next(getPersonInfo);
+let hegelStudentsInfo = hegel.next(getStudentsInfo);
 ```
 
 
@@ -96,4 +97,34 @@ Execute the tasks and print the results when done:
 
 ```ts
 te.run(infoOnAdorno).then(console.log, console.error);
+// {
+//   name: 'Theodor Ludwig Wiesengrund Adorno',
+//   dateOfBirth: '1903-09-11T00:00:00Z',
+//   dateOfDeath: '1969-08-06T00:00:00Z'
+// }
+
+te.run(infoOnHegel).then(console.log, console.error);
+// {
+//   name: 'Georg Wilhelm Friedrich Hegel',
+//   dateOfBirth: '1770-08-27T00:00:00Z',
+//   dateOfDeath: '1831-11-14T00:00:00Z'
+// }
+
+te.run(hegelStudentsInfo).then(console.log, console.error);
+// [
+//   {
+//     name: 'Max Stirner',
+//     dateOfBirth: '1806-10-25T00:00:00Z',
+//     dateOfDeath: '1856-06-26T00:00:00Z'
+//   }
+// ]
+
+te.run(adornoStudentsInfo).then(console.log, console.error);
+// [
+//   {
+//     name: 'Jürgen Habermas',
+//     dateOfBirth: '1929-06-18T00:00:00Z',
+//     dateOfDeath: null
+//   }
+// ]
 ```
