@@ -20,11 +20,15 @@ $ npm install know-flow
 
 In this example we will build simple tasks to generate JSON from a knowledge graph which uses Wikidata schema.
 
-In Javascript/Typescript code, import the task builder and create an instance:
+In Javascript/Typescript code, import the task builder and task engine:
 
 ```ts
-import {TaskBuilder} from 'know-flow';
+import {TaskBuilder,TaskEngine} from 'know-flow';
+```
 
+Create an instance of the task builder:
+
+```ts
 const tb =  new TaskBuilder({
     prefixes: {
         'rdf': 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
@@ -57,5 +61,31 @@ Create a task to list the students of a person (e.g., a philosopher):
 let getStudentsInfo = tb.forEach('wdt:P1066').next(getPersonInfo);
 ```
 
+Define tasks that add some input data:
+
+```ts
+let adorno = tb.input('wd:Q152388');
+let hegel = tb.input('wd:Q9235');
+
+let infoOnAdorno = adorno.next(getPersonInfo);
+let infoOnHegel = hegel.next(getPersonInfo);
+```
+
+
 ## Executing the tasks 
 
+Create an instance of the task engine, pointing to the wikidata public endpoint:
+
+```ts
+let te = new TaskEngine({
+    queryContext: {
+        sources: [{ type: 'sparql', value: 'https://query.wikidata.org/sparql' }]
+    }
+});
+```
+
+Execute the tasks and print the results when done:
+
+```ts
+te.run(infoOnAdorno).then(console.log, console.error);
+```
