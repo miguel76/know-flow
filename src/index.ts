@@ -1,12 +1,12 @@
-import {Table, TableSync, Task, Action, Parallel, ForEach, Traverse, Join, Filter, Cascade} from './task';
+import {Table, TableSync, Task, Action, Parallel, ForEach, Join, Filter, Cascade} from './task';
 import TaskFactory from './taskFactory';
 import TaskBuilder from './taskBuilder';
 import {stringifyTask} from './utils';
-import {executeTask} from './taskEngine';
+import TaskEngine from './taskEngine';
 
 export {
-    Table, TableSync, Task, Action, Parallel, ForEach, Traverse, Join, Filter, Cascade,
-    TaskFactory, stringifyTask, executeTask,
+    Table, TableSync, Task, Action, Parallel, ForEach, Join, Filter, Cascade,
+    TaskFactory, stringifyTask, TaskEngine,
     TaskBuilder
 };
 

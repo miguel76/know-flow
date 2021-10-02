@@ -52,7 +52,7 @@ export default class TaskBuilder {
         if (Array.isArray(task)) {
             return this.next(this.taskFactory.createParallel(task));
         } else {
-            if (task.type === undefined || typeof task.type === 'object') {
+            if (task.taskType === undefined || typeof task.taskType === 'object') {
                 return this.next(this.taskFactory.createParallelDict(
                         <{[key: string]: Task<unknown>}> task));
             } else {
@@ -77,17 +77,17 @@ export default class TaskBuilder {
         }));
     }
 
-    forEach(predicate: Algebra.PropertyPathSymbol | RDF.Term | string): TaskBuilder {
+    forEach(predicate?: Algebra.PropertyPathSymbol | RDF.Term | string): TaskBuilder {
         return this.derive((task: Task<any>) => this.taskFactory.createForEach({
             subtask: task, predicate
         }));
     }
 
-    value(predicate: Algebra.PropertyPathSymbol | RDF.Term | string): TaskApplier<any> {
-        return this.next(this.taskFactory.createValueReader());
+    value(predicate?: Algebra.PropertyPathSymbol | RDF.Term | string): TaskApplier<any> {
+        return this.next(this.taskFactory.createValueReader({predicate: predicate}));
     }
 
-    bind(bindings:
+    input(bindings:
             {[key: string]: RDF.Term | string}[] |
             {[key: string]: RDF.Term | string} | 
             (RDF.Term | string)[] |
@@ -101,18 +101,20 @@ export default class TaskBuilder {
 
 class TaskApplier<ReturnType> implements Task<ReturnType> {
 
-    task: Task<ReturnType>;
-    taskFactory: TaskFactory;
-    type: string;
+    __task: Task<ReturnType>;
+    __taskFactory: TaskFactory;
+    taskType: string;
 
     constructor(task: Task<ReturnType>, taskFactory: TaskFactory) {
-        this.task = task;
-        this.type = task.type;
-        this.taskFactory = taskFactory;
+        this.__task = task;
+        this.taskType = task.taskType;
+        this.__taskFactory = taskFactory;
         return new Proxy(this, {
             get: function (target, prop, receiver) {
-                if (typeof prop === 'string' && !["task", "taskFactory"].includes(prop)) {
-                    return (<any> target.task)[prop];
+                if (typeof prop === 'string' && !["__task", "__taskFactory"].includes(prop)) {
+                    return (<any> target.__task)[prop];
+                } else {
+                    return (<any> target)[prop];
                 }
             }
         });
@@ -120,13 +122,13 @@ class TaskApplier<ReturnType> implements Task<ReturnType> {
 
     apply<NewReturnType>(exec: (x:ReturnType) => NewReturnType): TaskApplier<NewReturnType> {
         return new TaskApplier<NewReturnType>(
-                this.taskFactory.createCascade({task: this.task, action: exec}),
-                this.taskFactory);
+                this.__taskFactory.createCascade({task: this.__task, action: exec}),
+                this.__taskFactory);
     }
 
     applyAsync<NewReturnType>(exec: (x:ReturnType) => Promise<NewReturnType>): TaskApplier<NewReturnType> {
         return new TaskApplier<NewReturnType>(
-                this.taskFactory.createCascadeAsync({task: this.task, action: exec}),
-                this.taskFactory);
+                this.__taskFactory.createCascadeAsync({task: this.__task, action: exec}),
+                this.__taskFactory);
     }
 }

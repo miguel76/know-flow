@@ -1,6 +1,6 @@
 import TaskFactory from './taskFactory';
-import {stringifyTask, toSparqlFragment} from './utils';
-import {executeTask, NO_BINDING_SINGLETON_TABLE, tableUnion, tableFromArray} from './taskEngine';
+import {tableFromArray} from './utils';
+import TaskEngine from './taskEngine';
 import {newEngine} from '@comunica/actor-init-sparql';
 import { Task } from '.';
 import { Factory, Algebra } from 'sparqlalgebrajs';
@@ -121,10 +121,12 @@ let showLanguagesForCountry = taskFactory.createJoin({
     next: showLanguageList
 });
                 
-// executeTask(action1).then(console.log, console.error)
+let te = new TaskEngine({engine: proxyEngine, queryContext});
+
+// te.run(action1).then(console.log, console.error)
 
 
-// executeTask(showLanguages, NO_BINDING_SINGLETON_TABLE, engine, queryContext).then(console.log, console.error);
+// te.run(showLanguages).then(console.log, console.error);
 
 // executeTask(
 //     showLanguage,
@@ -141,12 +143,10 @@ let showLanguagesForCountry = taskFactory.createJoin({
 //     }]),
 //     engine, queryContext).then(console.log, console.error);
 
-executeTask(
-    showLanguagesForCountry,
-    {
-        input: tableFromArray([{
-            '?_': dataFactory.namedNode('http://www.wikidata.org/entity/Q38')
-        }]),
-        engine: proxyEngine, queryContext
-    }).then(console.log, console.error);
+te.run({
+    task: showLanguagesForCountry,
+    input: tableFromArray([{
+        '?_': dataFactory.namedNode('http://www.wikidata.org/entity/Q38')
+    }])
+}).then(console.log, console.error);
 

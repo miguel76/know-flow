@@ -1,6 +1,6 @@
 import TaskFactory from './taskFactory';
-import {stringifyTask, toSparqlFragment} from './utils';
-import {executeTask, NO_BINDING_SINGLETON_TABLE, tableUnion, tableFromArray} from './taskEngine';
+import {stringifyTask, tableFromArray} from './utils';
+import TaskEngine from './taskEngine';
 import {newEngine} from '@comunica/actor-init-sparql';
 import { Task } from '.';
 import { Factory } from 'sparqlalgebrajs';
@@ -95,28 +95,25 @@ console.log(stringifyTask(filter));
 
 // executeTask(action1).then(console.log, console.error)
 
-executeTask(action1, {input: table3, engine, queryContext}).then(console.log, console.error);
-executeTask(taskSeq, {input: table3, engine, queryContext}).then(console.log, console.error);
-executeTask(forEach, {input: table3, engine, queryContext}).then(console.log, console.error);
+let te = new TaskEngine({engine, queryContext})
+
+te.run(action1).then(console.log, console.error);
+te.run(taskSeq).then(console.log, console.error);
+te.run(forEach).then(console.log, console.error);
 
 // executeTask(showLanguages, NO_BINDING_SINGLETON_TABLE, engine, queryContext).then(console.log, console.error);
 
-executeTask(
-    showLanguage,
-    {
-        input: tableFromArray([{
-            '?_': dataFactory.namedNode('http://dbpedia.org/resource/Bari_dialect')
-        }]),
-        engine, queryContext
-    }).then(console.log, console.error);
+te.run({
+    task: showLanguage,
+    input: tableFromArray([{
+        '?_': dataFactory.namedNode('http://dbpedia.org/resource/Bari_dialect')
+    }])
+}).then(console.log, console.error);
 
-    
-executeTask(
-    showAttr('rdfs:label', 'Name', 'EN'),
-    {
-        input: tableFromArray([{
-            '?_': dataFactory.namedNode('http://dbpedia.org/resource/Bari_dialect')
-        }]),
-        engine, queryContext
-    }).then(console.log, console.error);
-    
+te.run({
+    task: showAttr('rdfs:label', 'Name', 'EN'),
+    input: tableFromArray([{
+        '?_': dataFactory.namedNode('http://dbpedia.org/resource/Bari_dialect')
+    }])
+}).then(console.log, console.error);
+

@@ -1,6 +1,6 @@
 import { Algebra, translate, Factory } from 'sparqlalgebrajs';
 import * as RDF from "rdf-js";
-import {Table, TableSync, Task, Action, ForEach, Join, Filter, Cascade, Let, Parallel, Values} from './task';
+import {Table, TableSync, Task, Action, ForEach, Join, Filter, Cascade, Let, Parallel} from './task';
 import {Bindings, BindingsStream} from '@comunica/types';
 import {syncTable} from './utils';
 import { ArrayIterator } from 'asynciterator';
@@ -112,7 +112,7 @@ export default class TaskFactory {
                 action: (taskResult: TaskReturnType) => Promise<ActionReturnType>
             }): Cascade<TaskReturnType, ActionReturnType> {
         return {
-            type: 'cascade',
+            taskType: 'cascade',
             task: config.task,
             action: config.action
         };
@@ -134,7 +134,7 @@ export default class TaskFactory {
                 exec: (input: Table) => Promise<ReturnType>
             } | ((input: Table) => Promise<ReturnType>)): Action<ReturnType> {
         let exec = <(input: Table) => Promise<ReturnType>> ((<any> config).exec || config);
-        return {type: 'action', exec};
+        return {taskType: 'action', exec};
     }
 
     createAction<ReturnType>(
@@ -159,7 +159,7 @@ export default class TaskFactory {
             } | ((input: TableSync) => Promise<ReturnType>)): Action<ReturnType> {
         let exec = <(input: TableSync) => Promise<ReturnType>> ((<any> config).exec || config);
         return {
-            type: 'action',
+            taskType: 'action',
             exec: (table) => {
                 return new Promise<ReturnType>((resolve, reject) => {
                     syncTable(table).then((tableSync) => {
@@ -194,7 +194,7 @@ export default class TaskFactory {
         let exec = <(bindings: Bindings) => Promise<ReturnType>> ((<any> config).exec || config);
         let acceptEmpty = (<any> config).acceptEmpty !== undefined ? (<any> config).acceptEmpty : true;
         return {
-            type: 'action',
+            taskType: 'action',
             exec: (table) => {
                 return new Promise<ReturnType>((resolve, reject) => {
                     let cb = (bindings: Bindings) => {
@@ -298,7 +298,7 @@ export default class TaskFactory {
             }| Task<EachReturnType>[]): Parallel<EachReturnType> {
         let subtasks = <Task<EachReturnType>[]> ((<any> config).subtasks || config);
         return {
-            type: 'parallel',
+            taskType: 'parallel',
             subtasks: subtasks
         };
     }
@@ -307,18 +307,21 @@ export default class TaskFactory {
             config: {
                 subtasks: {[key: string] : Task<EachReturnType>}
             } | {[key: string] : Task<EachReturnType>}): Task<{[key: string]: EachReturnType}> {
-        let subtasksMap = <{[key: string] : Task<EachReturnType>}> ((<any> config).subtasks || config);
-        let posToKeys: {[key: number] : string} = {};
+        let subtasksMap = <{[key: string] : Task<EachReturnType>}>
+                ((<any> config).subtasks === undefined || (typeof (<any> config).subtasks.taskType === 'string') ?
+                    config :
+                    config.subtasks);
+        let keys: string [] = [];
         let subtasks: Task<EachReturnType> [] = [];
-        Object.keys(subtasksMap).forEach((key, index) => {
-            posToKeys[index] = key;
-            subtasks.push(subtasksMap[key]);
+        Object.entries(subtasksMap).forEach(([key, subtask]) => {
+            keys.push(key);
+            subtasks.push(subtask);
         });
         return this.createCascade({
-            task: this.createParallel({subtasks}),
+            task: this.createParallel(subtasks),
             action: (resultArray: EachReturnType[]) => 
                     Object.fromEntries(
-                            resultArray.map((singleRes, index) => [posToKeys[index], singleRes]))
+                            resultArray.map((singleRes, index) => [keys[index], singleRes]))
         });
     }
 
@@ -330,7 +333,7 @@ export default class TaskFactory {
             } | Task<EachReturnType>): Task<EachReturnType[]> {
         let subtask = <Task<EachReturnType>> ((<any> config).subtask || config);
         let forEach = <ForEach<EachReturnType>> {
-            type: 'for-each',
+            taskType: 'for-each',
             subtask: subtask
         };
         return (<any> config).predicate ?
@@ -358,7 +361,8 @@ export default class TaskFactory {
                 hideCurrVar?: boolean
             }): Let<ReturnType> {
         return {
-            type: 'let',
+            taskType: 'query',
+            queryType: 'let',
             next: config.next,
             currVarname: config.currVarname || '?_',
             newVarname: config.newVarname || '?_',
@@ -406,13 +410,16 @@ export default class TaskFactory {
                 {[key: string]: RDF.Term | string} | 
                 (RDF.Term | string)[] |
                 RDF.Term | string
-    }): Values<ReturnType> {
+    }): Join<ReturnType> {
         let bindings = this.buildBindingsSeq(config.bindings);
-        return {
-            type: 'values',
-            bindings,
-            next: config.next
-        };
+        let varnames = [...new Set(bindings.flatMap(b => Object.keys(b)))];
+        let valuesOp = this.algebraFactory.createValues(
+                varnames.map(varname => this.dataFactory.variable(varname.substr(1))),
+                bindings );
+        return this.createJoin({
+            next: config.next,
+            right: valuesOp
+        });
     }
 
     createTraverse<ReturnType>(
@@ -436,7 +443,9 @@ export default class TaskFactory {
             hideCurrVar: true
         });
         return {
-            type: 'join', next: nextAfterRename,
+            taskType: 'query',
+            queryType: 'join',
+            next: nextAfterRename,
             right: (isPropertyPathSymbol(predicate)) ?
                     this.algebraFactory.createPath(
                             this.defaultInput, predicate, this.defaultOutput, config.graph):
@@ -465,7 +474,7 @@ export default class TaskFactory {
                 hideCurrVar: config.hideCurrVar
             });
         }
-        return {type: 'join', next, right};
+        return {taskType: 'query', queryType: 'join', next, right};
     }
 
     createFilter<ReturnType>(
@@ -478,24 +487,38 @@ export default class TaskFactory {
             expression = (<Algebra.Filter> this.translateOp('FILTER(' + expression + ')')).expression;
         }
         return {
-            type: 'filter',
+            taskType: 'query',
+            queryType: 'filter',
             next: config.next,
             expression 
         };
     }
 
-    createTermReader(): Task<RDF.Term> {
-        return this.createActionOnFirstDefault({
+    createTermReader(
+            config?: {
+                predicate: Algebra.PropertyPathSymbol | RDF.Term | string,
+                graph?: RDF.Term
+            }): Task<RDF.Term> {
+        let action = this.createActionOnFirstDefault({
             exec: x => x
         });
+        return config ?
+                this.createTraverse({
+                    predicate: config.predicate,
+                    graph: config.graph,
+                    next: action
+                }) :
+                action;
     }
 
-    createValueReader(): Task<any> {
+    createValueReader(
+            config?: {
+                predicate: Algebra.PropertyPathSymbol | RDF.Term | string,
+                graph?: RDF.Term
+            }): Task<any> {
         // TODO: convert to jsonld formats
         // TODO: manage arrays of values too
-        return this.createActionOnFirstDefault({
-            exec: x => x
-        });
+        return this.createTermReader(config);
     }
 
     logTaskCount: number = 0;

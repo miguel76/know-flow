@@ -1,9 +1,10 @@
 import { Algebra, toSparql, Factory } from 'sparqlalgebrajs';
-import {Table, TableSync, Task, Action, Parallel, ForEach, Traverse, Join, Filter, QueryAndTask, Cascade, Let} from './task';
+import {Table, TableSync, Task, Action, Parallel, ForEach, Join, Filter, QueryAndTask, Cascade, Let} from './task';
 import {Generator, Variable, Wildcard} from 'sparqljs';
 import { Bindings, BindingsStream } from '@comunica/types';
 import * as RDF from '@rdfjs/types';
-// let generator = new Generator(options);
+import {ArrayIterator, SingletonIterator, UnionIterator} from 'asynciterator';
+import { Map } from 'immutable';
 
 let algebraFactory = new Factory();
 let WILDCARD = new Wildcard();
@@ -39,12 +40,44 @@ export async function fromTableToValuesOp(table: Table): Promise<Algebra.Values>
             (await syncTable(table)).bindingsArray);
 }
 
+export function oneTupleTable(variables: string[], bindings: Bindings, canContainUndefs: boolean): Table {
+    return {
+        bindingsStream: new SingletonIterator<Bindings>(bindings),
+        variables, canContainUndefs
+    };
+}
+
+export const NO_BINDING_SINGLETON_TABLE = oneTupleTable([], Map<string, RDF.Term>({}), false);
+
+function arrayUnion<T>(arrays: T[][]): T[] {
+    return arrays.reduce((vars, newVars) => vars.concat(newVars.filter(v => !vars.includes(v))))
+}
+
+export function tableUnion(tables: Table[]): Table {
+    return {
+        bindingsStream: new UnionIterator<Bindings>(tables.map(t => t.bindingsStream)),
+        variables: arrayUnion(tables.map(t => t.variables)),
+        canContainUndefs: tables.some(t => t.canContainUndefs)
+    };
+}
+
+export function tableFromArray(bindingsArray: {[varname: string]: RDF.Term}[]): Table {
+    let variables = arrayUnion(bindingsArray.map(a => Object.keys(a)));
+    return {
+        variables,
+        bindingsStream: new ArrayIterator(bindingsArray.map(obj => Map(obj))),
+        canContainUndefs: bindingsArray.some(b => variables.some(v => !(v in b)))
+    }
+
+}
+
 export function stringifyTask<ReturnType>(task: Task<ReturnType>, options = {}) {
     const cases: { [index:string] : () => any } = {
         'action': () => task,
         'cascade': () => {
             let cascade = <Cascade<any, ReturnType>> task;
             return {
+                type: 'cascade',
                 task: stringifyTask(cascade.task, options),
                 action: cascade.action
             };
@@ -55,37 +88,43 @@ export function stringifyTask<ReturnType>(task: Task<ReturnType>, options = {}) 
         }),
         'for-each': () => ({
             type: 'for-each',
-            subtask: (<ForEach<ReturnType[keyof ReturnType]>> task).subtask
+            subtask: stringifyTask((<ForEach<ReturnType[keyof ReturnType]>> task).subtask)
         }),
-        'let': () => {
-            let letTask = <Let<ReturnType>> task;
-            return {
-                type: 'let',
-                currVarname: letTask.currVarname,
-                newVarname: letTask.newVarname,
-                hideCurrVar: letTask.hideCurrVar,
-                next: stringifyTask(letTask.next, options)
-            }
-        },
-        'join': () => {
-            let join = <Join<ReturnType>> task;
-            return {
-                type: 'join',
-                right: toSparqlFragment(join.right, options),
-                next: stringifyTask(join.next, options)
-            }
-        },
-        'filter': () => {
-            let filter = <Filter<ReturnType>> task;
-            let filterSparql = toSparqlFragment(
-                        algebraFactory.createFilter(algebraFactory.createBgp([]), filter.expression), options);
-            return {
-                type: 'filter',
-                expression: filterSparql.substring('FILTER('.length, filterSparql.length - ')'.length),
-                next: stringifyTask(filter.next, options)
-            }
+        'query': () => {
+            let query = <QueryAndTask<ReturnType>> task;
+            const queryCases: { [index:string] : () => any } = {
+                'let': () => {
+                    let letTask = <Let<ReturnType>> task;
+                    return {
+                        type: 'let',
+                        currVarname: letTask.currVarname,
+                        newVarname: letTask.newVarname,
+                        hideCurrVar: letTask.hideCurrVar,
+                        next: stringifyTask(letTask.next, options)
+                    }
+                },
+                'join': () => {
+                    let join = <Join<ReturnType>> task;
+                    return {
+                        type: 'join',
+                        right: toSparqlFragment(join.right, options),
+                        next: stringifyTask(join.next, options)
+                    }
+                },
+                'filter': () => {
+                    let filter = <Filter<ReturnType>> task;
+                    let filterSparql = toSparqlFragment(
+                                algebraFactory.createFilter(algebraFactory.createBgp([]), filter.expression), options);
+                    return {
+                        type: 'filter',
+                        expression: filterSparql.substring('FILTER('.length, filterSparql.length - ')'.length),
+                        next: stringifyTask(filter.next, options)
+                    }
+                }
+            };
+            return queryCases[query.queryType]();
         }
     };
-    return cases[task.type]();
+    return cases[task.taskType]();
 
 }
