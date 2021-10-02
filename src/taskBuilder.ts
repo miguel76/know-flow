@@ -74,8 +74,8 @@ export default class TaskBuilder {
         }));
     }
 
-    value(predicate?: Algebra.PropertyPathSymbol | RDF.Term | string): TaskApplier<any> {
-        return this.next(this.taskFactory.createValueReader({predicate: predicate}));
+    value(traverse?: Algebra.PropertyPathSymbol | RDF.Term | string): TaskApplier<any> {
+        return this.next(this.taskFactory.createValueReader({traverse}));
     }
 
     input(bindings:

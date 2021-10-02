@@ -489,25 +489,57 @@ export default class TaskFactory {
 
     createTermReader(
             config?: {
-                predicate: Algebra.PropertyPathSymbol | RDF.Term | string,
-                graph?: RDF.Term
+                traverse?: Algebra.PropertyPathSymbol | RDF.Term | string,
+                graph?: RDF.Term,
+                filter?: Algebra.Expression | string,
+                lang?: string,
+                datatype?: string
             }): Task<RDF.Term> {
         let action = this.createActionOnFirstDefault({
             exec: x => x
         });
+        let actionIfLang = config.lang ?
+                this.createFilter({
+                    expression: 'langMatches( lang(?_), "' + config.lang + '" )',
+                    next: action
+                }) : action;
+        let actionIfTypeAndLang = config.datatype ?
+                this.createFilter({
+                    expression:
+                            this.algebraFactory.createOperatorExpression(
+                                    '=', [
+                                        this.algebraFactory.createOperatorExpression(
+                                            'datatype', [
+                                                this.algebraFactory.createTermExpression(
+                                                    this.defaultInput)
+                                            ]
+                                        ),
+                                        this.algebraFactory.createTermExpression(
+                                                this.buildTerm(config.datatype))
+                                    ]),
+                    next: actionIfLang
+                }) : actionIfLang;
+        let actionIfFilter = config.filter ?
+                this.createFilter({
+                    expression: config.filter,
+                    next: actionIfTypeAndLang
+                }) : actionIfTypeAndLang;
         return config ?
                 this.createTraverse({
-                    predicate: config.predicate,
+                    predicate: config.traverse,
                     graph: config.graph,
-                    next: action
+                    next: actionIfFilter
                 }) :
-                action;
+                actionIfFilter;
     }
 
     createValueReader(
             config?: {
-                predicate: Algebra.PropertyPathSymbol | RDF.Term | string,
-                graph?: RDF.Term
+                traverse?: Algebra.PropertyPathSymbol | RDF.Term | string,
+                graph?: RDF.Term,
+                filter?: Algebra.Expression | string,
+                lang?: string,
+                datatype?: string
             }): Task<any> {
                 
         // TODO: manage arrays of values too
