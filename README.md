@@ -20,10 +20,17 @@ $ npm install know-flow
 
 In this example we will build simple tasks to generate JSON from a knowledge graph which uses Wikidata schema.
 
-In Javascript/Typescript code, import the task builder and task engine:
+To execute the queries, a query engine is needed. We will be using the Comunica SPARQL engine in this example. Install it with:
+
+```shell
+$ npm install @comunica/actor-init-sparql
+```
+
+In Javascript/Typescript code, import the task builder and task engine, alongside the Comunica query engine:
 
 ```ts
 import {TaskBuilder,TaskEngine} from 'know-flow';
+import {newEngine as newComunicaEngine} from '@comunica/actor-init-sparql';
 ```
 
 Create an instance of the task builder:
@@ -78,6 +85,7 @@ Create an instance of the task engine, pointing to the wikidata public endpoint:
 
 ```ts
 let te = new TaskEngine({
+    engine: newComunicaEngine(),
     queryContext: {
         sources: [{ type: 'sparql', value: 'https://query.wikidata.org/sparql' }]
     }

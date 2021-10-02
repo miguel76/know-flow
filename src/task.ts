@@ -52,12 +52,6 @@ export interface Let<ReturnType> extends QueryAndTask<ReturnType> {
     hideCurrVar: boolean;
 }
 
-// export interface Traverse<ReturnType> extends QueryAndTask<ReturnType> {
-//     queryType: 'traverse';
-//     predicate: Algebra.PropertyPathSymbol;
-//     graph: RDF.Term;
-// }
-
 export interface Join<ReturnType> extends QueryAndTask<ReturnType> {
     queryType: 'join';
     right: Algebra.Operation;

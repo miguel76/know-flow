@@ -6,7 +6,6 @@ import { Table, Task } from './task';
 export default class TaskBuilder {
 
     taskFactory: TaskFactory;
-    // tasks: Task<any>[];
     generateTask: (localTask: Task<any>) => Task<any>;
 
     constructor(options: {
@@ -27,14 +26,6 @@ export default class TaskBuilder {
         }
         this.generateTask = options.generateTask || (t => t);
     }
-
-    // task(): Task<any> {
-    //     return this.generateTask()
-    // }
-
-    // addTask(newTask: Task<any>): void {
-    //     this.tasks.push(newTask);
-    // }
 
     derive(localGenerateTask: (localTask: Task<any>) => Task<any>): TaskBuilder {
         return new TaskBuilder({

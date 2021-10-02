@@ -1,5 +1,5 @@
 import {TaskBuilder, TaskEngine, stringifyTask} from './index';
-// import {newEngine} from '@comunica/actor-init-sparql';
+import {newEngine as newComunicaEngine} from '@comunica/actor-init-sparql';
 
 const tb =  new TaskBuilder({
     prefixes: {
@@ -63,6 +63,7 @@ let adornoStudentsInfo = adorno.next(getPersonInfo);
 console.log(JSON.stringify(stringifyTask(infoOnAdorno), null, 4));
 
 let te = new TaskEngine({
+    engine: newComunicaEngine(),
     queryContext: {
         sources: [{ type: 'sparql', value: 'https://query.wikidata.org/sparql' }]
     }

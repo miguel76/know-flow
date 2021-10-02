@@ -5,7 +5,7 @@ import {IQueryEngine, BindingsStream, Bindings, IActorQueryOperationOutputBindin
 import {fromTableToValuesOp, NO_BINDING_SINGLETON_TABLE, oneTupleTable} from './utils';
 import { Map } from 'immutable';
 import { Wildcard } from 'sparqljs';
-import {newEngine} from '@comunica/actor-init-sparql';
+// import {newEngine} from '@comunica/actor-init-sparql';
 
 let algebraFactory = new Factory();
 let WILDCARD = new Wildcard();
@@ -43,10 +43,10 @@ export default class TaskEngine {
     queryContext: any;
 
     constructor(config: {
-        engine?: IQueryEngine,
+        engine: IQueryEngine,
         queryContext?: any
     }) {
-        this.engine = config.engine || newEngine();
+        this.engine = config.engine; // || newEngine();
         this.queryContext = config.queryContext || {};
     }
 
