@@ -56,9 +56,9 @@ Create a task to get basic anagraphic information (the default resource is expec
 
 ```ts
 let getPersonInfo = tb.next({
-    name: tb.value('wdt:P735'),
-    surname: tb.value('wdt:P734'),
-    dateOfBirth: tb.value('wdt:P569')
+    name: tb.value('wdt:P1559'),
+    dateOfBirth: tb.value('wdt:P569'),
+    dateOfDeath: tb.value('wdt:P570')
 });
 ```
 
@@ -71,12 +71,13 @@ let getStudentsInfo = tb.forEach('wdt:P1066').next(getPersonInfo);
 Define tasks that add some input data:
 
 ```ts
-let adorno = tb.input('wd:Q152388');
 let hegel = tb.input('wd:Q9235');
+let adorno = tb.input('wd:Q152388');
 
-let infoOnAdorno = adorno.next(getPersonInfo);
 let infoOnHegel = hegel.next(getPersonInfo);
+let infoOnAdorno = adorno.next(getPersonInfo);
 let hegelStudentsInfo = hegel.next(getStudentsInfo);
+let adornoStudentsInfo = adorno.next(getStudentsInfo);
 ```
 
 
@@ -96,18 +97,18 @@ let te = new TaskEngine({
 Execute the tasks and print the results when done:
 
 ```ts
-te.run(infoOnAdorno).then(console.log, console.error);
-// {
-//   name: 'Theodor Ludwig Wiesengrund Adorno',
-//   dateOfBirth: '1903-09-11T00:00:00Z',
-//   dateOfDeath: '1969-08-06T00:00:00Z'
-// }
-
 te.run(infoOnHegel).then(console.log, console.error);
 // {
 //   name: 'Georg Wilhelm Friedrich Hegel',
 //   dateOfBirth: '1770-08-27T00:00:00Z',
 //   dateOfDeath: '1831-11-14T00:00:00Z'
+// }
+
+te.run(infoOnAdorno).then(console.log, console.error);
+// {
+//   name: 'Theodor Ludwig Wiesengrund Adorno',
+//   dateOfBirth: '1903-09-11T00:00:00Z',
+//   dateOfDeath: '1969-08-06T00:00:00Z'
 // }
 
 te.run(hegelStudentsInfo).then(console.log, console.error);
