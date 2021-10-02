@@ -5,6 +5,7 @@ import {Bindings, BindingsStream} from '@comunica/types';
 import {syncTable} from './utils';
 import { ArrayIterator } from 'asynciterator';
 import { Map } from 'immutable';
+import { RDFToValueOrObject } from './toNative';
 
 function isString(str: any): str is string {
     return typeof str === 'string';
@@ -97,14 +98,6 @@ export default class TaskFactory {
         this.options = options;
         this.onError = options.onError || ((e) => {console.error(e);});
     }
-
-    // createAction(
-    //         exec: BindingsStream => void | {[key: string]: rdfjs.Term}[] => void): Action {
-    //     return {
-    //         type: 'action',
-    //         exec
-    //     };
-    // }
 
     createCascadeAsync<TaskReturnType, ActionReturnType>(
             config: {
@@ -516,9 +509,12 @@ export default class TaskFactory {
                 predicate: Algebra.PropertyPathSymbol | RDF.Term | string,
                 graph?: RDF.Term
             }): Task<any> {
-        // TODO: convert to jsonld formats
+                
         // TODO: manage arrays of values too
-        return this.createTermReader(config);
+        return this.createCascade({
+            task: this.createTermReader(config),
+            action: RDFToValueOrObject
+        });
     }
 
     logTaskCount: number = 0;

@@ -2,7 +2,7 @@ import TaskFactory from './taskFactory';
 import {tableFromArray} from './utils';
 import TaskEngine from './taskEngine';
 import {newEngine} from '@comunica/actor-init-sparql';
-import { Task } from '.';
+import { Tasks } from '.';
 import { Factory, Algebra } from 'sparqlalgebrajs';
 import { ActionContext, IActorQueryOperationOutput, IActorQueryOperationOutputBindings, IQueryEngine } from '@comunica/types';
 
@@ -72,7 +72,7 @@ let wd = {
     ModernLanguage: 'wd:Q1288568'
 }
 
-function showAttr(attrPath: string, attrLabel: string, language?: string): Task<string> {
+function showAttr(attrPath: string, attrLabel: string, language?: string): Tasks.Task<string> {
     let show = taskFactory.createActionOnFirst({
         exec: bindings => {
             let term = bindings.get('?_');
