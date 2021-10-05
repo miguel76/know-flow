@@ -1,6 +1,7 @@
 import { Algebra } from 'sparqlalgebrajs';
 import * as RDF from "rdf-js";
 import {Bindings, BindingsStream} from '@comunica/types';
+import { KNOW_FLOW_MAJOR_VERSION } from './constants';
 
 export interface Table {
     bindingsStream: BindingsStream;
@@ -15,7 +16,15 @@ export interface TableSync {
 }
 
 export interface Task<ReturnType> {
+    knowFlowVersion: typeof KNOW_FLOW_MAJOR_VERSION;
     taskType: string;
+}
+
+export function isTask<ReturnType>(o: any, config: {minVersion?: number, maxVersion?: number} = {}): o is Task<ReturnType> {
+    let version = o.knowFlowVersion;
+    return (version !== undefined && o.taskType !== undefined &&
+            (config.minVersion === undefined || config.minVersion <= version) &&
+            (config.maxVersion === undefined || config.maxVersion >= version));
 }
 
 export interface Action<ReturnType> extends Task<ReturnType> {

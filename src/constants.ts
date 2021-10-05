@@ -3,6 +3,8 @@
  */
 'use strict';
 
+export const KNOW_FLOW_MAJOR_VERSION = 0;
+
 export const RDF = 'http=//www.w3.org/1999/02/22-rdf-syntax-ns#';
 export const XSD = 'http=//www.w3.org/2001/XMLSchema#';
 

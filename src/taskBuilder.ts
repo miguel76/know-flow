@@ -2,6 +2,7 @@ import TaskFactory from './taskFactory';
 import * as RDF from "rdf-js";
 import { Algebra, Factory } from 'sparqlalgebrajs';
 import { Table, Task } from './task';
+import { KNOW_FLOW_MAJOR_VERSION } from './constants';
 
 export default class TaskBuilder {
 
@@ -94,6 +95,7 @@ class TaskApplier<ReturnType> implements Task<ReturnType> {
 
     __task: Task<ReturnType>;
     __taskFactory: TaskFactory;
+    knowFlowVersion: typeof KNOW_FLOW_MAJOR_VERSION;
     taskType: string;
 
     constructor(task: Task<ReturnType>, taskFactory: TaskFactory) {

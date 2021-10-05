@@ -6,6 +6,7 @@ import {syncTable} from './utils';
 import { ArrayIterator } from 'asynciterator';
 import { Map } from 'immutable';
 import { RDFToValueOrObject } from './toNative';
+import { KNOW_FLOW_MAJOR_VERSION } from './constants';
 
 function isString(str: any): str is string {
     return typeof str === 'string';
@@ -105,6 +106,7 @@ export default class TaskFactory {
                 action: (taskResult: TaskReturnType) => Promise<ActionReturnType>
             }): Cascade<TaskReturnType, ActionReturnType> {
         return {
+            knowFlowVersion: KNOW_FLOW_MAJOR_VERSION,
             taskType: 'cascade',
             task: config.task,
             action: config.action
@@ -127,7 +129,11 @@ export default class TaskFactory {
                 exec: (input: Table) => Promise<ReturnType>
             } | ((input: Table) => Promise<ReturnType>)): Action<ReturnType> {
         let exec = <(input: Table) => Promise<ReturnType>> ((<any> config).exec || config);
-        return {taskType: 'action', exec};
+        return {
+            knowFlowVersion: KNOW_FLOW_MAJOR_VERSION,
+            taskType: 'action',
+            exec
+        };
     }
 
     createAction<ReturnType>(
@@ -151,22 +157,19 @@ export default class TaskFactory {
                 exec: (input: TableSync) => Promise<ReturnType>
             } | ((input: TableSync) => Promise<ReturnType>)): Action<ReturnType> {
         let exec = <(input: TableSync) => Promise<ReturnType>> ((<any> config).exec || config);
-        return {
-            taskType: 'action',
-            exec: (table) => {
-                return new Promise<ReturnType>((resolve, reject) => {
-                    syncTable(table).then((tableSync) => {
-                        exec(tableSync).then((res) => {
-                            resolve(res);
-                        }, (error) => {
-                            reject(error);
-                        });
+        return this.createActionAsync( (table) => {
+            return new Promise<ReturnType>((resolve, reject) => {
+                syncTable(table).then((tableSync) => {
+                    exec(tableSync).then((res) => {
+                        resolve(res);
                     }, (error) => {
                         reject(error);
                     });
+                }, (error) => {
+                    reject(error);
                 });
-            }
-        }
+            });
+        });
     }
 
     createActionOnAll<ReturnType>(
@@ -186,42 +189,39 @@ export default class TaskFactory {
             } | ((bindings: Bindings) => Promise<ReturnType>)): Action<ReturnType> {
         let exec = <(bindings: Bindings) => Promise<ReturnType>> ((<any> config).exec || config);
         let acceptEmpty = (<any> config).acceptEmpty !== undefined ? (<any> config).acceptEmpty : true;
-        return {
-            taskType: 'action',
-            exec: (table) => {
-                return new Promise<ReturnType>((resolve, reject) => {
-                    let cb = (bindings: Bindings) => {
-                        exec(bindings).then((res) => {
-                            resolve(res);
-                        }, (err) => {
-                            reject(err);
-                        });
-                    };
-                    var firstTime = true;
-                    table.bindingsStream.on('data', (binding) => {
-                        if (firstTime) {
-                            cb(binding);
-                            firstTime = false;
-                        }
+        return this.createActionAsync( (table) => {
+            return new Promise<ReturnType>((resolve, reject) => {
+                let cb = (bindings: Bindings) => {
+                    exec(bindings).then((res) => {
+                        resolve(res);
+                    }, (err) => {
+                        reject(err);
                     });
-                    table.bindingsStream.on('end', () => {
-                        if (firstTime) {
-                            if (acceptEmpty) {
-                                cb(Map<string, RDF.Term>({}));
-                            } else {
-                                reject('Expected at least a value, zero found');
-                            }
-                        }
-                    });
-                    table.bindingsStream.on('error', (e) => {
-                        if (this.onError) {
-                            this.onError(e)
-                        }
-                        reject(e);
-                    });
+                };
+                var firstTime = true;
+                table.bindingsStream.on('data', (binding) => {
+                    if (firstTime) {
+                        cb(binding);
+                        firstTime = false;
+                    }
                 });
-            }
-        }
+                table.bindingsStream.on('end', () => {
+                    if (firstTime) {
+                        if (acceptEmpty) {
+                            cb(Map<string, RDF.Term>({}));
+                        } else {
+                            reject('Expected at least a value, zero found');
+                        }
+                    }
+                });
+                table.bindingsStream.on('error', (e) => {
+                    if (this.onError) {
+                        this.onError(e)
+                    }
+                    reject(e);
+                });
+            });
+        });
     }
 
     createActionOnFirst<ReturnType>(
@@ -291,6 +291,7 @@ export default class TaskFactory {
             }| Task<EachReturnType>[]): Parallel<EachReturnType> {
         let subtasks = <Task<EachReturnType>[]> ((<any> config).subtasks || config);
         return {
+            knowFlowVersion: KNOW_FLOW_MAJOR_VERSION,
             taskType: 'parallel',
             subtasks: subtasks
         };
@@ -354,6 +355,7 @@ export default class TaskFactory {
                 hideCurrVar?: boolean
             }): Let<ReturnType> {
         return {
+            knowFlowVersion: KNOW_FLOW_MAJOR_VERSION,
             taskType: 'query',
             queryType: 'let',
             next: config.next,
@@ -430,22 +432,33 @@ export default class TaskFactory {
                 predicate = (<Algebra.Bgp> op).patterns[0].predicate;
             }
         }
-        let nextAfterRename = this.createLet({
-            next: config.next,
-            currVarname: '?_out',
-            hideCurrVar: true
-        });
-        return {
-            taskType: 'query',
-            queryType: 'join',
-            next: nextAfterRename,
+        // let nextAfterRename = this.createLet({
+        //     next: config.next,
+        //     currVarname: '?_out',
+        //     hideCurrVar: true
+        // });
+        // return {
+        //     taskType: 'query',
+        //     queryType: 'join',
+        //     next: nextAfterRename,
+        //     right: (isPropertyPathSymbol(predicate)) ?
+        //             this.algebraFactory.createPath(
+        //                     this.defaultInput, predicate, this.defaultOutput, config.graph):
+        //             this.algebraFactory.createBgp([
+        //                     this.algebraFactory.createPattern(
+        //                             this.defaultInput, predicate, this.defaultOutput, config.graph)])
+        // };
+        return this.createJoin({
             right: (isPropertyPathSymbol(predicate)) ?
-                    this.algebraFactory.createPath(
-                            this.defaultInput, predicate, this.defaultOutput, config.graph):
-                    this.algebraFactory.createBgp([
-                            this.algebraFactory.createPattern(
-                                    this.defaultInput, predicate, this.defaultOutput, config.graph)])
-        };
+            this.algebraFactory.createPath(
+                    this.defaultInput, predicate, this.defaultOutput, config.graph):
+            this.algebraFactory.createBgp([
+                    this.algebraFactory.createPattern(
+                            this.defaultInput, predicate, this.defaultOutput, config.graph)]),
+            newDefault: '?_out',
+            hideCurrVar: true,
+            next: config.next
+        });
     }
 
     createJoin<ReturnType>(
@@ -467,7 +480,10 @@ export default class TaskFactory {
                 hideCurrVar: config.hideCurrVar
             });
         }
-        return {taskType: 'query', queryType: 'join', next, right};
+        return {
+            knowFlowVersion: KNOW_FLOW_MAJOR_VERSION,
+            taskType: 'query',
+            queryType: 'join', next, right};
     }
 
     createFilter<ReturnType>(
@@ -480,6 +496,7 @@ export default class TaskFactory {
             expression = (<Algebra.Filter> this.translateOp('FILTER(' + expression + ')')).expression;
         }
         return {
+            knowFlowVersion: KNOW_FLOW_MAJOR_VERSION,
             taskType: 'query',
             queryType: 'filter',
             next: config.next,
