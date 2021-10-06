@@ -1,8 +1,8 @@
 import TaskFactory from './taskFactory';
 import * as RDF from "rdf-js";
 import { Algebra, Factory } from 'sparqlalgebrajs';
-import { Table, Task } from './task';
-import { KNOW_FLOW_MAJOR_VERSION } from './constants';
+import { Table, Task, Cascade } from './task';
+import {promisifyFromSync} from './utils';
 
 export default class TaskBuilder {
 
@@ -39,20 +39,11 @@ export default class TaskBuilder {
         return 'generateTask' in t;
     }
 
-    next<ReturnType>(
-            task: Task<ReturnType> | {[key: string]: Task<unknown>} | Task<unknown> []): TaskApplier<unknown> {
-        if (Array.isArray(task)) {
-            return this.next(this.taskFactory.createParallel(task));
-        } else {
-            if (task.taskType === undefined || typeof task.taskType === 'object') {
-                return this.next(this.taskFactory.createParallelDict(
-                        <{[key: string]: Task<unknown>}> task));
-            } else {
-                return new TaskApplier<ReturnType>(
-                    this.generateTask(<Task<ReturnType>> task),
-                    this.taskFactory);
-                };
-        }
+    next<ReturnType>(obj: any): TaskApplier<unknown,unknown> {
+        return new TaskApplier<ReturnType,ReturnType>(
+                this.taskFactory,
+                this.generateTask(this.taskFactory.createParallelFromObject(obj)),
+                async x => x);
     }
 
     action<ReturnType>(exec: (input: Table) => ReturnType): Task<ReturnType> {
@@ -75,7 +66,7 @@ export default class TaskBuilder {
         }));
     }
 
-    value(traverse?: Algebra.PropertyPathSymbol | RDF.Term | string): TaskApplier<any> {
+    value(traverse?: Algebra.PropertyPathSymbol | RDF.Term | string): TaskApplier<any,any> {
         return this.next(this.taskFactory.createValueReader({traverse}));
     }
 
@@ -91,37 +82,27 @@ export default class TaskBuilder {
 
 }
 
-class TaskApplier<ReturnType> implements Task<ReturnType> {
+class TaskApplier<TaskReturnType, ActionReturnType> extends Cascade<TaskReturnType, ActionReturnType> {
 
-    __task: Task<ReturnType>;
-    __taskFactory: TaskFactory;
-    knowFlowVersion: typeof KNOW_FLOW_MAJOR_VERSION;
-    taskType: string;
+    taskFactory: TaskFactory;
 
-    constructor(task: Task<ReturnType>, taskFactory: TaskFactory) {
-        this.__task = task;
-        this.taskType = task.taskType;
-        this.__taskFactory = taskFactory;
-        return new Proxy(this, {
-            get: function (target, prop, receiver) {
-                if (typeof prop === 'string' && !["__task", "__taskFactory"].includes(prop)) {
-                    return (<any> target.__task)[prop];
-                } else {
-                    return (<any> target)[prop];
-                }
-            }
-        });
+    constructor(
+            taskFactory: TaskFactory,
+            task: Task<TaskReturnType>,
+            action: (x:TaskReturnType) => Promise<ActionReturnType>) {
+        super(task, action);
+        this.taskFactory = taskFactory;
     }
 
-    apply<NewReturnType>(exec: (x:ReturnType) => NewReturnType): TaskApplier<NewReturnType> {
-        return new TaskApplier<NewReturnType>(
-                this.__taskFactory.createCascade({task: this.__task, action: exec}),
-                this.__taskFactory);
+    apply<NewReturnType>(exec: (x:ActionReturnType) => NewReturnType):
+            TaskApplier<ActionReturnType, NewReturnType> {
+        return new TaskApplier<ActionReturnType, NewReturnType>(
+                this.taskFactory, this.task, promisifyFromSync(exec));
     }
 
-    applyAsync<NewReturnType>(exec: (x:ReturnType) => Promise<NewReturnType>): TaskApplier<NewReturnType> {
-        return new TaskApplier<NewReturnType>(
-                this.__taskFactory.createCascadeAsync({task: this.__task, action: exec}),
-                this.__taskFactory);
+    applyAsync<NewReturnType>(exec: (x:ActionReturnType) => Promise<NewReturnType>):
+            TaskApplier<ActionReturnType, NewReturnType> {
+        return new TaskApplier<ActionReturnType, NewReturnType>(
+                this.taskFactory, this.task, exec);
     }
 }

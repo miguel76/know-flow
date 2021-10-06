@@ -10,6 +10,19 @@ let algebraFactory = new Factory();
 let WILDCARD = new Wildcard();
 let dataFactory = algebraFactory.dataFactory;
 
+export function promisifyFromSync<Domain, Range>(f: (x: Domain) => Range):
+        (x: Domain) => Promise<Range> {
+    return (x: Domain) => (
+        new Promise<Range>((resolve, reject) => {
+            try {
+                resolve(f(x));
+            } catch(e) {
+                reject(e);
+            }
+        })
+    );
+}
+
 export function toSparqlFragment(op: Algebra.Operation, options = {}): string {
     let sparqlStr = toSparql(algebraFactory.createProject(op, [WILDCARD]), options);
     return sparqlStr.substring('SELECT * WHERE { '.length, sparqlStr.length - ' }'.length);
@@ -71,60 +84,52 @@ export function tableFromArray(bindingsArray: {[varname: string]: RDF.Term}[]): 
 
 }
 
-export function stringifyTask<ReturnType>(task: Task<ReturnType>, options = {}) {
-    const cases: { [index:string] : () => any } = {
-        'action': () => task,
-        'cascade': () => {
-            let cascade = <Cascade<any, ReturnType>> task;
-            return {
-                type: 'cascade',
-                task: stringifyTask(cascade.task, options),
-                action: cascade.action
-            };
-        },
-        'parallel': () => ({
-                type: 'parallel',
-                subtasks: (<Parallel<ReturnType[keyof ReturnType]>> task).subtasks.map(t => stringifyTask(t,options))
-        }),
-        'for-each': () => ({
+export function stringifyTask<ReturnType>(task: Task<ReturnType>, options = {}): any {
+    if (task instanceof Action) {
+        return {type: "action"};
+    } else if (task instanceof Cascade) {
+        let cascade = task;
+        return {
+            type: 'cascade',
+            task: stringifyTask(cascade.task, options),
+            action: cascade.action
+        };
+    } else if (task instanceof Parallel) {
+        return {
+            type: 'parallel',
+            subtasks: task.subtasks.map(t => stringifyTask(t,options))
+        };
+    } else if (task instanceof ForEach) {
+         return {
             type: 'for-each',
-            subtask: stringifyTask((<ForEach<ReturnType[keyof ReturnType]>> task).subtask)
-        }),
-        'query': () => {
-            let query = <QueryAndTask<ReturnType>> task;
-            const queryCases: { [index:string] : () => any } = {
-                'let': () => {
-                    let letTask = <Let<ReturnType>> task;
-                    return {
-                        type: 'let',
-                        currVarname: letTask.currVarname,
-                        newVarname: letTask.newVarname,
-                        hideCurrVar: letTask.hideCurrVar,
-                        next: stringifyTask(letTask.next, options)
-                    }
-                },
-                'join': () => {
-                    let join = <Join<ReturnType>> task;
-                    return {
-                        type: 'join',
-                        right: toSparqlFragment(join.right, options),
-                        next: stringifyTask(join.next, options)
-                    }
-                },
-                'filter': () => {
-                    let filter = <Filter<ReturnType>> task;
-                    let filterSparql = toSparqlFragment(
-                                algebraFactory.createFilter(algebraFactory.createBgp([]), filter.expression), options);
-                    return {
-                        type: 'filter',
-                        expression: filterSparql.substring('FILTER('.length, filterSparql.length - ')'.length),
-                        next: stringifyTask(filter.next, options)
-                    }
-                }
-            };
-            return queryCases[query.queryType]();
+            subtask: stringifyTask(task.subtask)
+        };
+    } else if (task instanceof Let) {
+        let letTask = task;
+        return {
+            type: 'let',
+            currVarname: letTask.currVarname,
+            newVarname: letTask.newVarname,
+            hideCurrVar: letTask.hideCurrVar,
+            next: stringifyTask(letTask.next, options)
+        };
+    } else if (task instanceof Filter) {
+        let filter = task;
+        let filterSparql = toSparqlFragment(
+            algebraFactory.createFilter(algebraFactory.createBgp([]), filter.expression), options);
+        return {
+            type: 'filter',
+            expression: filterSparql.substring('FILTER('.length, filterSparql.length - ')'.length),
+            next: stringifyTask(filter.next, options)
+        };
+    } else if (task instanceof Join) {
+        let join = task;
+        return {
+            type: 'join',
+            right: toSparqlFragment(join.right, options),
+            next: stringifyTask(join.next, options)
         }
-    };
-    return cases[task.taskType]();
-
+    } else {
+        throw new Error('Unrecognized task type');     
+    }
 }

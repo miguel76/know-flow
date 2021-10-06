@@ -2,11 +2,10 @@ import { Algebra, translate, Factory } from 'sparqlalgebrajs';
 import * as RDF from "rdf-js";
 import {Table, TableSync, Task, Action, ForEach, Join, Filter, Cascade, Let, Parallel} from './task';
 import {Bindings, BindingsStream} from '@comunica/types';
-import {syncTable} from './utils';
+import {syncTable, promisifyFromSync} from './utils';
 import { ArrayIterator } from 'asynciterator';
 import { Map } from 'immutable';
 import { RDFToValueOrObject } from './toNative';
-import { KNOW_FLOW_MAJOR_VERSION } from './constants';
 
 function isString(str: any): str is string {
     return typeof str === 'string';
@@ -26,19 +25,6 @@ function isPath(op: Algebra.Operation): op is Algebra.Path {
 
 function isBgp(op: Algebra.Operation): op is Algebra.Bgp {
     return op.type == Algebra.types.BGP;
-}
-
-function promisifyFromSync<Domain, Range>(f: (x: Domain) => Range):
-        (x: Domain) => Promise<Range> {
-    return (x: Domain) => (
-        new Promise<Range>((resolve, reject) => {
-            try {
-                resolve(f(x));
-            } catch(e) {
-                reject(e);
-            }
-        })
-    );
 }
 
 function isPromise<Type>(value: Type | Promise<Type>):
@@ -105,12 +91,7 @@ export default class TaskFactory {
                 task: Task<TaskReturnType>,
                 action: (taskResult: TaskReturnType) => Promise<ActionReturnType>
             }): Cascade<TaskReturnType, ActionReturnType> {
-        return {
-            knowFlowVersion: KNOW_FLOW_MAJOR_VERSION,
-            taskType: 'cascade',
-            task: config.task,
-            action: config.action
-        };
+        return new Cascade<TaskReturnType, ActionReturnType> (config.task, config.action);
     }
 
     createCascade<TaskReturnType, ActionReturnType>(
@@ -129,11 +110,7 @@ export default class TaskFactory {
                 exec: (input: Table) => Promise<ReturnType>
             } | ((input: Table) => Promise<ReturnType>)): Action<ReturnType> {
         let exec = <(input: Table) => Promise<ReturnType>> ((<any> config).exec || config);
-        return {
-            knowFlowVersion: KNOW_FLOW_MAJOR_VERSION,
-            taskType: 'action',
-            exec
-        };
+        return new Action<ReturnType>(exec);
     }
 
     createAction<ReturnType>(
@@ -289,22 +266,17 @@ export default class TaskFactory {
             config: {
                 subtasks: Task<EachReturnType>[]
             }| Task<EachReturnType>[]): Parallel<EachReturnType> {
-        let subtasks = <Task<EachReturnType>[]> ((<any> config).subtasks || config);
-        return {
-            knowFlowVersion: KNOW_FLOW_MAJOR_VERSION,
-            taskType: 'parallel',
-            subtasks: subtasks
-        };
+        let subtasks = Array.isArray(config) ? config : config.subtasks;
+        return new Parallel<EachReturnType>(subtasks);
     }
 
     createParallelDict<EachReturnType>(
             config: {
                 subtasks: {[key: string] : Task<EachReturnType>}
             } | {[key: string] : Task<EachReturnType>}): Task<{[key: string]: EachReturnType}> {
-        let subtasksMap = <{[key: string] : Task<EachReturnType>}>
-                ((<any> config).subtasks === undefined || (typeof (<any> config).subtasks.taskType === 'string') ?
-                    config :
-                    config.subtasks);
+        let values = Object.values(config);
+        let subtasksMap = (!values.length || values[0] instanceof Task) ?
+                    config : config.subtasks;
         let keys: string [] = [];
         let subtasks: Task<EachReturnType> [] = [];
         Object.entries(subtasksMap).forEach(([key, subtask]) => {
@@ -319,17 +291,29 @@ export default class TaskFactory {
         });
     }
 
+    createParallelFromObject(obj: any): Task<any> {
+        if (obj instanceof Task) {
+            return obj;
+        } else if (Array.isArray(obj)) {
+            return this.createParallel(obj.map(e => this.createParallelFromObject(e)));
+        } else if (typeof obj === 'object' && obj !== null) {
+            return this.createParallelDict(
+                    Object.fromEntries(
+                            Object.entries(obj).map(([k, v]) =>
+                                    [k, this.createParallelFromObject(v)])));
+        } else {
+            return this.createConstant(obj);
+        }
+    }
+
     createForEach<EachReturnType>(
             config: {
                 subtask: Task<EachReturnType>,
                 predicate?: Algebra.PropertyPathSymbol | RDF.Term | string,
                 graph?: RDF.Term
             } | Task<EachReturnType>): Task<EachReturnType[]> {
-        let subtask = <Task<EachReturnType>> ((<any> config).subtask || config);
-        let forEach = <ForEach<EachReturnType>> {
-            taskType: 'for-each',
-            subtask: subtask
-        };
+        let subtask = (config instanceof Task) ? config : config.subtask;
+        let forEach = new ForEach<EachReturnType>(subtask);
         return (<any> config).predicate ?
                 this.createTraverse({
                     predicate: (<any> config).predicate,
@@ -354,15 +338,11 @@ export default class TaskFactory {
                 newVarname?: string,
                 hideCurrVar?: boolean
             }): Let<ReturnType> {
-        return {
-            knowFlowVersion: KNOW_FLOW_MAJOR_VERSION,
-            taskType: 'query',
-            queryType: 'let',
-            next: config.next,
-            currVarname: config.currVarname || '?_',
-            newVarname: config.newVarname || '?_',
-            hideCurrVar: !!config.hideCurrVar
-        };
+        return new Let<ReturnType>(
+            config.next,
+            config.currVarname || '?_',
+            config.newVarname || '?_',
+            !!config.hideCurrVar);
     }
 
     private buildTerm(input: RDF.Term | string): RDF.Term {
@@ -480,10 +460,7 @@ export default class TaskFactory {
                 hideCurrVar: config.hideCurrVar
             });
         }
-        return {
-            knowFlowVersion: KNOW_FLOW_MAJOR_VERSION,
-            taskType: 'query',
-            queryType: 'join', next, right};
+        return new Join<ReturnType>(next, right);
     }
 
     createFilter<ReturnType>(
@@ -495,13 +472,7 @@ export default class TaskFactory {
         if (isString(expression)) {
             expression = (<Algebra.Filter> this.translateOp('FILTER(' + expression + ')')).expression;
         }
-        return {
-            knowFlowVersion: KNOW_FLOW_MAJOR_VERSION,
-            taskType: 'query',
-            queryType: 'filter',
-            next: config.next,
-            expression 
-        };
+        return new Filter<ReturnType>(config.next, expression);
     }
 
     createTermReader(
