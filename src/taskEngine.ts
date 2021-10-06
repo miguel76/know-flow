@@ -5,7 +5,6 @@ import {IQueryEngine, BindingsStream, Bindings, IActorQueryOperationOutputBindin
 import {fromTableToValuesOp, NO_BINDING_SINGLETON_TABLE, oneTupleTable} from './utils';
 import { Map } from 'immutable';
 import { Wildcard } from 'sparqljs';
-// import {newEngine} from '@comunica/actor-init-sparql';
 
 let algebraFactory = new Factory();
 let WILDCARD = new Wildcard();
@@ -55,86 +54,79 @@ export default class TaskEngine {
                 await this.engine.query(queryOp, this.queryContext);
     }
 
-    run<ReturnType>(
+    async run<ReturnType>(
             config: {
                 task: Task<ReturnType>,
                 input?: Table
             } | Task<ReturnType>): Promise<ReturnType> {
         let task: Task<ReturnType>;
         let input: Table;
-        if ((<Task<ReturnType>> config).taskType === undefined) {
-            task = (<{task: Task<ReturnType>, input?: Table}> config).task;
-            input = <Table> (<any> config).input || NO_BINDING_SINGLETON_TABLE;
-        } else {
+        if (config instanceof Task) {
             task = <Task<ReturnType>> config;
             input = NO_BINDING_SINGLETON_TABLE;
+        } else {
+            task = (<{task: Task<ReturnType>, input?: Table}> config).task;
+            input = <Table> (<any> config).input || NO_BINDING_SINGLETON_TABLE;
         }
-        const cases: { [index:string] : () => Promise<ReturnType> } = {
-            'action': () => (<Action<ReturnType>> task).exec(input),
-            'cascade': async () => {
-                let cascade = <Cascade<any, ReturnType>> task;
-                let taskResult = await this.run({task: cascade.task, input});
-                return await cascade.action(taskResult);
-            },
-            'parallel': async () => {
-                let parallel = <Parallel<unknown>> task;
-                return <ReturnType> <unknown> await Promise.all(parallel.subtasks.map(
-                        subtask => this.run({task: subtask, input})));
-            },
-            'for-each': () => {
-                let forEach = <ForEach<any>> task;
-                // let subtask = (<ForEach<ReturnType[keyof ReturnType]>> task).subtask;
-                return new Promise<ReturnType>((resolve, reject) => {
-                    var promises: Promise<unknown>[] = [];
-                    input.bindingsStream.on('data', (bindings: Bindings) => {
-                        promises.push(
-                                this.run({
-                                    task: forEach.subtask,
-                                    input: oneTupleTable(
-                                            input.variables,
-                                            bindings,
-                                            input.canContainUndefs)
-                                }));
-                    });
-                    input.bindingsStream.on('end', () => {
-                        Promise.all(promises).then((result) => {
-                            resolve(<ReturnType> <unknown> result);
-                        }, (error) => {
-                            reject(error);
-                        });
-                    });
-                    input.bindingsStream.on('error', (error: any) => {
+        if (task instanceof Action) {
+            return task.exec(input);
+        } else if (task instanceof Cascade) {
+            let taskResult = await this.run({task: task.task, input});
+            return await task.action(taskResult);
+        } else if (task instanceof Parallel) {
+            return <ReturnType> <unknown> await Promise.all(task.subtasks.map(
+                    subtask => this.run({task: subtask, input})));
+        } else if (task instanceof ForEach) {
+            let forEach = task;
+            return await new Promise<ReturnType>((resolve, reject) => {
+                var promises: Promise<unknown>[] = [];
+                input.bindingsStream.on('data', (bindings: Bindings) => {
+                    promises.push(
+                            this.run({
+                                task: forEach.subtask,
+                                input: oneTupleTable(
+                                        input.variables,
+                                        bindings,
+                                        input.canContainUndefs)
+                            }));
+                });
+                input.bindingsStream.on('end', () => {
+                    Promise.all(promises).then((result) => {
+                        resolve(<ReturnType> <unknown> result);
+                    }, (error) => {
                         reject(error);
                     });
                 });
-            },
-            'query': async () => {
-                let query = <QueryAndTask<ReturnType>> task;
-                let results;
-                if (query.queryType === 'let') {
-                    let letTask = <Let<ReturnType>> query;
-                    results = assignVar(input, letTask.currVarname, letTask.newVarname, letTask.hideCurrVar);
+                input.bindingsStream.on('error', (error: any) => {
+                    reject(error);
+                });
+            });
+        } else if (task instanceof QueryAndTask) {
+            let query = task;
+            let results;
+            if (query instanceof Let) {
+                let letTask = query;
+                results = assignVar(input, letTask.currVarname, letTask.newVarname, letTask.hideCurrVar);
+            } else {
+                let inputOp = await fromTableToValuesOp(input);
+                let queryOp;
+                if (query instanceof Join) {
+                    let join = query;
+                    queryOp = (input === NO_BINDING_SINGLETON_TABLE) ?
+                            join.right :
+                            algebraFactory.createJoin(inputOp, join.right);
+                } else if (query instanceof Filter) {
+                    let filter = <Filter<ReturnType>> query;
+                    queryOp = algebraFactory.createFilter(inputOp, filter.expression);
                 } else {
-                    const opBuilders: { [queryType:string] : (inputOp: Algebra.Operation) => Algebra.Operation} = {
-                        'join': (inputOp: Algebra.Operation) => {
-                            let join = <Join<ReturnType>> query;
-                            return (input === NO_BINDING_SINGLETON_TABLE) ?
-                                    join.right :
-                                    algebraFactory.createJoin(inputOp, join.right);
-                        },
-                        'filter': (inputOp: Algebra.Operation) => {
-                            let filter = <Filter<ReturnType>> query;
-                            return algebraFactory.createFilter(inputOp, filter.expression);
-                        }
-                    }
-                    let inputOp = await fromTableToValuesOp(input);
-                    let queryOp = opBuilders[query.queryType](inputOp)
-                    results = await this.query(queryOp);
+                    throw new Error('Unrecognized query type')
                 }
-                return await this.run({task: query.next, input: results});
+                results = await this.query(queryOp);
             }
-        };
-        return cases[task.taskType]();
+            return await this.run({task: query.next, input: results});
+        } else {
+            throw new Error('Unrecognized task type')        
+        }
     }
 
     // generateQuery<ReturnType>(task: Task<ReturnType>): void {

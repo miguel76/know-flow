@@ -1,7 +1,6 @@
 import { Algebra } from 'sparqlalgebrajs';
 import * as RDF from "rdf-js";
 import {Bindings, BindingsStream} from '@comunica/types';
-import { KNOW_FLOW_MAJOR_VERSION } from './constants';
 
 export interface Table {
     bindingsStream: BindingsStream;
@@ -15,69 +14,110 @@ export interface TableSync {
     canContainUndefs: boolean;
 }
 
-export interface Task<ReturnType> {
-    knowFlowVersion: typeof KNOW_FLOW_MAJOR_VERSION;
-    taskType: string;
+export class Task<ReturnType> {
+    constructor() {}
 }
 
-export function isTask<ReturnType>(o: any, config: {minVersion?: number, maxVersion?: number} = {}): o is Task<ReturnType> {
-    let version = o.knowFlowVersion;
-    return (version !== undefined && o.taskType !== undefined &&
-            (config.minVersion === undefined || config.minVersion <= version) &&
-            (config.maxVersion === undefined || config.maxVersion >= version));
-}
-
-export interface Action<ReturnType> extends Task<ReturnType> {
-    taskType: 'action';
+export class Action<ReturnType> extends Task<ReturnType> {
     exec: (input: Table) => Promise<ReturnType>;
+
+    constructor(exec: (input: Table) => Promise<ReturnType>) {
+        super();
+        this.exec = exec;
+    }
 }
 
-export interface Cascade<TaskReturnType, ActionReturnType> extends Task<ActionReturnType> {
-    taskType: 'cascade';
+export class Cascade<TaskReturnType, ActionReturnType> extends Task<ActionReturnType> {
     task: Task<TaskReturnType>;
     action: (taskResult: TaskReturnType) => Promise<ActionReturnType>;
+
+    constructor(
+            task: Task<TaskReturnType>,
+            action: (taskResult: TaskReturnType) => Promise<ActionReturnType>) {
+        super();
+        this.task = task;
+        this.action = action;
+    }
 }
 
-export interface Parallel<EachReturnType> extends Task<EachReturnType[]> {
-    taskType: 'parallel';
+export class Parallel<EachReturnType> extends Task<EachReturnType[]> {
     subtasks: Task<EachReturnType>[];
+
+    constructor(subtasks: Task<EachReturnType>[]) {
+        super();
+        this.subtasks = subtasks;
+    }
 }
 
-export interface ForEach<EachReturnType> extends Task<EachReturnType[]> {
-    taskType: 'for-each';
+export class ForEach<EachReturnType> extends Task<EachReturnType[]> {
     subtask: Task<EachReturnType>;
+
+    constructor(subtask: Task<EachReturnType>) {
+        super();
+        this.subtask = subtask;
+    }
 }
 
-export interface QueryAndTask<ReturnType> extends Task<ReturnType> {
-    taskType: 'query';
-    queryType: string;
+export class QueryAndTask<ReturnType> extends Task<ReturnType> {
     next: Task<ReturnType>;
+
+    constructor(next: Task<ReturnType>) {
+        super();
+        this.next = next;
+    }
 }
 
-export interface Let<ReturnType> extends QueryAndTask<ReturnType> {
-    queryType: 'let';
+export class Let<ReturnType> extends QueryAndTask<ReturnType> {
     currVarname: string;
     newVarname: string;
     hideCurrVar: boolean;
+
+    constructor(
+            next: Task<ReturnType>,
+            currVarname: string,
+            newVarname: string,
+            hideCurrVar: boolean) {
+        super(next);
+        this.currVarname = currVarname;
+        this.newVarname = newVarname;
+        this.hideCurrVar = hideCurrVar;
+     }
 }
 
-export interface Join<ReturnType> extends QueryAndTask<ReturnType> {
-    queryType: 'join';
+export class Join<ReturnType> extends QueryAndTask<ReturnType> {
     right: Algebra.Operation;
+
+    constructor(next: Task<ReturnType>, right: Algebra.Operation) {
+        super(next);
+        this.right = right;
+    }
 }
 
-export interface Filter<ReturnType> extends QueryAndTask<ReturnType> {
-    queryType: 'filter';
+export class Filter<ReturnType> extends QueryAndTask<ReturnType> {
     expression: Algebra.Expression;
+
+    constructor(next: Task<ReturnType>, expression: Algebra.Expression) {
+        super(next);
+        this.expression = expression;
+    }
 }
 
-export interface Aggregate<ReturnType> extends QueryAndTask<ReturnType> {
-    queryType: 'aggregate';
+export class Aggregate<ReturnType> extends QueryAndTask<ReturnType> {
     aggregates: Algebra.BoundAggregate[];
+
+    constructor(next: Task<ReturnType>, aggregates: Algebra.BoundAggregate[]) {
+        super(next);
+        this.aggregates = aggregates;
+    }
 }
 
-export interface Slice<ReturnType> extends QueryAndTask<ReturnType> {
-    queryType: 'slice';
+export class Slice<ReturnType> extends QueryAndTask<ReturnType> {
     start: number;
     length?: number;
+
+    constructor(next: Task<ReturnType>, start: number, length?: number) {
+        super(next);
+        this.start = start;
+        this.length = length;
+    }
 }

@@ -68,6 +68,7 @@ let proxyEngine: IQueryEngine = {
 };
 
 console.log(JSON.stringify(stringifyTask(infoOnAdorno), null, 4));
+console.log(JSON.stringify(stringifyTask(adornoStudentsInfo), null, 4));
 
 let te = new TaskEngine({
     // engine: newComunicaEngine(),
