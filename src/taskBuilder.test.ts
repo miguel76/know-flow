@@ -27,6 +27,7 @@ let labelOfAdorno = adorno.next(getLabel);
 // });
 
 let getPersonInfo = tb.next({
+    resource: tb.value(),
     name: tb.value('wdt:P1559'),
     dateOfBirth: tb.value('wdt:P569'),
     dateOfDeath: tb.value('wdt:P570')
