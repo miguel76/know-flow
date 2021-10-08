@@ -512,7 +512,7 @@ export default class TaskFactory {
                     expression: config.filter,
                     next: actionIfTypeAndLang
                 }) : actionIfTypeAndLang;
-        return config ?
+        return config && config.traverse ?
                 this.createTraverse({
                     predicate: config.traverse,
                     graph: config.graph,
