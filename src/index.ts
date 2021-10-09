@@ -1,12 +1,13 @@
 import * as Tasks from './task';
-import TaskFactory from './taskFactory';
+import TaskFactory, {TaskFactoryOptions} from './taskFactory';
 import TaskBuilder from './taskBuilder';
 import {stringifyTask} from './utils';
 import TaskEngine from './taskEngine';
 
 export {
     Tasks,
-    TaskFactory, stringifyTask, TaskEngine,
+    TaskFactory, TaskFactoryOptions,
+    stringifyTask, TaskEngine,
     TaskBuilder
 };
 

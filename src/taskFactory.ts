@@ -54,36 +54,35 @@ function asyncify<Domain, Range>(
     };
 }
   
+interface TranslateOptions {
+    dataFactory?: RDF.DataFactory;
+    quads?: boolean;
+    prefixes?: {
+        [prefix: string]: string;
+    };
+    baseIRI?: string;
+    blankToVariable?: boolean;
+    sparqlStar?: boolean;
+}
+
+export interface TaskFactoryOptions extends TranslateOptions {
+    algebraFactory?: Factory;
+}
+
 export default class TaskFactory {
 
     algebraFactory: Factory;
     dataFactory: RDF.DataFactory;
     defaultInput: RDF.Variable;
     defaultOutput: RDF.Variable;
-    options: {
-        quads?: boolean,
-        prefixes?: {[prefix: string]: string},
-        baseIRI?: string,
-        blankToVariable?: boolean,
-        sparqlStar?: boolean
-    };
-    onError: (error: any) => void;
+    options: TaskFactoryOptions;
 
-    constructor(options: {
-            dataFactory?: RDF.DataFactory,
-            algebraFactory?: Factory,
-            quads?: boolean,
-            prefixes?: {[prefix: string]: string},
-            baseIRI?: string,
-            blankToVariable?: boolean,
-            sparqlStar?: boolean,
-            onError?: (error: any) => void } = {}) {
+    constructor(options: TaskFactoryOptions = {}) {
         this.algebraFactory = options.algebraFactory || new Factory(options.dataFactory);
         this.dataFactory = this.algebraFactory.dataFactory;
         this.defaultInput = this.dataFactory.variable('_');
         this.defaultOutput = this.dataFactory.variable('_out');
         this.options = options;
-        this.onError = options.onError || ((e) => {console.error(e);});
     }
 
     createCascadeAsync<TaskReturnType, ActionReturnType>(
@@ -192,9 +191,6 @@ export default class TaskFactory {
                     }
                 });
                 table.bindingsStream.on('error', (e) => {
-                    if (this.onError) {
-                        this.onError(e)
-                    }
                     reject(e);
                 });
             });
@@ -248,9 +244,6 @@ export default class TaskFactory {
     //                     resolve(results);
     //                 });
     //                 table.bindingsStream.on('error', (e) => {
-    //                     if (this.onError) {
-    //                         this.onError(e)
-    //                     }
     //                     reject(e);
     //                 });
     //             });
