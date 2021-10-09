@@ -2,7 +2,7 @@ import TaskFactory from './taskFactory';
 import {stringifyTask, tableFromArray} from './utils';
 import TaskEngine from './taskEngine';
 import {newEngine} from '@comunica/actor-init-sparql';
-import { Tasks } from '.';
+import { Types } from '.';
 import { Factory } from 'sparqlalgebrajs';
 
 const engine = newEngine();
@@ -47,7 +47,7 @@ let join = taskFactory.createJoin({
 
 let showList = {};
 
-function showAttr(attrPath: string, attrLabel: string, language?: string): Tasks.Task<string> {
+function showAttr(attrPath: string, attrLabel: string, language?: string): Types.Task<string> {
     let show = taskFactory.createActionOnFirst(bindings =>
             attrLabel + ': ' + bindings.get('?_').value);
     let filterAndShow = language ?
