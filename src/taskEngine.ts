@@ -123,7 +123,7 @@ export default class TaskEngine {
                 }
                 results = await this.query(queryOp);
             }
-            return await this.run({task: query.next, input: results});
+            return await this.run({task: query.subtask, input: results});
         } else {
             throw new Error('Unrecognized task type')        
         }

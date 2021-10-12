@@ -311,7 +311,7 @@ export default class TaskFactory {
                 this.createTraverse({
                     predicate: (<any> config).predicate,
                     graph: (<any> config).graph,
-                    next: forEach
+                    subtask: forEach
                 }) :
                 forEach;
     }
@@ -326,13 +326,13 @@ export default class TaskFactory {
 
     createLet<ReturnType>(
             config: {
-                next: Task<ReturnType>,
+                subtask: Task<ReturnType>,
                 currVarname?: string,
                 newVarname?: string,
                 hideCurrVar?: boolean
             }): Let<ReturnType> {
         return new Let<ReturnType>(
-            config.next,
+            config.subtask,
             config.currVarname || '?_',
             config.newVarname || '?_',
             !!config.hideCurrVar);
@@ -372,7 +372,7 @@ export default class TaskFactory {
     }
 
     createValues<ReturnType>(config: {
-            next: Task<ReturnType>,
+            subtask: Task<ReturnType>,
             bindings:
                 {[key: string]: RDF.Term | string}[] |
                 {[key: string]: RDF.Term | string} | 
@@ -385,14 +385,14 @@ export default class TaskFactory {
                 varnames.map(varname => this.dataFactory.variable(varname.substr(1))),
                 bindings );
         return this.createJoin({
-            next: config.next,
+            subtask: config.subtask,
             right: valuesOp
         });
     }
 
     createTraverse<ReturnType>(
             config: {
-                next: Task<ReturnType>,
+                subtask: Task<ReturnType>,
                 predicate: Algebra.PropertyPathSymbol | RDF.Term | string,
                 graph?: RDF.Term
             }): Join<ReturnType> {
@@ -430,13 +430,13 @@ export default class TaskFactory {
                             this.defaultInput, predicate, this.defaultOutput, config.graph)]),
             newDefault: '?_out',
             hideCurrVar: true,
-            next: config.next
+            subtask: config.subtask
         });
     }
 
     createJoin<ReturnType>(
             config: {
-                next: Task<ReturnType>,
+                subtask: Task<ReturnType>,
                 right: Algebra.Operation | string,
                 newDefault?: string,
                 hideCurrVar?: boolean
@@ -445,27 +445,27 @@ export default class TaskFactory {
         if (isString(right)) {
             right = this.translateOp(right);
         }
-        let next = config.next;
+        let subtask = config.subtask;
         if (config.newDefault) {
-            next = this.createLet({
-                next,
+            subtask = this.createLet({
+                subtask,
                 currVarname: config.newDefault,
                 hideCurrVar: config.hideCurrVar
             });
         }
-        return new Join<ReturnType>(next, right);
+        return new Join<ReturnType>(subtask, right);
     }
 
     createFilter<ReturnType>(
             config: {
-                next: Task<ReturnType>,
+                subtask: Task<ReturnType>,
                 expression: Algebra.Expression | string
             }): Filter<ReturnType> {
         let expression = config.expression;
         if (isString(expression)) {
             expression = (<Algebra.Filter> this.translateOp('FILTER(' + expression + ')')).expression;
         }
-        return new Filter<ReturnType>(config.next, expression);
+        return new Filter<ReturnType>(config.subtask, expression);
     }
 
     createTermReader(
@@ -482,7 +482,7 @@ export default class TaskFactory {
         let actionIfLang = config.lang ?
                 this.createFilter({
                     expression: 'langMatches( lang(?_), "' + config.lang + '" )',
-                    next: action
+                    subtask: action
                 }) : action;
         let actionIfTypeAndLang = config.datatype ?
                 this.createFilter({
@@ -498,18 +498,18 @@ export default class TaskFactory {
                                         this.algebraFactory.createTermExpression(
                                                 this.buildTerm(config.datatype))
                                     ]),
-                    next: actionIfLang
+                    subtask: actionIfLang
                 }) : actionIfLang;
         let actionIfFilter = config.filter ?
                 this.createFilter({
                     expression: config.filter,
-                    next: actionIfTypeAndLang
+                    subtask: actionIfTypeAndLang
                 }) : actionIfTypeAndLang;
         return (config && config.traverse) ?
                 this.createTraverse({
                     predicate: config.traverse,
                     graph: config.graph,
-                    next: actionIfFilter
+                    subtask: actionIfFilter
                 }) :
                 actionIfFilter;
     }

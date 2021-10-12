@@ -111,7 +111,7 @@ export function stringifyTask<ReturnType>(task: Task<ReturnType>, options = {}):
             currVarname: letTask.currVarname,
             newVarname: letTask.newVarname,
             hideCurrVar: letTask.hideCurrVar,
-            next: stringifyTask(letTask.next, options)
+            subtask: stringifyTask(letTask.subtask, options)
         };
     } else if (task instanceof Filter) {
         let filter = task;
@@ -120,14 +120,14 @@ export function stringifyTask<ReturnType>(task: Task<ReturnType>, options = {}):
         return {
             type: 'filter',
             expression: filterSparql.substring('FILTER('.length, filterSparql.length - ')'.length),
-            next: stringifyTask(filter.next, options)
+            subtask: stringifyTask(filter.subtask, options)
         };
     } else if (task instanceof Join) {
         let join = task;
         return {
             type: 'join',
             right: toSparqlFragment(join.right, options),
-            next: stringifyTask(join.next, options)
+            subtask: stringifyTask(join.subtask, options)
         }
     } else {
         throw new Error('Unrecognized task type');     

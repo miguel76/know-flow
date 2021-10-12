@@ -82,12 +82,12 @@ function showAttr(attrPath: string, attrLabel: string, language?: string): Types
     let filterAndShow = language ?
             taskFactory.createFilter({
                 expression: 'langMatches( lang(?_), "' + language + '" )',
-                next: show
+                subtask: show
             }) :
             show;
     return taskFactory.createTraverse({
         predicate: attrPath,
-        next: filterAndShow
+        subtask: filterAndShow
     });
 }
 
@@ -108,9 +108,9 @@ let showLanguageList = taskFactory.createCascade<string[],string>({
 
 let showLanguagesForCountrySimple = taskFactory.createTraverse({
     predicate: `^${wdt.country}`,
-    next: taskFactory.createFilter({
+    subtask: taskFactory.createFilter({
             expression: `EXISTS {?_ ${wdt.instanceOf} ${wd.ModernLanguage}}`,
-            next: showLanguageList
+            subtask: showLanguageList
     }),
 });
 
@@ -118,7 +118,7 @@ let showLanguagesForCountry = taskFactory.createJoin({
     right: `?language ${wdt.instanceOf} ${wd.ModernLanguage}; ${wdt.country} ?_`,
     newDefault: '?language',
     hideCurrVar: true,
-    next: showLanguageList
+    subtask: showLanguageList
 });
                 
 let te = new TaskEngine({engine: proxyEngine, queryContext});

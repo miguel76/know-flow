@@ -56,7 +56,7 @@ export default class TaskBuilder {
 
     traverse(predicate: Algebra.PropertyPathSymbol | RDF.Term | string): TaskBuilder {
         return this.derive((task: Task<any>) => this.taskFactory.createTraverse({
-            next: task, predicate
+            subtask: task, predicate
         }));
     }
 
@@ -76,7 +76,7 @@ export default class TaskBuilder {
             (RDF.Term | string)[] |
             RDF.Term | string): TaskBuilder {
         return this.derive((task: Task<any>) => this.taskFactory.createValues({
-            bindings, next: task
+            bindings, subtask: task
         }));
     }
 

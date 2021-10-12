@@ -59,11 +59,11 @@ export class ForEach<EachReturnType> extends Task<EachReturnType[]> {
 }
 
 export class QueryAndTask<ReturnType> extends Task<ReturnType> {
-    next: Task<ReturnType>;
+    subtask: Task<ReturnType>;
 
-    constructor(next: Task<ReturnType>) {
+    constructor(subtask: Task<ReturnType>) {
         super();
-        this.next = next;
+        this.subtask = subtask;
     }
 }
 
@@ -73,11 +73,11 @@ export class Let<ReturnType> extends QueryAndTask<ReturnType> {
     hideCurrVar: boolean;
 
     constructor(
-            next: Task<ReturnType>,
+            subtask: Task<ReturnType>,
             currVarname: string,
             newVarname: string,
             hideCurrVar: boolean) {
-        super(next);
+        super(subtask);
         this.currVarname = currVarname;
         this.newVarname = newVarname;
         this.hideCurrVar = hideCurrVar;
@@ -87,8 +87,8 @@ export class Let<ReturnType> extends QueryAndTask<ReturnType> {
 export class Join<ReturnType> extends QueryAndTask<ReturnType> {
     right: Algebra.Operation;
 
-    constructor(next: Task<ReturnType>, right: Algebra.Operation) {
-        super(next);
+    constructor(subtask: Task<ReturnType>, right: Algebra.Operation) {
+        super(subtask);
         this.right = right;
     }
 }
@@ -96,8 +96,8 @@ export class Join<ReturnType> extends QueryAndTask<ReturnType> {
 export class Filter<ReturnType> extends QueryAndTask<ReturnType> {
     expression: Algebra.Expression;
 
-    constructor(next: Task<ReturnType>, expression: Algebra.Expression) {
-        super(next);
+    constructor(subtask: Task<ReturnType>, expression: Algebra.Expression) {
+        super(subtask);
         this.expression = expression;
     }
 }
@@ -105,8 +105,8 @@ export class Filter<ReturnType> extends QueryAndTask<ReturnType> {
 export class Aggregate<ReturnType> extends QueryAndTask<ReturnType> {
     aggregates: Algebra.BoundAggregate[];
 
-    constructor(next: Task<ReturnType>, aggregates: Algebra.BoundAggregate[]) {
-        super(next);
+    constructor(subtask: Task<ReturnType>, aggregates: Algebra.BoundAggregate[]) {
+        super(subtask);
         this.aggregates = aggregates;
     }
 }
@@ -115,8 +115,8 @@ export class Slice<ReturnType> extends QueryAndTask<ReturnType> {
     start: number;
     length?: number;
 
-    constructor(next: Task<ReturnType>, start: number, length?: number) {
-        super(next);
+    constructor(subtask: Task<ReturnType>, start: number, length?: number) {
+        super(subtask);
         this.start = start;
         this.length = length;
     }

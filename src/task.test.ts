@@ -38,11 +38,11 @@ let action5 = taskFactory.createConstant('Action 5');
 let taskSeq = taskFactory.createParallel([action1, action2, action3]);
 let forEach = taskFactory.createForEach(action1);
 
-let traverse = taskFactory.createTraverse({predicate: 'rdf:type', next: action4});
+let traverse = taskFactory.createTraverse({predicate: 'rdf:type', subtask: action4});
 
 let join = taskFactory.createJoin({
     right: '$_ rdf:type rdf:List; rdfs:label "ciccio"',
-    next: action5
+    subtask: action5
 });
 
 let showList = {};
@@ -53,12 +53,12 @@ function showAttr(attrPath: string, attrLabel: string, language?: string): Types
     let filterAndShow = language ?
             taskFactory.createFilter({
                 expression: 'langMatches( lang(?_), "' + language + '" )',
-                next: show
+                subtask: show
             }) :
             show;
     return taskFactory.createTraverse({
         predicate: attrPath,
-        next: filterAndShow
+        subtask: filterAndShow
     });
 }
 
@@ -77,7 +77,7 @@ let showLanguage =
 
 let filter = taskFactory.createFilter({
     expression: '$_ = "pluto"',
-    next: action5
+    subtask: action5
 });
 
 console.log(action1);
