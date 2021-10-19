@@ -1,4 +1,4 @@
-<mxfile host="app.diagrams.net" modified="2021-10-19T14:13:29.453Z" agent="5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.81 Safari/537.36" etag="UYCPHES0y9c7x8yGBhlX" version="15.5.0" type="github" pages="6">
+<mxfile host="app.diagrams.net" modified="2021-10-19T14:14:12.379Z" agent="5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.81 Safari/537.36" etag="BqKZ2c40SBE537ZQ4qOW" version="15.5.0" type="github" pages="6">
   <diagram name="KF - Simple" id="fhEgflSGZdiI8ixxRhVx">
     <mxGraphModel dx="786" dy="523" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
@@ -558,7 +558,7 @@
     </mxGraphModel>
   </diagram>
   <diagram name="KF - Example - Value " id="rypF6aEmfIYKJjHSaC0K">
-    <mxGraphModel dx="1613" dy="466" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="1613" dy="523" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="NoBoT2j8xL-rnZ5w4Opu-0" />
         <mxCell id="NoBoT2j8xL-rnZ5w4Opu-1" parent="NoBoT2j8xL-rnZ5w4Opu-0" />
@@ -593,7 +593,7 @@
         <mxCell id="NoBoT2j8xL-rnZ5w4Opu-10" value="Subtask" style="points=[[0.25,0,0],[0.5,0,0],[0.75,0,0],[1,0.25,0],[1,0.5,0],[1,0.75,0],[0.75,1,0],[0.5,1,0],[0.25,1,0],[0,0.75,0],[0,0.5,0],[0,0.25,0]];shape=mxgraph.bpmn.task;whiteSpace=wrap;rectStyle=rounded;size=10;taskMarker=abstract;isLoopSub=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="NoBoT2j8xL-rnZ5w4Opu-1">
           <mxGeometry x="480" y="540" width="120" height="80" as="geometry" />
         </mxCell>
-        <mxCell id="NoBoT2j8xL-rnZ5w4Opu-11" value="Aggregate" style="points=[[0.25,0,0],[0.5,0,0],[0.75,0,0],[1,0.25,0],[1,0.5,0],[1,0.75,0],[0.75,1,0],[0.5,1,0],[0.25,1,0],[0,0.75,0],[0,0.5,0],[0,0.25,0]];shape=mxgraph.bpmn.task;whiteSpace=wrap;rectStyle=rounded;size=10;taskMarker=businessRule;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="NoBoT2j8xL-rnZ5w4Opu-1">
+        <mxCell id="NoBoT2j8xL-rnZ5w4Opu-11" value="Aggregate&#xa;SAMPLE(?_) AS ?_" style="points=[[0.25,0,0],[0.5,0,0],[0.75,0,0],[1,0.25,0],[1,0.5,0],[1,0.75,0],[0.75,1,0],[0.5,1,0],[0.25,1,0],[0,0.75,0],[0,0.5,0],[0,0.25,0]];shape=mxgraph.bpmn.task;whiteSpace=wrap;rectStyle=rounded;size=10;taskMarker=businessRule;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="NoBoT2j8xL-rnZ5w4Opu-1">
           <mxGeometry x="320" y="920" width="120" height="80" as="geometry" />
         </mxCell>
         <mxCell id="NoBoT2j8xL-rnZ5w4Opu-13" value="Action" style="points=[[0.25,0,0],[0.5,0,0],[0.75,0,0],[1,0.25,0],[1,0.5,0],[1,0.75,0],[0.75,1,0],[0.5,1,0],[0.25,1,0],[0,0.75,0],[0,0.5,0],[0,0.25,0]];shape=mxgraph.bpmn.task;whiteSpace=wrap;rectStyle=rounded;size=10;taskMarker=script;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="NoBoT2j8xL-rnZ5w4Opu-1">
