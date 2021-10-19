@@ -1,4 +1,4 @@
-<mxfile host="app.diagrams.net" modified="2021-10-19T17:08:39.896Z" agent="5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.81 Safari/537.36" etag="4jRfGYgGFsBxd-YpUsSM" version="15.5.0" type="github" pages="8">
+<mxfile host="app.diagrams.net" modified="2021-10-19T17:11:04.787Z" agent="5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.81 Safari/537.36" etag="s-PM6k59blMuDxNUuzvE" version="15.5.0" type="github" pages="8">
   <diagram name="KF - Simple" id="fhEgflSGZdiI8ixxRhVx">
     <mxGraphModel dx="786" dy="523" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
@@ -890,8 +890,8 @@
         <mxCell id="k-NPJ22a2dFIeyh78U0d-8" value="to_JSON-LD(?_)" style="points=[[0.25,0,0],[0.5,0,0],[0.75,0,0],[1,0.25,0],[1,0.5,0],[1,0.75,0],[0.75,1,0],[0.5,1,0],[0.25,1,0],[0,0.75,0],[0,0.5,0],[0,0.25,0]];shape=mxgraph.bpmn.task;whiteSpace=wrap;rectStyle=rounded;size=10;taskMarker=script;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="k-NPJ22a2dFIeyh78U0d-1">
           <mxGeometry x="640" y="160" width="120" height="40" as="geometry" />
         </mxCell>
-        <mxCell id="k-NPJ22a2dFIeyh78U0d-9" value="&lt;font style=&quot;font-size: 21px&quot; face=&quot;Courier New&quot;&gt;.value(&lt;i&gt;path&lt;/i&gt;)&lt;/font&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="k-NPJ22a2dFIeyh78U0d-1">
-          <mxGeometry x="120" y="130" width="170" height="20" as="geometry" />
+        <mxCell id="k-NPJ22a2dFIeyh78U0d-9" value="&lt;font style=&quot;font-size: 21px&quot; face=&quot;Courier New&quot;&gt;.value(&lt;i&gt;path&lt;/i&gt;)&amp;nbsp;&lt;/font&gt;&lt;span style=&quot;color: rgb(51 , 51 , 51) ; font-family: &amp;#34;open sans&amp;#34; , &amp;#34;helvetica neue&amp;#34; , &amp;#34;helvetica&amp;#34; , &amp;#34;arial&amp;#34; , sans-serif ; font-size: 14px ; background-color: rgb(255 , 255 , 255)&quot;&gt;&lt;b&gt;≡&lt;/b&gt;&lt;/span&gt;&lt;font style=&quot;font-size: 21px&quot; face=&quot;Courier New&quot;&gt;&amp;nbsp;.traverse(&lt;i&gt;path&lt;/i&gt;).value()&lt;/font&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="k-NPJ22a2dFIeyh78U0d-1">
+          <mxGeometry x="120" y="130" width="570" height="20" as="geometry" />
         </mxCell>
         <mxCell id="k-NPJ22a2dFIeyh78U0d-10" value="Rename&#xa;?_ ← ?_out" style="points=[[0.25,0,0],[0.5,0,0],[0.75,0,0],[1,0.25,0],[1,0.5,0],[1,0.75,0],[0.75,1,0],[0.5,1,0],[0.25,1,0],[0,0.75,0],[0,0.5,0],[0,0.25,0]];shape=mxgraph.bpmn.task;whiteSpace=wrap;rectStyle=rounded;size=10;taskMarker=businessRule;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="k-NPJ22a2dFIeyh78U0d-1">
           <mxGeometry x="340" y="160" width="120" height="40" as="geometry" />
