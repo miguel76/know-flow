@@ -1,4 +1,4 @@
-<mxfile host="app.diagrams.net" modified="2021-10-19T17:26:41.978Z" agent="5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.81 Safari/537.36" etag="x2PTxpFNA0qPcjuCYVAi" version="15.5.0" type="github" pages="8">
+<mxfile host="app.diagrams.net" modified="2021-10-20T13:32:39.494Z" agent="5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.81 Safari/537.36" etag="Nbyu0Y9cPM_uNZ7z3Exx" version="15.5.0" type="github" pages="8">
   <diagram name="KF - Simple" id="fhEgflSGZdiI8ixxRhVx">
     <mxGraphModel dx="786" dy="523" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
@@ -599,7 +599,7 @@
         <mxCell id="yPq37YtKrbWCLaaZrTuM-19" value="&lt;font style=&quot;font-size: 21px&quot; face=&quot;Courier New&quot;&gt;.join(&lt;i&gt;pattern&lt;/i&gt;).&lt;i&gt;something_else&lt;/i&gt;&lt;/font&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="g2CWHoizWZ-KMN6XFMSh-1">
           <mxGeometry x="120" y="610" width="300" height="20" as="geometry" />
         </mxCell>
-        <mxCell id="yPq37YtKrbWCLaaZrTuM-21" value="Join with&#xa;pattern" style="points=[[0.25,0,0],[0.5,0,0],[0.75,0,0],[1,0.25,0],[1,0.5,0],[1,0.75,0],[0.75,1,0],[0.5,1,0],[0.25,1,0],[0,0.75,0],[0,0.5,0],[0,0.25,0]];shape=mxgraph.bpmn.task;whiteSpace=wrap;rectStyle=rounded;size=10;taskMarker=businessRule;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="g2CWHoizWZ-KMN6XFMSh-1">
+        <mxCell id="yPq37YtKrbWCLaaZrTuM-21" value="Join(*,pattern)" style="points=[[0.25,0,0],[0.5,0,0],[0.75,0,0],[1,0.25,0],[1,0.5,0],[1,0.75,0],[0.75,1,0],[0.5,1,0],[0.25,1,0],[0,0.75,0],[0,0.5,0],[0,0.25,0]];shape=mxgraph.bpmn.task;whiteSpace=wrap;rectStyle=rounded;size=10;taskMarker=businessRule;fillColor=#fff2cc;strokeColor=#d6b656;fontFamily=Courier New;" vertex="1" parent="g2CWHoizWZ-KMN6XFMSh-1">
           <mxGeometry x="190" y="640" width="120" height="40" as="geometry" />
         </mxCell>
         <mxCell id="yPq37YtKrbWCLaaZrTuM-23" value="" style="edgeStyle=elbowEdgeStyle;fontSize=12;html=1;endArrow=blockThin;endFill=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="g2CWHoizWZ-KMN6XFMSh-1" source="yPq37YtKrbWCLaaZrTuM-21" target="N2M16I4MdcHMJcsioqLq-0">
@@ -630,10 +630,10 @@
             <Array as="points" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="TzU4VelkasLq6EWOKPqe-2" value="&lt;font style=&quot;font-size: 21px&quot; face=&quot;Courier New&quot;&gt;.filter(&lt;i&gt;expression&lt;/i&gt;).&lt;i&gt;something_else&lt;/i&gt;&lt;/font&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="g2CWHoizWZ-KMN6XFMSh-1">
+        <mxCell id="TzU4VelkasLq6EWOKPqe-2" value="&lt;font style=&quot;font-size: 21px&quot; face=&quot;Courier New&quot;&gt;.filter(&lt;i&gt;expr&lt;/i&gt;).&lt;i&gt;something_else&lt;/i&gt;&lt;/font&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="g2CWHoizWZ-KMN6XFMSh-1">
           <mxGeometry x="120" y="730" width="340" height="20" as="geometry" />
         </mxCell>
-        <mxCell id="TzU4VelkasLq6EWOKPqe-3" value="Filter by&#xa;expression" style="points=[[0.25,0,0],[0.5,0,0],[0.75,0,0],[1,0.25,0],[1,0.5,0],[1,0.75,0],[0.75,1,0],[0.5,1,0],[0.25,1,0],[0,0.75,0],[0,0.5,0],[0,0.25,0]];shape=mxgraph.bpmn.task;whiteSpace=wrap;rectStyle=rounded;size=10;taskMarker=businessRule;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="g2CWHoizWZ-KMN6XFMSh-1">
+        <mxCell id="TzU4VelkasLq6EWOKPqe-3" value="Filter(expr,*)" style="points=[[0.25,0,0],[0.5,0,0],[0.75,0,0],[1,0.25,0],[1,0.5,0],[1,0.75,0],[0.75,1,0],[0.5,1,0],[0.25,1,0],[0,0.75,0],[0,0.5,0],[0,0.25,0]];shape=mxgraph.bpmn.task;whiteSpace=wrap;rectStyle=rounded;size=10;taskMarker=businessRule;fillColor=#fff2cc;strokeColor=#d6b656;fontFamily=Courier New;" vertex="1" parent="g2CWHoizWZ-KMN6XFMSh-1">
           <mxGeometry x="190" y="760" width="120" height="40" as="geometry" />
         </mxCell>
         <mxCell id="TzU4VelkasLq6EWOKPqe-4" value="" style="edgeStyle=elbowEdgeStyle;fontSize=12;html=1;endArrow=blockThin;endFill=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" source="TzU4VelkasLq6EWOKPqe-3" target="TzU4VelkasLq6EWOKPqe-5" parent="g2CWHoizWZ-KMN6XFMSh-1">
@@ -654,7 +654,7 @@
             <mxPoint x="520" y="410" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="TzU4VelkasLq6EWOKPqe-8" value="&lt;font style=&quot;font-size: 21px&quot; face=&quot;Courier New&quot;&gt;.&lt;i&gt;op&lt;/i&gt;.&lt;i&gt;something_else&lt;/i&gt;&lt;/font&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="g2CWHoizWZ-KMN6XFMSh-1">
+        <mxCell id="TzU4VelkasLq6EWOKPqe-8" value="&lt;font style=&quot;font-size: 21px&quot; face=&quot;Courier New&quot;&gt;.&lt;i&gt;op(params...)&lt;/i&gt;.&lt;i&gt;something_else&lt;/i&gt;&lt;/font&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="g2CWHoizWZ-KMN6XFMSh-1">
           <mxGeometry x="120" y="890" width="340" height="20" as="geometry" />
         </mxCell>
         <mxCell id="TzU4VelkasLq6EWOKPqe-9" value="" style="points=[[0.145,0.145,0],[0.5,0,0],[0.855,0.145,0],[1,0.5,0],[0.855,0.855,0],[0.5,1,0],[0.145,0.855,0],[0,0.5,0]];shape=mxgraph.bpmn.event;html=1;verticalLabelPosition=bottom;labelBackgroundColor=#ffffff;verticalAlign=top;align=center;perimeter=ellipsePerimeter;outlineConnect=0;aspect=fixed;outline=standard;symbol=general;" vertex="1" parent="g2CWHoizWZ-KMN6XFMSh-1">
@@ -667,7 +667,7 @@
             <Array as="points" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="TzU4VelkasLq6EWOKPqe-11" value="op" style="points=[[0.25,0,0],[0.5,0,0],[0.75,0,0],[1,0.25,0],[1,0.5,0],[1,0.75,0],[0.75,1,0],[0.5,1,0],[0.25,1,0],[0,0.75,0],[0,0.5,0],[0,0.25,0]];shape=mxgraph.bpmn.task;whiteSpace=wrap;rectStyle=rounded;size=10;taskMarker=businessRule;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="g2CWHoizWZ-KMN6XFMSh-1">
+        <mxCell id="TzU4VelkasLq6EWOKPqe-11" value="Op(*, params...)" style="points=[[0.25,0,0],[0.5,0,0],[0.75,0,0],[1,0.25,0],[1,0.5,0],[1,0.75,0],[0.75,1,0],[0.5,1,0],[0.25,1,0],[0,0.75,0],[0,0.5,0],[0,0.25,0]];shape=mxgraph.bpmn.task;whiteSpace=wrap;rectStyle=rounded;size=10;taskMarker=businessRule;fillColor=#fff2cc;strokeColor=#d6b656;fontFamily=Courier New;" vertex="1" parent="g2CWHoizWZ-KMN6XFMSh-1">
           <mxGeometry x="190" y="920" width="120" height="40" as="geometry" />
         </mxCell>
         <mxCell id="TzU4VelkasLq6EWOKPqe-12" value="" style="edgeStyle=elbowEdgeStyle;fontSize=12;html=1;endArrow=blockThin;endFill=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" source="TzU4VelkasLq6EWOKPqe-11" target="TzU4VelkasLq6EWOKPqe-13" parent="g2CWHoizWZ-KMN6XFMSh-1">
