@@ -1,4 +1,4 @@
-<mxfile host="app.diagrams.net" modified="2021-10-20T16:47:20.463Z" agent="5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.81 Safari/537.36" etag="HSdQmzMfafmrpa9uXMW3" version="15.5.0" type="github" pages="9">
+<mxfile host="app.diagrams.net" modified="2021-10-20T16:48:18.367Z" agent="5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.81 Safari/537.36" etag="ISkgT-oemSWoFVVKWCi4" version="15.5.0" type="github" pages="9">
   <diagram name="KF - Simple" id="fhEgflSGZdiI8ixxRhVx">
     <mxGraphModel dx="786" dy="523" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
@@ -267,10 +267,10 @@
             <mxPoint x="330" y="580" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="diQoPKQEMwiT8MevXMYj-10" value="Subtask" style="points=[[0.25,0,0],[0.5,0,0],[0.75,0,0],[1,0.25,0],[1,0.5,0],[1,0.75,0],[0.75,1,0],[0.5,1,0],[0.25,1,0],[0,0.75,0],[0,0.5,0],[0,0.25,0]];shape=mxgraph.bpmn.task;whiteSpace=wrap;rectStyle=rounded;size=10;taskMarker=abstract;isLoopSub=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="diQoPKQEMwiT8MevXMYj-1">
+        <mxCell id="diQoPKQEMwiT8MevXMYj-10" value="Subflow" style="points=[[0.25,0,0],[0.5,0,0],[0.75,0,0],[1,0.25,0],[1,0.5,0],[1,0.75,0],[0.75,1,0],[0.5,1,0],[0.25,1,0],[0,0.75,0],[0,0.5,0],[0,0.25,0]];shape=mxgraph.bpmn.task;whiteSpace=wrap;rectStyle=rounded;size=10;taskMarker=abstract;isLoopSub=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="diQoPKQEMwiT8MevXMYj-1">
           <mxGeometry x="480" y="540" width="120" height="80" as="geometry" />
         </mxCell>
-        <mxCell id="diQoPKQEMwiT8MevXMYj-11" value="Query" style="points=[[0.25,0,0],[0.5,0,0],[0.75,0,0],[1,0.25,0],[1,0.5,0],[1,0.75,0],[0.75,1,0],[0.5,1,0],[0.25,1,0],[0,0.75,0],[0,0.5,0],[0,0.25,0]];shape=mxgraph.bpmn.task;whiteSpace=wrap;rectStyle=rounded;size=10;taskMarker=businessRule;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="diQoPKQEMwiT8MevXMYj-1">
+        <mxCell id="diQoPKQEMwiT8MevXMYj-11" value="Data Operation" style="points=[[0.25,0,0],[0.5,0,0],[0.75,0,0],[1,0.25,0],[1,0.5,0],[1,0.75,0],[0.75,1,0],[0.5,1,0],[0.25,1,0],[0,0.75,0],[0,0.5,0],[0,0.25,0]];shape=mxgraph.bpmn.task;whiteSpace=wrap;rectStyle=rounded;size=10;taskMarker=businessRule;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="diQoPKQEMwiT8MevXMYj-1">
           <mxGeometry x="320" y="540" width="120" height="80" as="geometry" />
         </mxCell>
         <mxCell id="diQoPKQEMwiT8MevXMYj-12" value="" style="edgeStyle=elbowEdgeStyle;fontSize=12;html=1;endArrow=blockThin;endFill=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="diQoPKQEMwiT8MevXMYj-1" source="diQoPKQEMwiT8MevXMYj-11" target="diQoPKQEMwiT8MevXMYj-10">
@@ -342,7 +342,7 @@
             <mxPoint x="320" y="960" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="diQoPKQEMwiT8MevXMYj-25" value="Subtask" style="points=[[0.25,0,0],[0.5,0,0],[0.75,0,0],[1,0.25,0],[1,0.5,0],[1,0.75,0],[0.75,1,0],[0.5,1,0],[0.25,1,0],[0,0.75,0],[0,0.5,0],[0,0.25,0]];shape=mxgraph.bpmn.task;whiteSpace=wrap;rectStyle=rounded;size=10;taskMarker=abstract;isLoopSub=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="diQoPKQEMwiT8MevXMYj-1">
+        <mxCell id="diQoPKQEMwiT8MevXMYj-25" value="Subflow" style="points=[[0.25,0,0],[0.5,0,0],[0.75,0,0],[1,0.25,0],[1,0.5,0],[1,0.75,0],[0.75,1,0],[0.5,1,0],[0.25,1,0],[0,0.75,0],[0,0.5,0],[0,0.25,0]];shape=mxgraph.bpmn.task;whiteSpace=wrap;rectStyle=rounded;size=10;taskMarker=abstract;isLoopSub=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="diQoPKQEMwiT8MevXMYj-1">
           <mxGeometry x="320" y="920" width="120" height="80" as="geometry" />
         </mxCell>
         <mxCell id="diQoPKQEMwiT8MevXMYj-26" value="" style="edgeStyle=elbowEdgeStyle;fontSize=12;html=1;endArrow=blockThin;endFill=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="diQoPKQEMwiT8MevXMYj-1" source="diQoPKQEMwiT8MevXMYj-25" target="diQoPKQEMwiT8MevXMYj-31">
