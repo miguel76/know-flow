@@ -400,29 +400,13 @@ export default class TaskFactory {
             }): Join<ReturnType> {
         let predicate = config.predicate;
         if (isString(predicate)) {
-            let op = this.translateOp('?_ ' + predicate + ' ?_out');
-            if (isPath(op)) {
-                predicate = op.predicate;
-            } else {
-                predicate = (<Algebra.Bgp> op).patterns[0].predicate;
-            }
+            return this.createJoin({
+                right: this.translateOp('?_ ' + predicate + ' ?_out'),
+                newDefault: '?_out',
+                hideCurrVar: true,
+                subtask: config.subtask
+            });
         }
-        // let nextAfterRename = this.createLet({
-        //     next: config.next,
-        //     currVarname: '?_out',
-        //     hideCurrVar: true
-        // });
-        // return {
-        //     taskType: 'query',
-        //     queryType: 'join',
-        //     next: nextAfterRename,
-        //     right: (isPropertyPathSymbol(predicate)) ?
-        //             this.algebraFactory.createPath(
-        //                     this.defaultInput, predicate, this.defaultOutput, config.graph):
-        //             this.algebraFactory.createBgp([
-        //                     this.algebraFactory.createPattern(
-        //                             this.defaultInput, predicate, this.defaultOutput, config.graph)])
-        // };
         return this.createJoin({
             right: (isPropertyPathSymbol(predicate)) ?
             this.algebraFactory.createPath(

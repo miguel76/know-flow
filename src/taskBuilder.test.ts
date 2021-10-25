@@ -18,6 +18,8 @@ let getLabel = tb.value('rdfs:label');
 let adorno = tb.input('wd:Q152388');
 let hegel = tb.input('wd:Q9235');
 
+let habermas = tb.input('wd:Q76357');
+
 let labelOfAdorno = adorno.next(getLabel);
 
 // let getPersonInfo = tb.next({
@@ -37,10 +39,14 @@ let infoOnAdorno = adorno.next(getPersonInfo);
 let infoOnHegel = hegel.next(getPersonInfo);
 
 let getStudentsInfo = tb.forEach('wdt:P802').next(getPersonInfo);
+let getTeachersInfo = tb.forEach('^wdt:P802').next(getPersonInfo);
+
 
 let adornoStudentsInfo = adorno.next(getStudentsInfo);
 let hegelStudentsInfo = hegel.next(getStudentsInfo);
 
+
+let habermasTeachersInfo = habermas.next(getTeachersInfo);
 // const engine = newEngine();
 
 let engine = newComunicaEngine();
@@ -90,4 +96,4 @@ te.run(infoOnHegel).then(console.log, console.error);
 
 te.run(adornoStudentsInfo).then(console.log, console.error);
 
-te.run(hegelStudentsInfo).then(console.log, console.error);
+te.run(habermasTeachersInfo).then(console.log, console.error);
