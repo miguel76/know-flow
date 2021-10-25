@@ -69,6 +69,8 @@ export interface TaskFactoryOptions extends TranslateOptions {
     algebraFactory?: Factory;
 }
 
+export type PathParamType  = Algebra.PropertyPathSymbol | RDF.Term | string;
+
 export default class TaskFactory {
 
     algebraFactory: Factory;
@@ -302,7 +304,7 @@ export default class TaskFactory {
     createForEach<EachReturnType>(
             config: {
                 subtask: Task<EachReturnType>,
-                predicate?: Algebra.PropertyPathSymbol | RDF.Term | string,
+                predicate?: PathParamType,
                 graph?: RDF.Term
             } | Task<EachReturnType>): Task<EachReturnType[]> {
         let subtask = (config instanceof Task) ? config : config.subtask;
@@ -393,7 +395,7 @@ export default class TaskFactory {
     createTraverse<ReturnType>(
             config: {
                 subtask: Task<ReturnType>,
-                predicate: Algebra.PropertyPathSymbol | RDF.Term | string,
+                predicate: PathParamType,
                 graph?: RDF.Term
             }): Join<ReturnType> {
         let predicate = config.predicate;
