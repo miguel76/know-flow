@@ -1,5 +1,5 @@
 import { Algebra, toSparql, Factory } from 'sparqlalgebrajs';
-import {Table, TableSync, Task, Action, Parallel, ForEach, Join, Filter, QueryAndTask, Cascade, Let} from './task';
+import {Table, TableSync, Flow, Action, Parallel, ForEach, Join, Filter, DataOperation, Cascade, Let} from './flow';
 import {Generator, Variable, Wildcard} from 'sparqljs';
 import { Bindings, BindingsStream } from '@comunica/types';
 import * as RDF from '@rdfjs/types';
@@ -84,52 +84,52 @@ export function tableFromArray(bindingsArray: {[varname: string]: RDF.Term}[]): 
 
 }
 
-export function stringifyTask<ReturnType>(task: Task<ReturnType>, options = {}): any {
-    if (task instanceof Action) {
+export function stringifyFlow<ReturnType>(flow: Flow<ReturnType>, options = {}): any {
+    if (flow instanceof Action) {
         return {type: "action"};
-    } else if (task instanceof Cascade) {
-        let cascade = task;
+    } else if (flow instanceof Cascade) {
+        let cascade = flow;
         return {
             type: 'cascade',
-            task: stringifyTask(cascade.task, options),
+            subflow: stringifyFlow(cascade.subflow, options),
             action: cascade.action
         };
-    } else if (task instanceof Parallel) {
+    } else if (flow instanceof Parallel) {
         return {
             type: 'parallel',
-            subtasks: task.subtasks.map(t => stringifyTask(t,options))
+            subflows: flow.subflows.map(t => stringifyFlow(t,options))
         };
-    } else if (task instanceof ForEach) {
+    } else if (flow instanceof ForEach) {
          return {
             type: 'for-each',
-            subtask: stringifyTask(task.subtask)
+            subflow: stringifyFlow(flow.subflow)
         };
-    } else if (task instanceof Let) {
-        let letTask = task;
+    } else if (flow instanceof Let) {
+        let letFlow = flow;
         return {
             type: 'let',
-            currVarname: letTask.currVarname,
-            newVarname: letTask.newVarname,
-            hideCurrVar: letTask.hideCurrVar,
-            subtask: stringifyTask(letTask.subtask, options)
+            currVarname: letFlow.currVarname,
+            newVarname: letFlow.newVarname,
+            hideCurrVar: letFlow.hideCurrVar,
+            subflow: stringifyFlow(letFlow.subflow, options)
         };
-    } else if (task instanceof Filter) {
-        let filter = task;
+    } else if (flow instanceof Filter) {
+        let filter = flow;
         let filterSparql = toSparqlFragment(
             algebraFactory.createFilter(algebraFactory.createBgp([]), filter.expression), options);
         return {
             type: 'filter',
             expression: filterSparql.substring('FILTER('.length, filterSparql.length - ')'.length),
-            subtask: stringifyTask(filter.subtask, options)
+            subflow: stringifyFlow(filter.subflow, options)
         };
-    } else if (task instanceof Join) {
-        let join = task;
+    } else if (flow instanceof Join) {
+        let join = flow;
         return {
             type: 'join',
             right: toSparqlFragment(join.right, options),
-            subtask: stringifyTask(join.subtask, options)
+            subflow: stringifyFlow(join.subflow, options)
         }
     } else {
-        throw new Error('Unrecognized task type');     
+        throw new Error('Unrecognized flow type');     
     }
 }

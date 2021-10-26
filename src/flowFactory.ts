@@ -1,6 +1,6 @@
 import { Algebra, translate, Factory } from 'sparqlalgebrajs';
 import * as RDF from "rdf-js";
-import {Table, TableSync, Task, Action, ForEach, Join, Filter, Cascade, Let, Parallel} from './task';
+import {Table, TableSync, Flow, Action, ForEach, Join, Filter, Cascade, Let, Parallel} from './flow';
 import {Bindings, BindingsStream} from '@comunica/types';
 import {syncTable, promisifyFromSync} from './utils';
 import { ArrayIterator } from 'asynciterator';
@@ -65,21 +65,21 @@ interface TranslateOptions {
     sparqlStar?: boolean;
 }
 
-export interface TaskFactoryOptions extends TranslateOptions {
+export interface FlowFactoryOptions extends TranslateOptions {
     algebraFactory?: Factory;
 }
 
 export type PathParamType  = Algebra.PropertyPathSymbol | RDF.Term | string;
 
-export default class TaskFactory {
+export default class FlowFactory {
 
     algebraFactory: Factory;
     dataFactory: RDF.DataFactory;
     defaultInput: RDF.Variable;
     defaultOutput: RDF.Variable;
-    options: TaskFactoryOptions;
+    options: FlowFactoryOptions;
 
-    constructor(options: TaskFactoryOptions = {}) {
+    constructor(options: FlowFactoryOptions = {}) {
         this.algebraFactory = options.algebraFactory || new Factory(options.dataFactory);
         this.dataFactory = this.algebraFactory.dataFactory;
         this.defaultInput = this.dataFactory.variable('_');
@@ -87,21 +87,21 @@ export default class TaskFactory {
         this.options = options;
     }
 
-    createCascadeAsync<TaskReturnType, ActionReturnType>(
+    createCascadeAsync<SubflowReturnType, ActionReturnType>(
             config: {
-                task: Task<TaskReturnType>,
-                action: (taskResult: TaskReturnType) => Promise<ActionReturnType>
-            }): Cascade<TaskReturnType, ActionReturnType> {
-        return new Cascade<TaskReturnType, ActionReturnType> (config.task, config.action);
+                subflow: Flow<SubflowReturnType>,
+                action: (subflowResult: SubflowReturnType) => Promise<ActionReturnType>
+            }): Cascade<SubflowReturnType, ActionReturnType> {
+        return new Cascade<SubflowReturnType, ActionReturnType> (config.subflow, config.action);
     }
 
-    createCascade<TaskReturnType, ActionReturnType>(
+    createCascade<SubflowReturnType, ActionReturnType>(
             config: {
-                task: Task<TaskReturnType>,
-                action: (taskResult: TaskReturnType) => ActionReturnType
-            }): Cascade<TaskReturnType, ActionReturnType> {
+                subflow: Flow<SubflowReturnType>,
+                action: (subflowResult: SubflowReturnType) => ActionReturnType
+            }): Cascade<SubflowReturnType, ActionReturnType> {
         return this.createCascadeAsync({
-            task: config.task,
+            subflow: config.subflow,
             action: promisifyFromSync(config.action)
         });
     }
@@ -229,65 +229,38 @@ export default class TaskFactory {
         });
     }
 
-// createForEachAndAction<EachReturnType>(execForEach: (bindings: Bindings) => Promise<EachReturnType>): Action<EachReturnType[]> {
-    //     return {
-    //         type: 'action',
-    //         exec: (table) => {
-    //             return new Promise<EachReturnType[]>((resolve, reject) => {
-    //                 let results: EachReturnType[] = [];
-    //                 table.bindingsStream.on('data', (binding) => {
-    //                     execForEach(binding).then((res) => {
-    //                         results.push(res);
-    //                     }, (err) => {
-    //                         reject(err);
-    //                     });
-    //                 });
-    //                 table.bindingsStream.on('end', () => {
-    //                     resolve(results);
-    //                 });
-    //                 table.bindingsStream.on('error', (e) => {
-    //                     reject(e);
-    //                 });
-    //             });
-    //         }
-    //     }
-    // }
-
-    // createForEachAndSimpleAction<EachReturnType>(syncExecForEach: (bindings: Bindings) => EachReturnType): Action<EachReturnType[]> {
-    //     return this.createForEachAndAction(promisifyFromSync(syncExecForEach));
-    // }
 
     createParallel<EachReturnType>(
             config: {
-                subtasks: Task<EachReturnType>[]
-            }| Task<EachReturnType>[]): Parallel<EachReturnType> {
-        let subtasks = Array.isArray(config) ? config : config.subtasks;
-        return new Parallel<EachReturnType>(subtasks);
+                subflows: Flow<EachReturnType>[]
+            }| Flow<EachReturnType>[]): Parallel<EachReturnType> {
+        let subflows = Array.isArray(config) ? config : config.subflows;
+        return new Parallel<EachReturnType>(subflows);
     }
 
     createParallelDict<EachReturnType>(
             config: {
-                subtasks: {[key: string] : Task<EachReturnType>}
-            } | {[key: string] : Task<EachReturnType>}): Task<{[key: string]: EachReturnType}> {
+                subflows: {[key: string] : Flow<EachReturnType>}
+            } | {[key: string] : Flow<EachReturnType>}): Flow<{[key: string]: EachReturnType}> {
         let values = Object.values(config);
-        let subtasksMap = (!values.length || values[0] instanceof Task) ?
-                    config : config.subtasks;
+        let subflowsMap = (!values.length || values[0] instanceof Flow) ?
+                    config : config.subflows;
         let keys: string [] = [];
-        let subtasks: Task<EachReturnType> [] = [];
-        Object.entries(subtasksMap).forEach(([key, subtask]) => {
+        let subflows: Flow<EachReturnType> [] = [];
+        Object.entries(subflowsMap).forEach(([key, subflow]) => {
             keys.push(key);
-            subtasks.push(subtask);
+            subflows.push(subflow);
         });
         return this.createCascade({
-            task: this.createParallel(subtasks),
+            subflow: this.createParallel(subflows),
             action: (resultArray: EachReturnType[]) => 
                     Object.fromEntries(
                             resultArray.map((singleRes, index) => [keys[index], singleRes]))
         });
     }
 
-    createParallelFromObject(obj: any): Task<any> {
-        if (obj instanceof Task) {
+    createParallelFromObject(obj: any): Flow<any> {
+        if (obj instanceof Flow) {
             return obj;
         } else if (Array.isArray(obj)) {
             return this.createParallel(obj.map(e => this.createParallelFromObject(e)));
@@ -303,17 +276,17 @@ export default class TaskFactory {
 
     createForEach<EachReturnType>(
             config: {
-                subtask: Task<EachReturnType>,
+                subflow: Flow<EachReturnType>,
                 predicate?: PathParamType,
                 graph?: RDF.Term
-            } | Task<EachReturnType>): Task<EachReturnType[]> {
-        let subtask = (config instanceof Task) ? config : config.subtask;
-        let forEach = new ForEach<EachReturnType>(subtask);
+            } | Flow<EachReturnType>): Flow<EachReturnType[]> {
+        let subflow = (config instanceof Flow) ? config : config.subflow;
+        let forEach = new ForEach<EachReturnType>(subflow);
         return (<any> config).predicate ?
                 this.createTraverse({
                     predicate: (<any> config).predicate,
                     graph: (<any> config).graph,
-                    subtask: forEach
+                    subflow: forEach
                 }) :
                 forEach;
     }
@@ -328,13 +301,13 @@ export default class TaskFactory {
 
     createLet<ReturnType>(
             config: {
-                subtask: Task<ReturnType>,
+                subflow: Flow<ReturnType>,
                 currVarname?: string,
                 newVarname?: string,
                 hideCurrVar?: boolean
             }): Let<ReturnType> {
         return new Let<ReturnType>(
-            config.subtask,
+            config.subflow,
             config.currVarname || '?_',
             config.newVarname || '?_',
             !!config.hideCurrVar);
@@ -374,7 +347,7 @@ export default class TaskFactory {
     }
 
     createValues<ReturnType>(config: {
-            subtask: Task<ReturnType>,
+            subflow: Flow<ReturnType>,
             bindings:
                 {[key: string]: RDF.Term | string}[] |
                 {[key: string]: RDF.Term | string} | 
@@ -387,14 +360,14 @@ export default class TaskFactory {
                 varnames.map(varname => this.dataFactory.variable(varname.substr(1))),
                 bindings );
         return this.createJoin({
-            subtask: config.subtask,
+            subflow: config.subflow,
             right: valuesOp
         });
     }
 
     createTraverse<ReturnType>(
             config: {
-                subtask: Task<ReturnType>,
+                subflow: Flow<ReturnType>,
                 predicate: PathParamType,
                 graph?: RDF.Term
             }): Join<ReturnType> {
@@ -404,7 +377,7 @@ export default class TaskFactory {
                 right: this.translateOp('?_ ' + predicate + ' ?_out'),
                 newDefault: '?_out',
                 hideCurrVar: true,
-                subtask: config.subtask
+                subflow: config.subflow
             });
         }
         return this.createJoin({
@@ -416,13 +389,13 @@ export default class TaskFactory {
                             this.defaultInput, predicate, this.defaultOutput, config.graph)]),
             newDefault: '?_out',
             hideCurrVar: true,
-            subtask: config.subtask
+            subflow: config.subflow
         });
     }
 
     createJoin<ReturnType>(
             config: {
-                subtask: Task<ReturnType>,
+                subflow: Flow<ReturnType>,
                 right: Algebra.Operation | string,
                 newDefault?: string,
                 hideCurrVar?: boolean
@@ -431,27 +404,27 @@ export default class TaskFactory {
         if (isString(right)) {
             right = this.translateOp(right);
         }
-        let subtask = config.subtask;
+        let subflow = config.subflow;
         if (config.newDefault) {
-            subtask = this.createLet({
-                subtask,
+            subflow = this.createLet({
+                subflow: subflow,
                 currVarname: config.newDefault,
                 hideCurrVar: config.hideCurrVar
             });
         }
-        return new Join<ReturnType>(subtask, right);
+        return new Join<ReturnType>(subflow, right);
     }
 
     createFilter<ReturnType>(
             config: {
-                subtask: Task<ReturnType>,
+                subflow: Flow<ReturnType>,
                 expression: Algebra.Expression | string
             }): Filter<ReturnType> {
         let expression = config.expression;
         if (isString(expression)) {
             expression = (<Algebra.Filter> this.translateOp('FILTER(' + expression + ')')).expression;
         }
-        return new Filter<ReturnType>(config.subtask, expression);
+        return new Filter<ReturnType>(config.subflow, expression);
     }
 
     createTermReader(
@@ -461,14 +434,14 @@ export default class TaskFactory {
                 filter?: Algebra.Expression | string,
                 lang?: string,
                 datatype?: string
-            }): Task<RDF.Term> {
+            }): Flow<RDF.Term> {
         let action = this.createActionOnFirstDefault({
             exec: x => x
         });
         let actionIfLang = config.lang ?
                 this.createFilter({
                     expression: 'langMatches( lang(?_), "' + config.lang + '" )',
-                    subtask: action
+                    subflow: action
                 }) : action;
         let actionIfTypeAndLang = config.datatype ?
                 this.createFilter({
@@ -484,18 +457,18 @@ export default class TaskFactory {
                                         this.algebraFactory.createTermExpression(
                                                 this.buildTerm(config.datatype))
                                     ]),
-                    subtask: actionIfLang
+                    subflow: actionIfLang
                 }) : actionIfLang;
         let actionIfFilter = config.filter ?
                 this.createFilter({
                     expression: config.filter,
-                    subtask: actionIfTypeAndLang
+                    subflow: actionIfTypeAndLang
                 }) : actionIfTypeAndLang;
         return (config && config.traverse) ?
                 this.createTraverse({
                     predicate: config.traverse,
                     graph: config.graph,
-                    subtask: actionIfFilter
+                    subflow: actionIfFilter
                 }) :
                 actionIfFilter;
     }
@@ -507,37 +480,37 @@ export default class TaskFactory {
                 filter?: Algebra.Expression | string,
                 lang?: string,
                 datatype?: string
-            }): Task<any> {
+            }): Flow<any> {
                 
         // TODO: manage arrays of values too
         return this.createCascade({
-            task: this.createTermReader(config),
+            subflow: this.createTermReader(config),
             action: RDFToValueOrObject
         });
     }
 
-    logTaskCount: number = 0;
-    log<ReturnType>(next: Task<ReturnType>, label?: string): Task<ReturnType> {
-        let logTaskId = ++this.logTaskCount;
+    logFlowCount: number = 0;
+    log<ReturnType>(next: Flow<ReturnType>, label?: string): Flow<ReturnType> {
+        let logFlowId = ++this.logFlowCount;
         var callCount = 0
-        let loggingTask = this.createActionOnAll({
+        let loggingFlow = this.createActionOnAll({
             exec: (table: TableSync) => {
                 let callId = ++callCount;
-                console.log('# Input of node ' + logTaskId + (label ? ' (' + label + ')' : '') + ' call n. ' + callId);
+                console.log('# Input of node ' + logFlowId + (label ? ' (' + label + ')' : '') + ' call n. ' + callId);
                 console.log(table.bindingsArray);
                 console.log('');
                 return callId;
             }
         });
         let seq = this.createParallel<any>({
-            subtasks: [loggingTask, next]
+            subflows: [loggingFlow, next]
         });
         return this.createCascade({
-            task: seq,
+            subflow: seq,
             action: (resSeq:any) => {
                 let callId = resSeq[0];
                 let actionRes = resSeq[1];
-                console.log('# Output of node ' + logTaskId + (label ? ' (' + label + ')' : '') + ' call n. ' + callId);
+                console.log('# Output of node ' + logFlowId + (label ? ' (' + label + ')' : '') + ' call n. ' + callId);
                 console.log(actionRes);
                 console.log('');
                 return actionRes;

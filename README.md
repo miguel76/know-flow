@@ -16,9 +16,9 @@ Add know-flow as a dependency to your project by executing the following command
 $ npm install know-flow
 ```
 
-## Building simple tasks 
+## Building simple flows 
 
-In this example we will build simple tasks to generate JSON from a knowledge graph which uses Wikidata schema.
+In this example we will build simple flows to generate JSON from a knowledge graph which uses Wikidata schema.
 
 To execute the queries, a query engine is needed. We will be using the Comunica SPARQL engine in this example. Install it with:
 
@@ -26,17 +26,17 @@ To execute the queries, a query engine is needed. We will be using the Comunica 
 $ npm install @comunica/actor-init-sparql
 ```
 
-In Javascript/Typescript code, import the task builder and task engine, alongside the Comunica query engine:
+In Javascript/Typescript code, import the flow builder and flow engine, alongside the Comunica query engine:
 
 ```ts
-import {TaskBuilder,TaskEngine} from 'know-flow';
+import {FlowBuilder,FlowEngine} from 'know-flow';
 import {newEngine as newComunicaEngine} from '@comunica/actor-init-sparql';
 ```
 
-Create an instance of the task builder:
+Create an instance of the flow builder:
 
 ```ts
-const tb =  new TaskBuilder({
+const tb =  new FlowBuilder({
     prefixes: {
         'rdf': 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
         'rdfs': 'http://www.w3.org/2000/01/rdf-schema#',
@@ -46,13 +46,13 @@ const tb =  new TaskBuilder({
 });
 ```
 
-Create a task to get the label of the current default resource (which will depend on the dynamic context of execution of the task).
+Create a flow to get the label of the current default resource (which will depend on the dynamic context of execution of the flow).
 
 ```ts
 let getLabel = tb.value('rdfs:label');
 ```
 
-Create a task to get basic anagraphic information (the default resource is expected in this case to be a person).
+Create a flow to get basic anagraphic information (the default resource is expected in this case to be a person).
 
 ```ts
 let getPersonInfo = tb.next({
@@ -62,13 +62,13 @@ let getPersonInfo = tb.next({
 });
 ```
 
-Create a task to list the students of a person (e.g., a philosopher):
+Create a flow to list the students of a person (e.g., a philosopher):
 
 ```ts
 let getStudentsInfo = tb.forEach('wdt:P1066').next(getPersonInfo);
 ```
 
-Define tasks that add some input data:
+Define flows that add some input data:
 
 ```ts
 let hegel = tb.input('wd:Q9235');
@@ -81,12 +81,12 @@ let adornoStudentsInfo = adorno.next(getStudentsInfo);
 ```
 
 
-## Executing the tasks 
+## Executing the flows 
 
-Create an instance of the task engine, pointing to the wikidata public endpoint:
+Create an instance of the flow engine, pointing to the wikidata public endpoint:
 
 ```ts
-let te = new TaskEngine({
+let te = new FlowEngine({
     engine: newComunicaEngine(),
     queryContext: {
         sources: [{ type: 'sparql', value: 'https://query.wikidata.org/sparql' }]
@@ -94,7 +94,7 @@ let te = new TaskEngine({
 });
 ```
 
-Execute the tasks and print the results when done:
+Execute the flows and print the results when done:
 
 ```ts
 te.run(infoOnHegel).then(console.log, console.error);

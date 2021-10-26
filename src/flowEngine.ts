@@ -1,4 +1,4 @@
-import {Task, Action, Parallel, ForEach, Join, Filter, Cascade, Table, Let, QueryAndTask} from './task';
+import {Flow, Action, Parallel, ForEach, Join, Filter, Cascade, Table, Let, DataOperation} from './flow';
 import * as RDF from 'rdf-js';
 import { Algebra, toSparql, Factory } from 'sparqlalgebrajs';
 import {IQueryEngine, BindingsStream, Bindings, IActorQueryOperationOutputBindings} from '@comunica/types';
@@ -36,7 +36,7 @@ function assignVar(input: Table, currVarName: string, newVarName: string, hideCu
     };
 }
 
-export default class TaskEngine {
+export default class FlowEngine {
 
     engine: IQueryEngine;
     queryContext: any;
@@ -56,34 +56,34 @@ export default class TaskEngine {
 
     async run<ReturnType>(
             config: {
-                task: Task<ReturnType>,
+                flow: Flow<ReturnType>,
                 input?: Table
-            } | Task<ReturnType>): Promise<ReturnType> {
-        let task: Task<ReturnType>;
+            } | Flow<ReturnType>): Promise<ReturnType> {
+        let flow: Flow<ReturnType>;
         let input: Table;
-        if (config instanceof Task) {
-            task = <Task<ReturnType>> config;
+        if (config instanceof Flow) {
+            flow = <Flow<ReturnType>> config;
             input = NO_BINDING_SINGLETON_TABLE;
         } else {
-            task = (<{task: Task<ReturnType>, input?: Table}> config).task;
+            flow = (<{flow: Flow<ReturnType>, input?: Table}> config).flow;
             input = <Table> (<any> config).input || NO_BINDING_SINGLETON_TABLE;
         }
-        if (task instanceof Action) {
-            return task.exec(input);
-        } else if (task instanceof Cascade) {
-            let taskResult = await this.run({task: task.task, input});
-            return await task.action(taskResult);
-        } else if (task instanceof Parallel) {
-            return <ReturnType> <unknown> await Promise.all(task.subtasks.map(
-                    subtask => this.run({task: subtask, input})));
-        } else if (task instanceof ForEach) {
-            let forEach = task;
+        if (flow instanceof Action) {
+            return flow.exec(input);
+        } else if (flow instanceof Cascade) {
+            let flowResult = await this.run({flow: flow.subflow, input});
+            return await flow.action(flowResult);
+        } else if (flow instanceof Parallel) {
+            return <ReturnType> <unknown> await Promise.all(flow.subflows.map(
+                    subflow => this.run({flow: subflow, input})));
+        } else if (flow instanceof ForEach) {
+            let forEach = flow;
             return await new Promise<ReturnType>((resolve, reject) => {
                 var promises: Promise<unknown>[] = [];
                 input.bindingsStream.on('data', (bindings: Bindings) => {
                     promises.push(
                             this.run({
-                                task: forEach.subtask,
+                                flow: forEach.subflow,
                                 input: oneTupleTable(
                                         input.variables,
                                         bindings,
@@ -101,12 +101,12 @@ export default class TaskEngine {
                     reject(error);
                 });
             });
-        } else if (task instanceof QueryAndTask) {
-            let query = task;
+        } else if (flow instanceof DataOperation) {
+            let query = flow;
             let results;
             if (query instanceof Let) {
-                let letTask = query;
-                results = assignVar(input, letTask.currVarname, letTask.newVarname, letTask.hideCurrVar);
+                let letFlow = query;
+                results = assignVar(input, letFlow.currVarname, letFlow.newVarname, letFlow.hideCurrVar);
             } else {
                 let inputOp = await fromTableToValuesOp(input);
                 let queryOp;
@@ -123,15 +123,10 @@ export default class TaskEngine {
                 }
                 results = await this.query(queryOp);
             }
-            return await this.run({task: query.subtask, input: results});
+            return await this.run({flow: query.subflow, input: results});
         } else {
-            throw new Error('Unrecognized task type')        
+            throw new Error('Unrecognized flow type')        
         }
     }
 
-    // generateQuery<ReturnType>(task: Task<ReturnType>): void {
-    //     switch(task.taskType) {
-            
-    //     }
-    // }
 }

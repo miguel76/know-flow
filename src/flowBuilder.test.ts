@@ -1,10 +1,10 @@
-import {TaskBuilder, TaskEngine, stringifyTask} from './index';
+import {FlowBuilder, FlowEngine, stringifyFlow} from './index';
 import {newEngine as newComunicaEngine} from '@comunica/actor-init-sparql';
 import { ActionContext, IActorQueryOperationOutput, IActorQueryOperationOutputBindings, IQueryEngine } from '@comunica/types';
 import { Algebra } from 'sparqlalgebrajs';
 import { toSparqlFragment } from './utils';
 
-const tb =  new TaskBuilder({
+const tb =  new FlowBuilder({
     prefixes: {
         'rdf': 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
         'rdfs': 'http://www.w3.org/2000/01/rdf-schema#',
@@ -74,10 +74,10 @@ let proxyEngine: IQueryEngine = {
     }
 };
 
-console.log(JSON.stringify(stringifyTask(infoOnAdorno), null, 4));
-console.log(JSON.stringify(stringifyTask(adornoStudentsInfo), null, 4));
+console.log(JSON.stringify(stringifyFlow(infoOnAdorno), null, 4));
+console.log(JSON.stringify(stringifyFlow(adornoStudentsInfo), null, 4));
 
-let te = new TaskEngine({
+let te = new FlowEngine({
     // engine: newComunicaEngine(),
     engine: proxyEngine,
     queryContext: {

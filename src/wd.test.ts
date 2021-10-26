@@ -1,6 +1,6 @@
-import TaskFactory from './taskFactory';
+import FlowFactory from './flowFactory';
 import {tableFromArray} from './utils';
-import TaskEngine from './taskEngine';
+import FlowEngine from './flowEngine';
 import {newEngine} from '@comunica/actor-init-sparql';
 import { Types } from '.';
 import { Factory, Algebra } from 'sparqlalgebrajs';
@@ -51,7 +51,7 @@ let queryContext = {
 
 
 
-let taskFactory = new TaskFactory(options);
+let flowFactory = new FlowFactory(options);
 
 // select ?language ?languageLabel WHERE {
 //     ?language wdt:P31 wd:Q1288568;
@@ -72,79 +72,59 @@ let wd = {
     ModernLanguage: 'wd:Q1288568'
 }
 
-function showAttr(attrPath: string, attrLabel: string, language?: string): Types.Task<string> {
-    let show = taskFactory.createActionOnFirst({
+function showAttr(attrPath: string, attrLabel: string, language?: string): Types.Flow<string> {
+    let show = flowFactory.createActionOnFirst({
         exec: bindings => {
             let term = bindings.get('?_');
             return attrLabel + ': ' + (term ? term.value : '?');
         }
     });
     let filterAndShow = language ?
-            taskFactory.createFilter({
+            flowFactory.createFilter({
                 expression: 'langMatches( lang(?_), "' + language + '" )',
-                subtask: show
+                subflow: show
             }) :
             show;
-    return taskFactory.createTraverse({
+    return flowFactory.createTraverse({
         predicate: attrPath,
-        subtask: filterAndShow
+        subflow: filterAndShow
     });
 }
 
-let showLanguage = taskFactory.createCascade({
-    task: taskFactory.log(taskFactory.createParallel({
-            subtasks: [
-                taskFactory.log(showAttr('rdfs:label', 'Name', 'en'), "Show Label"),
-                taskFactory.log(showAttr(wdt.ISO_639_3_code, 'ISO Code'), "Show Code")
+let showLanguage = flowFactory.createCascade({
+    subflow: flowFactory.log(flowFactory.createParallel({
+            subflows: [
+                flowFactory.log(showAttr('rdfs:label', 'Name', 'en'), "Show Label"),
+                flowFactory.log(showAttr(wdt.ISO_639_3_code, 'ISO Code'), "Show Code")
             ]
     }), "Seq of attrs"),
     action: (lines: string[]) => lines.join('\n')
 });
 
-let showLanguageList = taskFactory.createCascade<string[],string>({
-    task: taskFactory.createForEach({subtask: showLanguage}),
+let showLanguageList = flowFactory.createCascade<string[],string>({
+    subflow: flowFactory.createForEach({subflow: showLanguage}),
     action: (lines: string[]) => lines.join('\n')
 });
 
-let showLanguagesForCountrySimple = taskFactory.createTraverse({
+let showLanguagesForCountrySimple = flowFactory.createTraverse({
     predicate: `^${wdt.country}`,
-    subtask: taskFactory.createFilter({
+    subflow: flowFactory.createFilter({
             expression: `EXISTS {?_ ${wdt.instanceOf} ${wd.ModernLanguage}}`,
-            subtask: showLanguageList
+            subflow: showLanguageList
     }),
 });
 
-let showLanguagesForCountry = taskFactory.createJoin({
+let showLanguagesForCountry = flowFactory.createJoin({
     right: `?language ${wdt.instanceOf} ${wd.ModernLanguage}; ${wdt.country} ?_`,
     newDefault: '?language',
     hideCurrVar: true,
-    subtask: showLanguageList
+    subflow: showLanguageList
 });
                 
-let te = new TaskEngine({engine: proxyEngine, queryContext});
+let fe = new FlowEngine({engine: proxyEngine, queryContext});
 
-// te.run(action1).then(console.log, console.error)
-
-
-// te.run(showLanguages).then(console.log, console.error);
-
-// executeTask(
-//     showLanguage,
-//     tableFromArray([{
-//         '?_': dataFactory.namedNode('http://www.wikidata.org/entity/Q9027')
-//     }]),
-//     proxyEngine, queryContext).then(console.log, console.error);
-
-    
-// executeTask(
-//     showAttr('rdfs:label', 'Name', 'en'),
-//     tableFromArray([{
-//         '?_': dataFactory.namedNode('http://www.wikidata.org/entity/Q9027')
-//     }]),
-//     engine, queryContext).then(console.log, console.error);
-
-te.run({
-    task: showLanguagesForCountry,
+fe.run({
+    flow: showLanguagesForCountry,
     input: tableFromArray([{
         '?_': dataFactory.namedNode('http://www.wikidata.org/entity/Q38')
     }])
