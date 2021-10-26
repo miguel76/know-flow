@@ -69,7 +69,7 @@ export interface FlowFactoryOptions extends TranslateOptions {
     algebraFactory?: Factory;
 }
 
-export type PathParamType  = Algebra.PropertyPathSymbol | RDF.Term | string;
+export type PathParam  = Algebra.PropertyPathSymbol | RDF.Term | string;
 
 export default class FlowFactory {
 
@@ -277,7 +277,7 @@ export default class FlowFactory {
     createForEach<EachReturnType>(
             config: {
                 subflow: Flow<EachReturnType>,
-                path?: PathParamType,
+                path?: PathParam,
                 graph?: RDF.Term
             } | Flow<EachReturnType>): Flow<EachReturnType[]> {
         let subflow = (config instanceof Flow) ? config : config.subflow;
@@ -368,7 +368,7 @@ export default class FlowFactory {
     createTraverse<ReturnType>(
             config: {
                 subflow: Flow<ReturnType>,
-                path: PathParamType,
+                path: PathParam,
                 graph?: RDF.Term
             }): Join<ReturnType> {
         let path = config.path;
