@@ -38,7 +38,7 @@ let action5 = flowFactory.createConstant('Action 5');
 let flowSeq = flowFactory.createParallel([action1, action2, action3]);
 let forEach = flowFactory.createForEach(action1);
 
-let traverse = flowFactory.createTraverse({predicate: 'rdf:type', subflow: action4});
+let traverse = flowFactory.createTraverse({path: 'rdf:type', subflow: action4});
 
 let join = flowFactory.createJoin({
     right: '$_ rdf:type rdf:List; rdfs:label "ciccio"',
@@ -57,7 +57,7 @@ function showAttr(attrPath: string, attrLabel: string, language?: string): Types
             }) :
             show;
     return flowFactory.createTraverse({
-        predicate: attrPath,
+        path: attrPath,
         subflow: filterAndShow
     });
 }

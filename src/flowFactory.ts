@@ -277,14 +277,14 @@ export default class FlowFactory {
     createForEach<EachReturnType>(
             config: {
                 subflow: Flow<EachReturnType>,
-                predicate?: PathParamType,
+                path?: PathParamType,
                 graph?: RDF.Term
             } | Flow<EachReturnType>): Flow<EachReturnType[]> {
         let subflow = (config instanceof Flow) ? config : config.subflow;
         let forEach = new ForEach<EachReturnType>(subflow);
-        return (<any> config).predicate ?
+        return (<any> config).subflow ?
                 this.createTraverse({
-                    predicate: (<any> config).predicate,
+                    path: (<any> config).subflow,
                     graph: (<any> config).graph,
                     subflow: forEach
                 }) :
@@ -368,25 +368,25 @@ export default class FlowFactory {
     createTraverse<ReturnType>(
             config: {
                 subflow: Flow<ReturnType>,
-                predicate: PathParamType,
+                path: PathParamType,
                 graph?: RDF.Term
             }): Join<ReturnType> {
-        let predicate = config.predicate;
-        if (isString(predicate)) {
+        let path = config.path;
+        if (isString(path)) {
             return this.createJoin({
-                right: this.translateOp('?_ ' + predicate + ' ?_out'),
+                right: this.translateOp('?_ ' + path + ' ?_out'),
                 newDefault: '?_out',
                 hideCurrVar: true,
                 subflow: config.subflow
             });
         }
         return this.createJoin({
-            right: (isPropertyPathSymbol(predicate)) ?
+            right: (isPropertyPathSymbol(path)) ?
             this.algebraFactory.createPath(
-                    this.defaultInput, predicate, this.defaultOutput, config.graph):
+                    this.defaultInput, path, this.defaultOutput, config.graph):
             this.algebraFactory.createBgp([
                     this.algebraFactory.createPattern(
-                            this.defaultInput, predicate, this.defaultOutput, config.graph)]),
+                            this.defaultInput, path, this.defaultOutput, config.graph)]),
             newDefault: '?_out',
             hideCurrVar: true,
             subflow: config.subflow
@@ -429,7 +429,7 @@ export default class FlowFactory {
 
     createTermReader(
             config?: {
-                traverse?: Algebra.PropertyPathSymbol | RDF.Term | string,
+                path?: Algebra.PropertyPathSymbol | RDF.Term | string,
                 graph?: RDF.Term,
                 filter?: Algebra.Expression | string,
                 lang?: string,
@@ -464,9 +464,9 @@ export default class FlowFactory {
                     expression: config.filter,
                     subflow: actionIfTypeAndLang
                 }) : actionIfTypeAndLang;
-        return (config && config.traverse) ?
+        return (config && config.path) ?
                 this.createTraverse({
-                    predicate: config.traverse,
+                    path: config.path,
                     graph: config.graph,
                     subflow: actionIfFilter
                 }) :
@@ -475,7 +475,7 @@ export default class FlowFactory {
 
     createValueReader(
             config?: {
-                traverse?: Algebra.PropertyPathSymbol | RDF.Term | string,
+                path?: Algebra.PropertyPathSymbol | RDF.Term | string,
                 graph?: RDF.Term,
                 filter?: Algebra.Expression | string,
                 lang?: string,

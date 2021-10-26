@@ -54,20 +54,20 @@ export default class FlowBuilder {
         return this.next(this.flowFactory.createActionAsync({exec}));
     }
 
-    traverse(predicate: Algebra.PropertyPathSymbol | RDF.Term | string): FlowBuilder {
-        return this.derive((flow: Flow<any>) => this.flowFactory.createTraverse({
-            subflow: flow, predicate
+    traverse(path: Algebra.PropertyPathSymbol | RDF.Term | string): FlowBuilder {
+        return this.derive((subflow: Flow<any>) => this.flowFactory.createTraverse({
+            subflow, path
         }));
     }
 
-    forEach(predicate?: Algebra.PropertyPathSymbol | RDF.Term | string): FlowBuilder {
-        return this.derive((flow: Flow<any>) => this.flowFactory.createForEach({
-            subflow: flow, predicate
+    forEach(path?: Algebra.PropertyPathSymbol | RDF.Term | string): FlowBuilder {
+        return this.derive((subflow: Flow<any>) => this.flowFactory.createForEach({
+            subflow, path
         }));
     }
 
-    value(traverse?: Algebra.PropertyPathSymbol | RDF.Term | string): FlowApplier<any,any> {
-        return this.next(this.flowFactory.createValueReader({traverse}));
+    value(path?: Algebra.PropertyPathSymbol | RDF.Term | string): FlowApplier<any,any> {
+        return this.next(this.flowFactory.createValueReader({path}));
     }
 
     input(bindings:

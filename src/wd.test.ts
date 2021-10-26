@@ -86,7 +86,7 @@ function showAttr(attrPath: string, attrLabel: string, language?: string): Types
             }) :
             show;
     return flowFactory.createTraverse({
-        predicate: attrPath,
+        path: attrPath,
         subflow: filterAndShow
     });
 }
@@ -107,7 +107,7 @@ let showLanguageList = flowFactory.createCascade<string[],string>({
 });
 
 let showLanguagesForCountrySimple = flowFactory.createTraverse({
-    predicate: `^${wdt.country}`,
+    path: `^${wdt.country}`,
     subflow: flowFactory.createFilter({
             expression: `EXISTS {?_ ${wdt.instanceOf} ${wd.ModernLanguage}}`,
             subflow: showLanguageList
