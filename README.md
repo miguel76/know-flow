@@ -8,6 +8,8 @@ It can be potentially used to generate any kind of data structure.
 
 The library know-flow-react allows to use the paradigm in React.
 
+Check the [repo wiki](https://github.com/miguel76/know-flow/wiki) for more detailed documentation (in progress).
+
 ## Installation
 
 Add know-flow as a dependency to your project by executing the following command from the root folder of your project (assumes you are already using npm to manage it).
