@@ -8,7 +8,7 @@ It can be potentially used to generate any kind of data structure.
 
 The library know-flow-react allows to use the paradigm in React.
 
-Check the [wiki](../../wiki) for more detailed documentation (in progress).
+Check the [repo wiki](https://github.com/miguel76/know-flow/wiki) for more detailed documentation (in progress).
 
 ## Installation
 
