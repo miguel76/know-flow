@@ -284,7 +284,7 @@ export default class FlowFactory {
         let forEach = new ForEach<EachReturnType>(subflow);
         return (<any> config).subflow ?
                 this.createTraverse({
-                    path: (<any> config).subflow,
+                    path: (<any> config).path,
                     graph: (<any> config).graph,
                     subflow: forEach
                 }) :
@@ -407,7 +407,7 @@ export default class FlowFactory {
         let subflow = config.subflow;
         if (config.newDefault) {
             subflow = this.createLet({
-                subflow: subflow,
+                subflow,
                 currVarname: config.newDefault,
                 hideCurrVar: config.hideCurrVar
             });
