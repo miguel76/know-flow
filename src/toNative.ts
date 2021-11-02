@@ -114,7 +114,17 @@ export function RDFToObject(term: RDF.Term, useNativeTypes: boolean, rdfDirectio
  *
  * @return the value or JSON-LD object.
  */
-export function RDFToValueOrObject(term: RDF.Term, rdfDirection?: string): any {
+export function RDFToValueOrObject(term: RDF.Term, plainIDs = false, rdfDirection?: string): any {
   let rval = RDFToObject(term, true, rdfDirection);
-  return (!rval || rval['@value'] === undefined) ? rval : rval['@value'];
+  if (rval) {
+    if (rval['@value'] !== undefined) {
+      return rval['@value'];
+    } else if (plainIDs && rval['@id'] !== undefined) {
+      return rval['@id'];
+    } else {
+      return rval;
+    }
+  } else {
+    return null;
+  }
 }

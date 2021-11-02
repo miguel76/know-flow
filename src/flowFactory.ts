@@ -479,13 +479,15 @@ export default class FlowFactory {
                 graph?: RDF.Term,
                 filter?: Algebra.Expression | string,
                 lang?: string,
-                datatype?: string
+                datatype?: string,
+                plainIDs?: boolean
             }): Flow<any> {
                 
         // TODO: manage arrays of values too
+        let plainIDs = (config.plainIDs !== undefined) ? config.plainIDs : true;
         return this.createCascade({
             subflow: this.createTermReader(config),
-            action: RDFToValueOrObject
+            action: (term) => RDFToValueOrObject(term, plainIDs)
         });
     }
 
