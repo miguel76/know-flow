@@ -70,6 +70,10 @@ export default class FlowBuilder {
         return this.next(this.flowFactory.createValueReader({path}));
     }
 
+    str(path?: Algebra.PropertyPathSymbol | RDF.Term | string): FlowApplier<any,any> {
+        return this.next(this.flowFactory.createStringReader({path}));
+    }
+
     input(bindings:
             {[key: string]: RDF.Term | string}[] |
             {[key: string]: RDF.Term | string} | 

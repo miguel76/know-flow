@@ -491,6 +491,22 @@ export default class FlowFactory {
         });
     }
 
+    createStringReader(
+            config?: {
+                path?: Algebra.PropertyPathSymbol | RDF.Term | string,
+                graph?: RDF.Term,
+                filter?: Algebra.Expression | string,
+                lang?: string,
+                datatype?: string
+            }): Flow<any> {
+                
+        // TODO: manage arrays of values too
+        return this.createCascade({
+            subflow: this.createTermReader(config),
+            action: (term) => RDFToValueOrObject(term, true, false)
+        });
+    }
+
     logFlowCount: number = 0;
     log<ReturnType>(next: Flow<ReturnType>, label?: string): Flow<ReturnType> {
         let logFlowId = ++this.logFlowCount;
