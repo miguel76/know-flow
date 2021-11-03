@@ -70,8 +70,8 @@ export default class FlowBuilder {
         return this.next(this.flowFactory.createValueReader({path}));
     }
 
-    str(path?: Algebra.PropertyPathSymbol | RDF.Term | string): FlowApplier<any,any> {
-        return this.next(this.flowFactory.createStringReader({path}));
+    str(path?: Algebra.PropertyPathSymbol | RDF.Term | string): FlowApplier<any,string> {
+        return <FlowApplier<any,string>> this.next(this.flowFactory.createStringReader({path}));
     }
 
     input(bindings:

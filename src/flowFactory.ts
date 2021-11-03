@@ -498,7 +498,7 @@ export default class FlowFactory {
                 filter?: Algebra.Expression | string,
                 lang?: string,
                 datatype?: string
-            }): Flow<any> {
+            }): Flow<string> {
                 
         // TODO: manage arrays of values too
         return this.createCascade({
