@@ -82,7 +82,7 @@ export default class FlowBuilder {
 
 }
 
-class FlowApplier<SubflowReturnType, ActionReturnType> extends Cascade<SubflowReturnType, ActionReturnType> {
+export class FlowApplier<SubflowReturnType, ActionReturnType> extends Cascade<SubflowReturnType, ActionReturnType> {
 
     flowFactory: FlowFactory;
 
