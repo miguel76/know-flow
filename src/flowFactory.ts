@@ -346,14 +346,15 @@ export default class FlowFactory {
         }
     }
 
-    createValues<ReturnType>(config: {
-            subflow: Flow<ReturnType>,
-            bindings:
-                {[key: string]: RDF.Term | string}[] |
-                {[key: string]: RDF.Term | string} | 
-                (RDF.Term | string)[] |
-                RDF.Term | string
-    }): Join<ReturnType> {
+    createValues<ReturnType>(
+            config: {
+                subflow: Flow<ReturnType>,
+                bindings:
+                    {[key: string]: RDF.Term | string}[] |
+                    {[key: string]: RDF.Term | string} | 
+                    (RDF.Term | string)[] |
+                    RDF.Term | string
+            }): Join<ReturnType> {
         let bindings = this.buildBindingsSeq(config.bindings);
         let varnames = [...new Set(bindings.flatMap(b => Object.keys(b)))];
         let valuesOp = this.algebraFactory.createValues(
@@ -428,13 +429,13 @@ export default class FlowFactory {
     }
 
     createTermReader(
-            config?: {
+            config: {
                 path?: Algebra.PropertyPathSymbol | RDF.Term | string,
                 graph?: RDF.Term,
                 filter?: Algebra.Expression | string,
                 lang?: string,
                 datatype?: string
-            }): Flow<RDF.Term> {
+            } = {}): Flow<RDF.Term> {
         let action = this.createActionOnFirstDefault({
             exec: x => x
         });
@@ -474,14 +475,14 @@ export default class FlowFactory {
     }
 
     createValueReader(
-            config?: {
+            config: {
                 path?: Algebra.PropertyPathSymbol | RDF.Term | string,
                 graph?: RDF.Term,
                 filter?: Algebra.Expression | string,
                 lang?: string,
                 datatype?: string,
                 plainIDs?: boolean
-            }): Flow<any> {
+            } = {}): Flow<any> {
                 
         // TODO: manage arrays of values too
         let plainIDs = (config.plainIDs !== undefined) ? config.plainIDs : true;
@@ -492,13 +493,13 @@ export default class FlowFactory {
     }
 
     createStringReader(
-            config?: {
+            config: {
                 path?: Algebra.PropertyPathSymbol | RDF.Term | string,
                 graph?: RDF.Term,
                 filter?: Algebra.Expression | string,
                 lang?: string,
                 datatype?: string
-            }): Flow<string> {
+            } = {}): Flow<string> {
                 
         // TODO: manage arrays of values too
         return this.createCascade({
