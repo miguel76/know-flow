@@ -35,6 +35,7 @@ export function syncTable(table: Table): Promise<TableSync> {
             bindingsArray.push(Object.fromEntries(<any> bindings));
         });
         table.bindingsStream.on('end', () => {
+            table.bindingsStream.close();
             resolve({
                 variables: table.variables,
                 bindingsArray,
@@ -42,6 +43,7 @@ export function syncTable(table: Table): Promise<TableSync> {
             });
         });
         table.bindingsStream.on('error', (error) => {
+            table.bindingsStream.close();
             reject(error);
         });
     });
@@ -60,7 +62,9 @@ export function oneTupleTable(variables: string[], bindings: Bindings, canContai
     };
 }
 
-export const NO_BINDING_SINGLETON_TABLE = oneTupleTable([], Map<string, RDF.Term>({}), false);
+export function noBindingSingletonTable() {
+    return oneTupleTable([], Map<string, RDF.Term>({}), false);
+}
 
 function arrayUnion<T>(arrays: T[][]): T[] {
     return arrays.reduce((vars, newVars) => vars.concat(newVars.filter(v => !vars.includes(v))))
@@ -86,13 +90,17 @@ export function tableFromArray(bindingsArray: {[varname: string]: RDF.Term}[]): 
 
 export function stringifyFlow<ReturnType>(flow: Flow<ReturnType>, options = {}): any {
     if (flow instanceof Action) {
-        return {type: "action"};
+        let action = flow;
+        return {
+            type: "action",
+            exec: action.exec.toString()
+        };
     } else if (flow instanceof Cascade) {
         let cascade = flow;
         return {
             type: 'cascade',
             subflow: stringifyFlow(cascade.subflow, options),
-            action: cascade.action
+            action: cascade.action.toString()
         };
     } else if (flow instanceof Parallel) {
         return {

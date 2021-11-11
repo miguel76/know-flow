@@ -2,7 +2,7 @@ import {Flow, Action, Parallel, ForEach, Join, Filter, Cascade, Table, Let, Data
 import * as RDF from 'rdf-js';
 import { Algebra, toSparql, Factory } from 'sparqlalgebrajs';
 import {IQueryEngine, BindingsStream, Bindings, IActorQueryOperationOutputBindings} from '@comunica/types';
-import {fromTableToValuesOp, NO_BINDING_SINGLETON_TABLE, oneTupleTable} from './utils';
+import {fromTableToValuesOp, noBindingSingletonTable, oneTupleTable} from './utils';
 import { Map } from 'immutable';
 import { Wildcard } from 'sparqljs';
 
@@ -63,10 +63,10 @@ export default class FlowEngine {
         let input: Table;
         if (config instanceof Flow) {
             flow = <Flow<ReturnType>> config;
-            input = NO_BINDING_SINGLETON_TABLE;
+            input = noBindingSingletonTable();
         } else {
             flow = (<{flow: Flow<ReturnType>, input?: Table}> config).flow;
-            input = <Table> (<any> config).input || NO_BINDING_SINGLETON_TABLE;
+            input = <Table> (<any> config).input || noBindingSingletonTable();
         }
         if (flow instanceof Action) {
             return flow.exec(input);
@@ -112,8 +112,8 @@ export default class FlowEngine {
                 let queryOp;
                 if (query instanceof Join) {
                     let join = query;
-                    queryOp = (input === NO_BINDING_SINGLETON_TABLE) ?
-                            join.right :
+                    queryOp = //(input === NO_BINDING_SINGLETON_TABLE) ?
+                            //join.right :
                             algebraFactory.createJoin(inputOp, join.right);
                 } else if (query instanceof Filter) {
                     let filter = <Filter<ReturnType>> query;
