@@ -1,0 +1,3 @@
+@prefix ex: <http://example.org/>.
+
+ex:Res1 ex:prop1 "value1".

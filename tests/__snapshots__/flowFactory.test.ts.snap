@@ -1,0 +1,132 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`run action constant 1`] = `42`;
+
+exports[`run action show bindings 1`] = `
+Object {
+  "bindingsArray": Array [
+    Object {},
+  ],
+  "canContainUndefs": false,
+  "variables": Array [],
+}
+`;
+
+exports[`run action show bindings again 1`] = `
+Object {
+  "bindingsArray": Array [
+    Object {},
+  ],
+  "canContainUndefs": false,
+  "variables": Array [],
+}
+`;
+
+exports[`run action show bindings again again 1`] = `
+Object {
+  "bindingsArray": Array [
+    Object {},
+  ],
+  "canContainUndefs": false,
+  "variables": Array [],
+}
+`;
+
+exports[`run action show default bindings 1`] = `undefined`;
+
+exports[`run action show one set of bindings 1`] = `Immutable.Map {}`;
+
+exports[`run constant 1`] = `42`;
+
+exports[`run join 1`] = `
+Object {
+  "bindingsArray": Array [
+    Object {
+      "?o": Object {
+        "datatype": Object {
+          "termType": "NamedNode",
+          "value": "http://www.w3.org/2001/XMLSchema#string",
+        },
+        "language": "",
+        "termType": "Literal",
+        "value": "value1",
+      },
+      "?p": Object {
+        "termType": "NamedNode",
+        "value": "http://example.org/prop1",
+      },
+      "?s": Object {
+        "termType": "NamedNode",
+        "value": "http://example.org/Res1",
+      },
+    },
+  ],
+  "canContainUndefs": false,
+  "variables": Array [
+    "?s",
+    "?p",
+    "?o",
+  ],
+}
+`;
+
+exports[`run multiple default bindings 1`] = `
+Object {
+  "bindingsArray": Array [
+    Object {
+      "?_": NamedNode {
+        "termType": "NamedNode",
+        "value": "http://example.org/Res1",
+      },
+    },
+    Object {
+      "?_": NamedNode {
+        "termType": "NamedNode",
+        "value": "http://example.org/Res2",
+      },
+    },
+    Object {
+      "?_": NamedNode {
+        "termType": "NamedNode",
+        "value": "http://example.org/Res3",
+      },
+    },
+  ],
+  "canContainUndefs": false,
+  "variables": Array [
+    "?_",
+  ],
+}
+`;
+
+exports[`run single default binding show all 1`] = `
+Object {
+  "bindingsArray": Array [
+    Object {
+      "?_": NamedNode {
+        "termType": "NamedNode",
+        "value": "http://example.org/Res1",
+      },
+    },
+  ],
+  "canContainUndefs": false,
+  "variables": Array [
+    "?_",
+  ],
+}
+`;
+
+exports[`run single default binding show term 1`] = `
+NamedNode {
+  "termType": "NamedNode",
+  "value": "http://example.org/Res1",
+}
+`;
+
+exports[`run single default binding show value 1`] = `"http://example.org/Res1"`;
+
+exports[`run traversal 1`] = `"value1"`;
+
+exports[`run undefined term reader 1`] = `undefined`;
+
+exports[`run undefined value reader 1`] = `null`;
