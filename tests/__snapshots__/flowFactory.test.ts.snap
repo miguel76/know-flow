@@ -12,31 +12,13 @@ Object {
 }
 `;
 
-exports[`run action show bindings again 1`] = `
-Object {
-  "bindingsArray": Array [
-    Object {},
-  ],
-  "canContainUndefs": false,
-  "variables": Array [],
-}
-`;
-
-exports[`run action show bindings again again 1`] = `
-Object {
-  "bindingsArray": Array [
-    Object {},
-  ],
-  "canContainUndefs": false,
-  "variables": Array [],
-}
-`;
-
 exports[`run action show default bindings 1`] = `undefined`;
 
 exports[`run action show one set of bindings 1`] = `Immutable.Map {}`;
 
 exports[`run constant 1`] = `42`;
+
+exports[`run empty parallel 1`] = `Array []`;
 
 exports[`run join 1`] = `
 Object {
@@ -97,6 +79,14 @@ Object {
     "?_",
   ],
 }
+`;
+
+exports[`run parallel 1`] = `
+Array [
+  "http://example.org/Res1",
+  "value1",
+  null,
+]
 `;
 
 exports[`run single default binding show all 1`] = `

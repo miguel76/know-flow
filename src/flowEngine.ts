@@ -2,7 +2,7 @@ import {Flow, Action, Parallel, ForEach, Join, Filter, Cascade, Table, Let, Data
 import * as RDF from 'rdf-js';
 import { Algebra, toSparql, Factory } from 'sparqlalgebrajs';
 import {IQueryEngine, BindingsStream, Bindings, IActorQueryOperationOutputBindings} from '@comunica/types';
-import {fromTableToValuesOp, noBindingSingletonTable, oneTupleTable} from './utils';
+import {cloneTable, fromTableToValuesOp, noBindingSingletonTable, oneTupleTable} from './utils';
 import { Map } from 'immutable';
 import { Wildcard } from 'sparqljs';
 
@@ -75,7 +75,7 @@ export default class FlowEngine {
             return await flow.action(flowResult);
         } else if (flow instanceof Parallel) {
             return <ReturnType> <unknown> await Promise.all(flow.subflows.map(
-                    subflow => this.run({flow: subflow, input})));
+                    subflow => this.run({flow: subflow, input: cloneTable(input)})));
         } else if (flow instanceof ForEach) {
             let forEach = flow;
             return await new Promise<ReturnType>((resolve, reject) => {

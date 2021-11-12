@@ -49,6 +49,14 @@ export function syncTable(table: Table): Promise<TableSync> {
     });
 }
 
+export function cloneTable(originalTable: Table): Table {
+    return {
+        bindingsStream: originalTable.bindingsStream.clone(),
+        variables: originalTable.variables,
+        canContainUndefs: originalTable.canContainUndefs
+    };
+}
+
 export async function fromTableToValuesOp(table: Table): Promise<Algebra.Values> {
     return algebraFactory.createValues(
             table.variables.map((varname) => (dataFactory.variable(varname.substr(1)))),

@@ -53,8 +53,6 @@ const flows = {
     'constant': ff.createConstant(42),
     'action constant': ff.createAction(() => {console.log('The answer'); return 42;}),
     'action show bindings': showBindings,
-    'action show bindings again': showBindings,
-    'action show bindings again again': ff.createActionOnAll((b) => b),
     'action show one set of bindings': showOneBinding,
     'action show default bindings': showOne,
     'undefined term reader': ff.createTermReader(),
@@ -83,6 +81,15 @@ const flows = {
         right: '?s ?p ?o',
         subflow: showBindings
     }),
+    'empty parallel': ff.createParallel([]),
+    'parallel': ff.createValues({
+        bindings: ['ex:Res1','ex:Res2','ex:Res3'],
+        subflow: ff.createParallel([
+            ff.createValueReader(),
+            ff.createValueReader({path: 'ex:prop1'}),
+            ff.createValueReader({path: 'ex:prop2'})
+        ])
+    })
 };
 
 
