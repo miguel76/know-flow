@@ -280,12 +280,19 @@ export default class FlowFactory {
                 path?: PathParam,
                 graph?: RDF.Term
             } | Flow<EachReturnType>): Flow<EachReturnType[]> {
-        let subflow = (config instanceof Flow) ? config : config.subflow;
+        let subflow: Flow<EachReturnType>, path: PathParam | undefined, graph: RDF.Term | undefined;
+        if (config instanceof Flow) {
+            subflow = config;
+        } else {
+            subflow = config.subflow;
+            path = config.path;
+            graph = config.graph;
+        }
         let forEach = new ForEach<EachReturnType>(subflow);
-        return (<any> config).subflow ?
+        return path ?
                 this.createTraverse({
-                    path: (<any> config).path,
-                    graph: (<any> config).graph,
+                    path,
+                    graph,
                     subflow: forEach
                 }) :
                 forEach;

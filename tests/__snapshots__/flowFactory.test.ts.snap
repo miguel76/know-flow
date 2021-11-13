@@ -20,6 +20,54 @@ exports[`run constant 1`] = `42`;
 
 exports[`run empty parallel 1`] = `Array []`;
 
+exports[`run foreach foreach string reader 1`] = `
+Array [
+  Array [
+    "value1",
+    "42",
+    "http://example.org/Res2",
+  ],
+  Array [
+    "3.14",
+  ],
+  Array [],
+]
+`;
+
+exports[`run foreach foreach value reader 1`] = `
+Array [
+  Array [
+    "value1",
+    "42",
+    "http://example.org/Res2",
+  ],
+  Array [
+    "3.14",
+  ],
+  Array [],
+]
+`;
+
+exports[`run foreach traversal value reader 1`] = `
+Array [
+  "value1",
+  "42",
+  "http://example.org/Res2",
+  "3.14",
+]
+`;
+
+exports[`run foreach value reader 1`] = `
+Array [
+  "http://example.org/Res1",
+  "http://example.org/Res2",
+  "http://example.org/Res3",
+  "pippo",
+  "42",
+  "3.14",
+]
+`;
+
 exports[`run join 1`] = `
 Object {
   "bindingsArray": Array [
@@ -40,6 +88,100 @@ Object {
       "?s": Object {
         "termType": "NamedNode",
         "value": "http://example.org/Res1",
+      },
+    },
+    Object {
+      "?o": Object {
+        "datatype": Object {
+          "termType": "NamedNode",
+          "value": "http://www.w3.org/2001/XMLSchema#integer",
+        },
+        "language": "",
+        "termType": "Literal",
+        "value": "42",
+      },
+      "?p": Object {
+        "termType": "NamedNode",
+        "value": "http://example.org/prop1",
+      },
+      "?s": Object {
+        "termType": "NamedNode",
+        "value": "http://example.org/Res1",
+      },
+    },
+    Object {
+      "?o": Object {
+        "termType": "NamedNode",
+        "value": "http://example.org/Res2",
+      },
+      "?p": Object {
+        "termType": "NamedNode",
+        "value": "http://example.org/prop1",
+      },
+      "?s": Object {
+        "termType": "NamedNode",
+        "value": "http://example.org/Res1",
+      },
+    },
+    Object {
+      "?o": Object {
+        "termType": "NamedNode",
+        "value": "http://example.org/Res3",
+      },
+      "?p": Object {
+        "termType": "NamedNode",
+        "value": "http://example.org/prop2",
+      },
+      "?s": Object {
+        "termType": "NamedNode",
+        "value": "http://example.org/Res1",
+      },
+    },
+    Object {
+      "?o": Object {
+        "termType": "NamedNode",
+        "value": "http://example.org/Res1",
+      },
+      "?p": Object {
+        "termType": "NamedNode",
+        "value": "http://example.org/prop3",
+      },
+      "?s": Object {
+        "termType": "NamedNode",
+        "value": "http://example.org/Res1",
+      },
+    },
+    Object {
+      "?o": Object {
+        "datatype": Object {
+          "termType": "NamedNode",
+          "value": "http://www.w3.org/2001/XMLSchema#decimal",
+        },
+        "language": "",
+        "termType": "Literal",
+        "value": "3.14",
+      },
+      "?p": Object {
+        "termType": "NamedNode",
+        "value": "http://example.org/prop1",
+      },
+      "?s": Object {
+        "termType": "NamedNode",
+        "value": "http://example.org/Res2",
+      },
+    },
+    Object {
+      "?o": Object {
+        "termType": "NamedNode",
+        "value": "http://example.org/Res1",
+      },
+      "?p": Object {
+        "termType": "NamedNode",
+        "value": "http://example.org/prop2",
+      },
+      "?s": Object {
+        "termType": "NamedNode",
+        "value": "http://example.org/Res2",
       },
     },
   ],
@@ -85,7 +227,8 @@ exports[`run parallel 1`] = `
 Array [
   "http://example.org/Res1",
   "value1",
-  null,
+  "http://example.org/Res1",
+  "http://example.org/Res1",
 ]
 `;
 
@@ -116,6 +259,8 @@ NamedNode {
 exports[`run single default binding show value 1`] = `"http://example.org/Res1"`;
 
 exports[`run traversal 1`] = `"value1"`;
+
+exports[`run traversal path 1`] = `"http://example.org/Res1"`;
 
 exports[`run undefined term reader 1`] = `undefined`;
 

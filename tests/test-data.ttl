@@ -1,3 +1,10 @@
 @prefix ex: <http://example.org/>.
 
-ex:Res1 ex:prop1 "value1".
+ex:Res1
+    ex:prop1 "value1", 42, ex:Res2;
+    ex:prop2 ex:Res3;
+    ex:prop3 ex:Res1.
+
+ex:Res2
+    ex:prop1 3.14;
+    ex:prop2 ex:Res1.

@@ -73,6 +73,10 @@ const flows = {
         bindings: 'ex:Res1',
         subflow: ff.createValueReader({path: 'ex:prop1'})
     }),
+    'traversal path': ff.createValues({
+        bindings: 'ex:Res1',
+        subflow: ff.createValueReader({path: 'ex:prop1/ex:prop2'})
+    }),
     'multiple default bindings': ff.createValues({
         bindings: ['ex:Res1','ex:Res2','ex:Res3'],
         subflow: showBindings
@@ -87,8 +91,40 @@ const flows = {
         subflow: ff.createParallel([
             ff.createValueReader(),
             ff.createValueReader({path: 'ex:prop1'}),
-            ff.createValueReader({path: 'ex:prop2'})
+            ff.createValueReader({path: 'ex:prop2'}),
+            ff.createValueReader({path: 'ex:prop3'})
         ])
+    }),
+    'foreach value reader': ff.createValues({
+        bindings: ['ex:Res1', 'ex:Res2', 'ex:Res3', '"pippo"', '42', '3.14'],
+        subflow: ff.createForEach(
+            ff.createValueReader()
+        )
+    }),
+    'foreach traversal value reader': ff.createValues({
+        bindings: ['ex:Res1', 'ex:Res2', 'ex:Res3', '"pippo"', '42', '3.14'],
+        subflow: ff.createForEach({
+            path: 'ex:prop1',
+            subflow: ff.createValueReader()
+        })
+    }),
+    'foreach foreach string reader': ff.createValues({
+        bindings: ['ex:Res1','ex:Res2','ex:Res3'],
+        subflow: ff.createForEach(
+            ff.createForEach({
+                path: 'ex:prop1',
+                subflow: ff.createStringReader()
+            })
+        )
+    }),
+    'foreach foreach value reader': ff.createValues({
+        bindings: ['ex:Res1','ex:Res2','ex:Res3'],
+        subflow: ff.createForEach(
+            ff.createForEach({
+                path: 'ex:prop1',
+                subflow: ff.createValueReader()
+            })
+        )
     })
 };
 
