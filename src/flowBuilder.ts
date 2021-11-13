@@ -60,6 +60,12 @@ export default class FlowBuilder {
         }));
     }
 
+    filter(expression: Algebra.Expression | string): FlowBuilder {
+        return this.derive((subflow: Flow<any>) => this.flowFactory.createFilter({
+            subflow, expression
+        }));
+    }
+
     forEach(path?: Algebra.PropertyPathSymbol | RDF.Term | string): FlowBuilder {
         return this.derive((subflow: Flow<any>) => this.flowFactory.createForEach({
             subflow, path
