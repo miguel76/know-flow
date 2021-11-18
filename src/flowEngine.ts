@@ -11,10 +11,9 @@ import {
   DataOperation
 } from './flow'
 import * as RDF from 'rdf-js'
-import { Algebra, toSparql, Factory } from 'sparqlalgebrajs'
+import { Algebra, Factory } from 'sparqlalgebrajs'
 import {
   IQueryEngine,
-  BindingsStream,
   Bindings,
   IActorQueryOperationOutputBindings
 } from '@comunica/types'
@@ -25,11 +24,11 @@ import {
   oneTupleTable
 } from './utils'
 import { Map } from 'immutable'
-import { Wildcard } from 'sparqljs'
+// import { Wildcard } from 'sparqljs'
 import { AsyncIterator } from 'asynciterator'
 
-let algebraFactory = new Factory()
-let WILDCARD = new Wildcard()
+const algebraFactory = new Factory()
+// const WILDCARD = new Wildcard()
 
 function assignVar(
   input: Table,
@@ -38,15 +37,15 @@ function assignVar(
   hideCurrVar: boolean
 ): Table {
   if (!input.variables.includes(currVarName)) {
-    throw (
+    throw new Error(
       'New focus ' +
-      currVarName +
-      ' not found among the variables (' +
-      input.variables +
-      ').'
+        currVarName +
+        ' not found among the variables (' +
+        input.variables +
+        ').'
     )
   }
-  let variables = hideCurrVar
+  const variables = hideCurrVar
     ? input.variables.filter((v) => v !== currVarName)
     : input.variables
   return {
@@ -54,7 +53,7 @@ function assignVar(
       ? variables
       : variables.concat(newVarName),
     bindingsStream: input.bindingsStream.map((bindings) => {
-      let newBindings: { [key: string]: RDF.Term } = {}
+      const newBindings: { [key: string]: RDF.Term } = {}
       bindings.forEach((value, varname) => {
         if (varname === currVarName) {
           newBindings[newVarName] = value
@@ -69,43 +68,6 @@ function assignVar(
       return Map<string, RDF.Term>(newBindings)
     }),
     canContainUndefs: input.canContainUndefs
-  }
-}
-
-async function group(
-  input: Table,
-  groupingVariables: string[],
-  distinct = false
-): Promise<Table[]> {
-  let star =
-    groupingVariables === undefined ||
-    input.variables.every((varname) => groupingVariables.includes(varname))
-  if (star && !distinct) {
-    return await new Promise<Table[]>((resolve, reject) => {
-      var groups: Table[] = []
-      input.bindingsStream.on('data', (bindings: Bindings) => {
-        groups.push(
-          oneTupleTable(input.variables, bindings, input.canContainUndefs)
-        )
-      })
-      input.bindingsStream.on('end', () => {
-        resolve(groups)
-      })
-      input.bindingsStream.on('error', (error: any) => {
-        reject(error)
-      })
-    })
-  } else {
-    let inputOp = await fromTableToValuesOp(input)
-    let orderOp = algebraFactory.createOrderBy(
-      inputOp,
-      groupingVariables.map((varname) =>
-        algebraFactory.createTermExpression(
-          algebraFactory.dataFactory.variable(varname)
-        )
-      )
-    )
-    this.que
   }
 }
 
@@ -131,17 +93,17 @@ export default class FlowEngine {
     groupingVariables: string[],
     distinct = false
   ): Promise<AsyncIterator<Table>> {
-    let star =
+    const star =
       groupingVariables === undefined ||
       input.variables.every((varname) => groupingVariables.includes(varname))
     if (star && !distinct) {
-      let newBindings = input.bindingsStream.map((bindings) =>
+      const newBindings = input.bindingsStream.map((bindings) =>
         oneTupleTable(input.variables, bindings, input.canContainUndefs)
       )
       return newBindings
     } else {
-      let inputOp = await fromTableToValuesOp(input)
-      let orderOp = algebraFactory.createOrderBy(
+      const inputOp = await fromTableToValuesOp(input)
+      const orderOp = algebraFactory.createOrderBy(
         inputOp,
         groupingVariables.map((varname) =>
           algebraFactory.createTermExpression(
@@ -149,7 +111,7 @@ export default class FlowEngine {
           )
         )
       )
-      let result = await this.query(orderOp)
+      const result = await this.query(orderOp)
     }
   }
 
@@ -173,7 +135,7 @@ export default class FlowEngine {
     if (flow instanceof Action) {
       return flow.exec(input)
     } else if (flow instanceof Cascade) {
-      let flowResult = await this.run({ flow: flow.subflow, input })
+      const flowResult = await this.run({ flow: flow.subflow, input })
       return await flow.action(flowResult)
     } else if (flow instanceof Parallel) {
       return <ReturnType>(
@@ -186,9 +148,9 @@ export default class FlowEngine {
         ))
       )
     } else if (flow instanceof ForEach) {
-      let forEach = flow
+      const forEach = flow
       return await new Promise<ReturnType>((resolve, reject) => {
-        var promises: Promise<unknown>[] = []
+        const promises: Promise<unknown>[] = []
         input.bindingsStream.on('data', (bindings: Bindings) => {
           promises.push(
             this.run({
@@ -216,10 +178,10 @@ export default class FlowEngine {
         })
       })
     } else if (flow instanceof DataOperation) {
-      let query = flow
+      const query = flow
       let results
       if (query instanceof Let) {
-        let letFlow = query
+        const letFlow = query
         results = assignVar(
           input,
           letFlow.currVarname,
@@ -227,15 +189,15 @@ export default class FlowEngine {
           letFlow.hideCurrVar
         )
       } else {
-        let inputOp = await fromTableToValuesOp(input)
+        const inputOp = await fromTableToValuesOp(input)
         let queryOp
         if (query instanceof Join) {
-          let join = query
-          queryOp = //(input === NO_BINDING_SINGLETON_TABLE) ?
-            //join.right :
+          const join = query
+          queryOp = // (input === NO_BINDING_SINGLETON_TABLE) ?
+            // join.right :
             algebraFactory.createJoin(inputOp, join.right)
         } else if (query instanceof Filter) {
-          let filter = <Filter<ReturnType>>query
+          const filter = <Filter<ReturnType>>query
           queryOp = algebraFactory.createFilter(inputOp, filter.expression)
         } else {
           throw new Error('Unrecognized query type')

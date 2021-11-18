@@ -3,7 +3,7 @@
   "extends": [
     "standard",
     "plugin:prettier/recommended",
-    "prettier/standard",
+    "prettier",
     "plugin:@typescript-eslint/eslint-recommended"
   ],
   "plugins": [
@@ -15,17 +15,14 @@
   "parserOptions": {
     "ecmaVersion": 2020,
     "ecmaFeatures": {
-      "legacyDecorators": true,
-      "jsx": true
+      "legacyDecorators": true
     }
   },
   "rules": {
     "space-before-function-paren": 0,
-    "react/prop-types": 0,
-    "react/jsx-handler-names": 0,
-    "react/jsx-fragments": 0,
-    "react/no-unused-prop-types": 0,
     "import/export": 0,
+    "prettier/prettier": "warn",
+    "no-unused-vars": "warn",
     // disabling base rules as they can report incorrect errors
     "no-useless-constructor": "off",
     "@typescript-eslint/no-useless-constructor": ["error"],

@@ -4,6 +4,42 @@ import { Algebra, Factory } from 'sparqlalgebrajs'
 import { Table, Flow, Cascade } from './flow'
 import { promisifyFromSync } from './utils'
 
+export class FlowApplier<SubflowReturnType, ActionReturnType> extends Cascade<
+  SubflowReturnType,
+  ActionReturnType
+> {
+  flowFactory: FlowFactory
+
+  constructor(
+    flowFactory: FlowFactory,
+    flow: Flow<SubflowReturnType>,
+    action: (x: SubflowReturnType) => Promise<ActionReturnType>
+  ) {
+    super(flow, action)
+    this.flowFactory = flowFactory
+  }
+
+  apply<NewReturnType>(
+    exec: (x: ActionReturnType) => NewReturnType
+  ): FlowApplier<ActionReturnType, NewReturnType> {
+    return new FlowApplier<ActionReturnType, NewReturnType>(
+      this.flowFactory,
+      this.subflow,
+      promisifyFromSync(exec)
+    )
+  }
+
+  applyAsync<NewReturnType>(
+    exec: (x: ActionReturnType) => Promise<NewReturnType>
+  ): FlowApplier<ActionReturnType, NewReturnType> {
+    return new FlowApplier<ActionReturnType, NewReturnType>(
+      this.flowFactory,
+      this.subflow,
+      exec
+    )
+  }
+}
+
 export default class FlowBuilder {
   flowFactory: FlowFactory
   generateFlow: (localFlow: Flow<any>) => Flow<any>
@@ -114,42 +150,6 @@ export default class FlowBuilder {
         bindings,
         subflow: flow
       })
-    )
-  }
-}
-
-export class FlowApplier<SubflowReturnType, ActionReturnType> extends Cascade<
-  SubflowReturnType,
-  ActionReturnType
-> {
-  flowFactory: FlowFactory
-
-  constructor(
-    flowFactory: FlowFactory,
-    flow: Flow<SubflowReturnType>,
-    action: (x: SubflowReturnType) => Promise<ActionReturnType>
-  ) {
-    super(flow, action)
-    this.flowFactory = flowFactory
-  }
-
-  apply<NewReturnType>(
-    exec: (x: ActionReturnType) => NewReturnType
-  ): FlowApplier<ActionReturnType, NewReturnType> {
-    return new FlowApplier<ActionReturnType, NewReturnType>(
-      this.flowFactory,
-      this.subflow,
-      promisifyFromSync(exec)
-    )
-  }
-
-  applyAsync<NewReturnType>(
-    exec: (x: ActionReturnType) => Promise<NewReturnType>
-  ): FlowApplier<ActionReturnType, NewReturnType> {
-    return new FlowApplier<ActionReturnType, NewReturnType>(
-      this.flowFactory,
-      this.subflow,
-      exec
     )
   }
 }

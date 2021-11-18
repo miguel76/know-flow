@@ -12,10 +12,10 @@ import {
 } from '@comunica/types'
 
 const engine = newEngine()
-let algebraFactory = new Factory()
-let dataFactory = algebraFactory.dataFactory
+const algebraFactory = new Factory()
+const dataFactory = algebraFactory.dataFactory
 
-let proxyEngine: IQueryEngine = {
+const proxyEngine: IQueryEngine = {
   query: async (queryOp: Algebra.Operation, queryContext: any) => {
     // console.log('');
     // console.log('Executing...');
@@ -48,7 +48,7 @@ let proxyEngine: IQueryEngine = {
   }
 }
 
-let options = {
+const options = {
   prefixes: {
     rdf: 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
     rdfs: 'http://www.w3.org/2000/01/rdf-schema#',
@@ -59,11 +59,11 @@ let options = {
   }
 }
 
-let queryContext = {
+const queryContext = {
   sources: [{ type: 'sparql', value: 'https://query.wikidata.org/sparql' }]
 }
 
-let flowFactory = new FlowFactory(options)
+const flowFactory = new FlowFactory(options)
 
 // select ?language ?languageLabel WHERE {
 //     ?language wdt:P31 wd:Q1288568;
@@ -73,13 +73,13 @@ let flowFactory = new FlowFactory(options)
 //      }
 //   } limit 200
 
-let wdt = {
+const wdt = {
   instanceOf: 'wdt:P31',
   country: 'wdt:P17',
   ISO_639_3_code: 'wdt:P220'
 }
 
-let wd = {
+const wd = {
   italy: 'wd:Q38',
   ModernLanguage: 'wd:Q1288568'
 }
@@ -89,13 +89,13 @@ function showAttr(
   attrLabel: string,
   language?: string
 ): Types.Flow<string> {
-  let show = flowFactory.createActionOnFirst({
+  const show = flowFactory.createActionOnFirst({
     exec: (bindings) => {
-      let term = bindings.get('?_')
+      const term = bindings.get('?_')
       return attrLabel + ': ' + (term ? term.value : '?')
     }
   })
-  let filterAndShow = language
+  const filterAndShow = language
     ? flowFactory.createFilter({
         expression: 'langMatches( lang(?_), "' + language + '" )',
         subflow: show
@@ -107,7 +107,7 @@ function showAttr(
   })
 }
 
-let showLanguage = flowFactory.createCascade({
+const showLanguage = flowFactory.createCascade({
   subflow: flowFactory.log(
     flowFactory.createParallel({
       subflows: [
@@ -120,12 +120,12 @@ let showLanguage = flowFactory.createCascade({
   action: (lines: string[]) => lines.join('\n')
 })
 
-let showLanguageList = flowFactory.createCascade<string[], string>({
+const showLanguageList = flowFactory.createCascade<string[], string>({
   subflow: flowFactory.createForEach({ subflow: showLanguage }),
   action: (lines: string[]) => lines.join('\n')
 })
 
-let showLanguagesForCountrySimple = flowFactory.createTraverse({
+const showLanguagesForCountrySimple = flowFactory.createTraverse({
   path: `^${wdt.country}`,
   subflow: flowFactory.createFilter({
     expression: `EXISTS {?_ ${wdt.instanceOf} ${wd.ModernLanguage}}`,
@@ -133,14 +133,14 @@ let showLanguagesForCountrySimple = flowFactory.createTraverse({
   })
 })
 
-let showLanguagesForCountry = flowFactory.createJoin({
+const showLanguagesForCountry = flowFactory.createJoin({
   right: `?language ${wdt.instanceOf} ${wd.ModernLanguage}; ${wdt.country} ?_`,
   newDefault: '?language',
   hideCurrVar: true,
   subflow: showLanguageList
 })
 
-let fe = new FlowEngine({ engine: proxyEngine, queryContext })
+const fe = new FlowEngine({ engine: proxyEngine, queryContext })
 
 fe.run({
   flow: showLanguagesForCountry,

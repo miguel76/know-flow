@@ -1,6 +1,5 @@
 import { Algebra } from 'sparqlalgebrajs'
-import * as RDF from 'rdf-js'
-import { Bindings, BindingsStream } from '@comunica/types'
+import { BindingsStream } from '@comunica/types'
 
 export interface Table {
   bindingsStream: BindingsStream
@@ -23,9 +22,8 @@ export interface Grouping {
   }[]
 }
 
-export class Flow<ReturnType> {
-  constructor() {}
-}
+// eslint-disable-next-line no-unused-vars
+export class Flow<ReturnType> {}
 
 export class Action<ReturnType> extends Flow<ReturnType> {
   exec: (input: Table) => Promise<ReturnType>

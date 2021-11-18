@@ -36,11 +36,11 @@ function isPropertyPathSymbol(p: any): p is Algebra.PropertyPathSymbol {
 }
 
 function isPath(op: Algebra.Operation): op is Algebra.Path {
-  return op.type == Algebra.types.PATH
+  return op.type === Algebra.types.PATH
 }
 
 function isBgp(op: Algebra.Operation): op is Algebra.Bgp {
-  return op.type == Algebra.types.BGP
+  return op.type === Algebra.types.BGP
 }
 
 function isPromise<Type>(value: Type | Promise<Type>): value is Promise<Type> {
@@ -50,10 +50,9 @@ function isPromise<Type>(value: Type | Promise<Type>): value is Promise<Type> {
 function asyncify<Domain, Range>(
   fn: (x: Domain) => Range | ((x: Domain) => Promise<Range>)
 ): (x: Domain) => Promise<Range> {
-  let isAsync = false
   return (x: Domain) => {
     try {
-      let value = fn(x)
+      const value = fn(x)
       if (isPromise(value)) {
         return <Promise<Range>>value
       } else {
@@ -129,7 +128,7 @@ export default class FlowFactory {
         }
       | ((input: Table) => Promise<ReturnType>)
   ): Action<ReturnType> {
-    let exec = <(input: Table) => Promise<ReturnType>>(
+    const exec = <(input: Table) => Promise<ReturnType>>(
       ((<any>config).exec || config)
     )
     return new Action<ReturnType>(exec)
@@ -142,7 +141,7 @@ export default class FlowFactory {
         }
       | ((input: Table) => ReturnType)
   ): Action<ReturnType> {
-    let exec = <(input: Table) => ReturnType>((<any>config).exec || config)
+    const exec = <(input: Table) => ReturnType>((<any>config).exec || config)
     return this.createActionAsync({
       exec: promisifyFromSync(exec)
     })
@@ -161,7 +160,7 @@ export default class FlowFactory {
         }
       | ((input: TableSync) => Promise<ReturnType>)
   ): Action<ReturnType> {
-    let exec = <(input: TableSync) => Promise<ReturnType>>(
+    const exec = <(input: TableSync) => Promise<ReturnType>>(
       ((<any>config).exec || config)
     )
     return this.createActionAsync((table) => {
@@ -192,7 +191,9 @@ export default class FlowFactory {
         }
       | ((input: TableSync) => ReturnType)
   ): Action<ReturnType> {
-    let exec = <(input: TableSync) => ReturnType>((<any>config).exec || config)
+    const exec = <(input: TableSync) => ReturnType>(
+      ((<any>config).exec || config)
+    )
     return this.createActionAsyncOnAll({
       exec: promisifyFromSync(exec)
     })
@@ -206,14 +207,14 @@ export default class FlowFactory {
         }
       | ((bindings: Bindings) => Promise<ReturnType>)
   ): Action<ReturnType> {
-    let exec = <(bindings: Bindings) => Promise<ReturnType>>(
+    const exec = <(bindings: Bindings) => Promise<ReturnType>>(
       ((<any>config).exec || config)
     )
-    let acceptEmpty =
+    const acceptEmpty =
       (<any>config).acceptEmpty !== undefined ? (<any>config).acceptEmpty : true
     return this.createActionAsync((table) => {
       return new Promise<ReturnType>((resolve, reject) => {
-        let cb = (bindings: Bindings) => {
+        const cb = (bindings: Bindings) => {
           exec(bindings).then(
             (res) => {
               resolve(res)
@@ -223,7 +224,7 @@ export default class FlowFactory {
             }
           )
         }
-        var firstTime = true
+        let firstTime = true
         table.bindingsStream.on('data', (binding) => {
           if (firstTime) {
             cb(binding)
@@ -235,7 +236,7 @@ export default class FlowFactory {
             if (acceptEmpty) {
               cb(Map<string, RDF.Term>({}))
             } else {
-              reject('Expected at least a value, zero found')
+              reject(new Error('Expected at least a value, zero found'))
             }
           }
         })
@@ -253,7 +254,7 @@ export default class FlowFactory {
         }
       | ((bindings: Bindings) => ReturnType)
   ): Action<ReturnType> {
-    let exec = <(bindings: Bindings) => ReturnType>(
+    const exec = <(bindings: Bindings) => ReturnType>(
       ((<any>config).exec || config)
     )
     return this.createActionAsyncOnFirst({
@@ -268,7 +269,7 @@ export default class FlowFactory {
         }
       | ((term: RDF.Term) => Promise<ReturnType>)
   ): Action<ReturnType> {
-    let exec = <(term: RDF.Term) => Promise<ReturnType>>(
+    const exec = <(term: RDF.Term) => Promise<ReturnType>>(
       ((<any>config).exec || config)
     )
     return this.createActionAsyncOnFirst({
@@ -283,7 +284,7 @@ export default class FlowFactory {
         }
       | ((term: RDF.Term) => ReturnType)
   ): Action<ReturnType> {
-    let exec = <(term: RDF.Term) => ReturnType>((<any>config).exec || config)
+    const exec = <(term: RDF.Term) => ReturnType>((<any>config).exec || config)
     return this.createActionOnFirst({
       exec: (bindings: Bindings) => exec(bindings.get('?_'))
     })
@@ -296,7 +297,7 @@ export default class FlowFactory {
         }
       | Flow<EachReturnType>[]
   ): Parallel<EachReturnType> {
-    let subflows = Array.isArray(config) ? config : config.subflows
+    const subflows = Array.isArray(config) ? config : config.subflows
     return new Parallel<EachReturnType>(subflows)
   }
 
@@ -307,11 +308,11 @@ export default class FlowFactory {
         }
       | { [key: string]: Flow<EachReturnType> }
   ): Flow<{ [key: string]: EachReturnType }> {
-    let values = Object.values(config)
-    let subflowsMap =
+    const values = Object.values(config)
+    const subflowsMap =
       !values.length || values[0] instanceof Flow ? config : config.subflows
-    let keys: string[] = []
-    let subflows: Flow<EachReturnType>[] = []
+    const keys: string[] = []
+    const subflows: Flow<EachReturnType>[] = []
     Object.entries(subflowsMap).forEach(([key, subflow]) => {
       keys.push(key)
       subflows.push(subflow)
@@ -375,11 +376,11 @@ export default class FlowFactory {
       variablesOrDistinct = ['?_']
     } else {
       subflow = config.subflow
-      let v = config.var
+      const v = config.var
       variablesOrDistinct =
         v === undefined ? !!config.distinct : Array.isArray(v) ? v : [v]
     }
-    let forEach = new ForEach<EachReturnType>(subflow, variablesOrDistinct)
+    const forEach = new ForEach<EachReturnType>(subflow, variablesOrDistinct)
     return path
       ? this.createTraverse({
           path,
@@ -415,7 +416,7 @@ export default class FlowFactory {
 
   private buildTerm(input: RDF.Term | string): RDF.Term {
     if (typeof input === 'string') {
-      let op = <Algebra.Values>this.translateOp('VALUES ?_ {' + input + '}')
+      const op = <Algebra.Values>this.translateOp('VALUES ?_ {' + input + '}')
       return op.bindings[0]['?_']
     } else {
       return input
@@ -463,9 +464,9 @@ export default class FlowFactory {
       | RDF.Term
       | string
   }): Join<ReturnType> {
-    let bindings = this.buildBindingsSeq(config.bindings)
-    let varnames = [...new Set(bindings.flatMap((b) => Object.keys(b)))]
-    let valuesOp = this.algebraFactory.createValues(
+    const bindings = this.buildBindingsSeq(config.bindings)
+    const varnames = [...new Set(bindings.flatMap((b) => Object.keys(b)))]
+    const valuesOp = this.algebraFactory.createValues(
       varnames.map((varname) => this.dataFactory.variable(varname.substr(1))),
       bindings
     )
@@ -480,7 +481,7 @@ export default class FlowFactory {
     path: PathParam
     graph?: RDF.Term
   }): Join<ReturnType> {
-    let path = config.path
+    const path = config.path
     if (isString(path)) {
       return this.createJoin({
         right: this.translateOp('?_ ' + path + ' ?_out'),
@@ -554,16 +555,16 @@ export default class FlowFactory {
       datatype?: string
     } = {}
   ): Flow<RDF.Term> {
-    let action = this.createActionOnFirstDefault({
+    const action = this.createActionOnFirstDefault({
       exec: (x) => x
     })
-    let actionIfLang = config.lang
+    const actionIfLang = config.lang
       ? this.createFilter({
           expression: 'langMatches( lang(?_), "' + config.lang + '" )',
           subflow: action
         })
       : action
-    let actionIfTypeAndLang = config.datatype
+    const actionIfTypeAndLang = config.datatype
       ? this.createFilter({
           expression: this.algebraFactory.createOperatorExpression('=', [
             this.algebraFactory.createOperatorExpression('datatype', [
@@ -576,7 +577,7 @@ export default class FlowFactory {
           subflow: actionIfLang
         })
       : actionIfLang
-    let actionIfFilter = config.filter
+    const actionIfFilter = config.filter
       ? this.createFilter({
           expression: config.filter,
           subflow: actionIfTypeAndLang
@@ -602,7 +603,7 @@ export default class FlowFactory {
     } = {}
   ): Flow<any> {
     // TODO: manage arrays of values too
-    let plainIDs = config.plainIDs !== undefined ? config.plainIDs : true
+    const plainIDs = config.plainIDs !== undefined ? config.plainIDs : true
     return this.createCascade({
       subflow: this.createTermReader(config),
       action: (term) => RDFToValueOrObject(term, plainIDs)
@@ -627,11 +628,11 @@ export default class FlowFactory {
 
   logFlowCount: number = 0
   log<ReturnType>(next: Flow<ReturnType>, label?: string): Flow<ReturnType> {
-    let logFlowId = ++this.logFlowCount
-    var callCount = 0
-    let loggingFlow = this.createActionOnAll({
+    const logFlowId = ++this.logFlowCount
+    let callCount = 0
+    const loggingFlow = this.createActionOnAll({
       exec: (table: TableSync) => {
-        let callId = ++callCount
+        const callId = ++callCount
         console.log(
           '# Input of node ' +
             logFlowId +
@@ -644,14 +645,14 @@ export default class FlowFactory {
         return callId
       }
     })
-    let seq = this.createParallel<any>({
+    const seq = this.createParallel<any>({
       subflows: [loggingFlow, next]
     })
     return this.createCascade({
       subflow: seq,
       action: (resSeq: any) => {
-        let callId = resSeq[0]
-        let actionRes = resSeq[1]
+        const callId = resSeq[0]
+        const actionRes = resSeq[1]
         console.log(
           '# Output of node ' +
             logFlowId +

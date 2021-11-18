@@ -51,7 +51,7 @@ export function RDFToObject(
   // convert literal to JSON-LD
   const rval: any = { '@value': term.value }
 
-  let literal = <RDF.Literal>term
+  const literal = <RDF.Literal>term
   // add language
   if (literal.language) {
     rval['@language'] = literal.language

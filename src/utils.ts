@@ -8,19 +8,18 @@ import {
   ForEach,
   Join,
   Filter,
-  DataOperation,
   Cascade,
   Let
 } from './flow'
-import { Generator, Variable, Wildcard } from 'sparqljs'
-import { Bindings, BindingsStream } from '@comunica/types'
+import { Wildcard } from 'sparqljs'
+import { Bindings } from '@comunica/types'
 import * as RDF from '@rdfjs/types'
 import { ArrayIterator, SingletonIterator, UnionIterator } from 'asynciterator'
 import { Map } from 'immutable'
 
-let algebraFactory = new Factory()
-let WILDCARD = new Wildcard()
-let dataFactory = algebraFactory.dataFactory
+const algebraFactory = new Factory()
+const WILDCARD = new Wildcard()
+const dataFactory = algebraFactory.dataFactory
 
 export function promisifyFromSync<Domain, Range>(
   f: (x: Domain) => Range
@@ -36,7 +35,7 @@ export function promisifyFromSync<Domain, Range>(
 }
 
 export function toSparqlFragment(op: Algebra.Operation, options = {}): string {
-  let sparqlStr = toSparql(
+  const sparqlStr = toSparql(
     algebraFactory.createProject(op, [WILDCARD]),
     options
   )
@@ -48,7 +47,7 @@ export function toSparqlFragment(op: Algebra.Operation, options = {}): string {
 
 export function syncTable(table: Table): Promise<TableSync> {
   return new Promise<TableSync>((resolve, reject) => {
-    let bindingsArray: { [varname: string]: any }[] = []
+    const bindingsArray: { [varname: string]: any }[] = []
     table.bindingsStream.on('data', (bindings) => {
       bindingsArray.push(Object.fromEntries(<any>bindings))
     })
@@ -119,7 +118,7 @@ export function tableUnion(tables: Table[]): Table {
 export function tableFromArray(
   bindingsArray: { [varname: string]: RDF.Term }[]
 ): Table {
-  let variables = arrayUnion(bindingsArray.map((a) => Object.keys(a)))
+  const variables = arrayUnion(bindingsArray.map((a) => Object.keys(a)))
   return {
     variables,
     bindingsStream: new ArrayIterator(bindingsArray.map((obj) => Map(obj))),
@@ -134,13 +133,13 @@ export function stringifyFlow<ReturnType>(
   options = {}
 ): any {
   if (flow instanceof Action) {
-    let action = flow
+    const action = flow
     return {
       type: 'action',
       exec: action.exec.toString()
     }
   } else if (flow instanceof Cascade) {
-    let cascade = flow
+    const cascade = flow
     return {
       type: 'cascade',
       subflow: stringifyFlow(cascade.subflow, options),
@@ -157,7 +156,7 @@ export function stringifyFlow<ReturnType>(
       subflow: stringifyFlow(flow.subflow)
     }
   } else if (flow instanceof Let) {
-    let letFlow = flow
+    const letFlow = flow
     return {
       type: 'let',
       currVarname: letFlow.currVarname,
@@ -166,8 +165,8 @@ export function stringifyFlow<ReturnType>(
       subflow: stringifyFlow(letFlow.subflow, options)
     }
   } else if (flow instanceof Filter) {
-    let filter = flow
-    let filterSparql = toSparqlFragment(
+    const filter = flow
+    const filterSparql = toSparqlFragment(
       algebraFactory.createFilter(
         algebraFactory.createBgp([]),
         filter.expression
@@ -183,7 +182,7 @@ export function stringifyFlow<ReturnType>(
       subflow: stringifyFlow(filter.subflow, options)
     }
   } else if (flow instanceof Join) {
-    let join = flow
+    const join = flow
     return {
       type: 'join',
       right: toSparqlFragment(join.right, options),
