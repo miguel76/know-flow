@@ -2,9 +2,9 @@
  * Original copyright (c) 2017 Digital Bazaar, Inc.
  * Derived from fromRDF.js in digitalbazaar/jsonld.js
  */
-'use strict';
+'use strict'
 
-import * as RDF from 'rdf-js';
+import * as RDF from 'rdf-js'
 
 // constants
 import {
@@ -12,10 +12,10 @@ import {
   XSD_BOOLEAN,
   XSD_DOUBLE,
   XSD_INTEGER,
-  XSD_STRING,
-} from './constants';
+  XSD_STRING
+} from './constants'
 
-const REGEX_BCP47 = /^[a-zA-Z]{1,8}(-[a-zA-Z0-9]{1,8})*$/;
+const REGEX_BCP47 = /^[a-zA-Z]{1,8}(-[a-zA-Z0-9]{1,8})*$/
 
 /**
  * Returns true if the given value is numeric.
@@ -24,9 +24,9 @@ const REGEX_BCP47 = /^[a-zA-Z]{1,8}(-[a-zA-Z0-9]{1,8})*$/;
  *
  * @return true if the value is numeric, false if not.
  */
- const isNumeric = (v: any) => !isNaN(parseFloat(v)) && isFinite(v);
- 
- /**
+const isNumeric = (v: any) => !isNaN(parseFloat(v)) && isFinite(v)
+
+/**
  * Converts an RDF term to a JSON-LD object.
  *
  * @param term the RDF term to convert.
@@ -34,32 +34,36 @@ const REGEX_BCP47 = /^[a-zA-Z]{1,8}(-[a-zA-Z0-9]{1,8})*$/;
  *
  * @return the JSON-LD object.
  */
-export function RDFToObject(term: RDF.Term, useNativeTypes: boolean, rdfDirection?: string): any {
+export function RDFToObject(
+  term: RDF.Term,
+  useNativeTypes: boolean,
+  rdfDirection?: string
+): any {
   // convert NamedNode/BlankNode object to JSON-LD
   if (!term) {
-    return null;
+    return null
   }
 
-  if(term.termType.endsWith('Node')) {
-    return {'@id': term.value};
+  if (term.termType.endsWith('Node')) {
+    return { '@id': term.value }
   }
 
   // convert literal to JSON-LD
-  const rval: any = {'@value': term.value};
+  const rval: any = { '@value': term.value }
 
-  let literal = <RDF.Literal> term;
+  let literal = <RDF.Literal>term
   // add language
-  if(literal.language) {
-    rval['@language'] = literal.language;
+  if (literal.language) {
+    rval['@language'] = literal.language
   } else {
-    let type = literal.datatype.value;
-    if(!type) {
-      type = XSD_STRING;
+    let type = literal.datatype.value
+    if (!type) {
+      type = XSD_STRING
     }
-    if(type === RDF_JSON_LITERAL) {
-      type = '@json';
+    if (type === RDF_JSON_LITERAL) {
+      type = '@json'
       // try {
-        rval['@value'] = JSON.parse(rval['@value']);
+      rval['@value'] = JSON.parse(rval['@value'])
       // } catch(e) {
       //   throw new Error(
       //     'JSON literal could not be parsed.',
@@ -68,63 +72,70 @@ export function RDFToObject(term: RDF.Term, useNativeTypes: boolean, rdfDirectio
       // }
     }
     // use native types for certain xsd types
-    if(useNativeTypes) {
-      if(type === XSD_BOOLEAN) {
-        if(rval['@value'] === 'true') {
-          rval['@value'] = true;
-        } else if(rval['@value'] === 'false') {
-          rval['@value'] = false;
+    if (useNativeTypes) {
+      if (type === XSD_BOOLEAN) {
+        if (rval['@value'] === 'true') {
+          rval['@value'] = true
+        } else if (rval['@value'] === 'false') {
+          rval['@value'] = false
         }
-      } else if(isNumeric(rval['@value'])) {
-        if(type === XSD_INTEGER) {
-          const i = parseInt(rval['@value'], 10);
-          if(i.toFixed(0) === rval['@value']) {
-            rval['@value'] = i;
+      } else if (isNumeric(rval['@value'])) {
+        if (type === XSD_INTEGER) {
+          const i = parseInt(rval['@value'], 10)
+          if (i.toFixed(0) === rval['@value']) {
+            rval['@value'] = i
           }
-        } else if(type === XSD_DOUBLE) {
-          rval['@value'] = parseFloat(rval['@value']);
+        } else if (type === XSD_DOUBLE) {
+          rval['@value'] = parseFloat(rval['@value'])
         }
       }
       // do not add native type
-      if(![XSD_BOOLEAN, XSD_INTEGER, XSD_DOUBLE, XSD_STRING].includes(type)) {
-        rval['@type'] = type;
+      if (![XSD_BOOLEAN, XSD_INTEGER, XSD_DOUBLE, XSD_STRING].includes(type)) {
+        rval['@type'] = type
       }
-    } else if(rdfDirection === 'i18n-datatype' &&
-      type.startsWith('https://www.w3.org/ns/i18n#')) {
-      const [, language, direction] = type.split(/[#_]/);
-      if(language.length > 0) {
-        rval['@language'] = language;
-        if(!language.match(REGEX_BCP47)) {
-          console.warn(`@language must be valid BCP47: ${language}`);
+    } else if (
+      rdfDirection === 'i18n-datatype' &&
+      type.startsWith('https://www.w3.org/ns/i18n#')
+    ) {
+      const [, language, direction] = type.split(/[#_]/)
+      if (language.length > 0) {
+        rval['@language'] = language
+        if (!language.match(REGEX_BCP47)) {
+          console.warn(`@language must be valid BCP47: ${language}`)
         }
       }
-      rval['@direction'] = direction;
-    } else if(type !== XSD_STRING) {
-      rval['@type'] = type;
+      rval['@direction'] = direction
+    } else if (type !== XSD_STRING) {
+      rval['@type'] = type
     }
   }
 
-  return rval; 
+  return rval
 }
 
- /**
+/**
  * Converts an RDF term to a native value (if possible) or JSON-LD object.
  *
  * @param term the RDF term to convert.
  *
  * @return the value or JSON-LD object.
  */
-export function RDFToValueOrObject(term: RDF.Term, plainIDs = false, useNativeTypes = true, rdfDirection?: string): any {
-  let rval = RDFToObject(term, useNativeTypes, rdfDirection);
+export function RDFToValueOrObject(
+  term: RDF.Term,
+  plainIDs = false,
+  useNativeTypes = true,
+  rdfDirection?: string
+): any {
+  let rval = RDFToObject(term, useNativeTypes, rdfDirection)
   if (rval) {
     if (rval['@value'] !== undefined) {
-      return rval['@value'];
+      return rval['@value']
     } else if (plainIDs && rval['@id'] !== undefined) {
-      return rval['@id'];
+      return rval['@id']
     } else {
-      return rval;
+      return rval
     }
   } else {
-    return null;
+    return null
   }
 }
