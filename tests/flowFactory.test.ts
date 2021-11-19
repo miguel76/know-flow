@@ -43,7 +43,7 @@ const ff = new FlowFactory({
 //     }
 // };
 
-let te = new FlowEngine({
+const fe = new FlowEngine({
   engine: newEngine(),
   queryContext: {
     sources: [path.join(__dirname, '../tests/test-data.ttl')]
@@ -57,7 +57,6 @@ const showOne = ff.createActionOnFirstDefault((b) => b)
 const flows = {
   constant: ff.createConstant(42),
   'action constant': ff.createAction(() => {
-    console.log('The answer')
     return 42
   }),
   'action show bindings': showBindings,
@@ -137,7 +136,7 @@ const flows = {
 // jest.setTimeout(60000);
 
 Object.entries(flows).forEach(([label, flow]) => {
-  test('run ' + label, () => expect(te.run(flow)).resolves.toMatchSnapshot())
+  test('run ' + label, () => expect(fe.run(flow)).resolves.toMatchSnapshot())
 })
 
 // Object.entries(flows).forEach(([label, flow]) => {

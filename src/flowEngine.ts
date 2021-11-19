@@ -14,7 +14,6 @@ import * as RDF from 'rdf-js'
 import { Algebra, Factory } from 'sparqlalgebrajs'
 import {
   IQueryEngine,
-  Bindings,
   IActorQueryOperationOutputBindings
 } from '@comunica/types'
 import {
@@ -26,6 +25,8 @@ import {
 import { Map } from 'immutable'
 // import { Wildcard } from 'sparqljs'
 import { AsyncIterator } from 'asynciterator'
+import { groupOrdered } from './grouping'
+import { getItemsAsArray } from './iterators'
 
 const algebraFactory = new Factory()
 // const WILDCARD = new Wildcard()
@@ -112,6 +113,7 @@ export default class FlowEngine {
         )
       )
       const result = await this.query(orderOp)
+      return groupOrdered(result, groupingVariables).map((g) => g.members)
     }
   }
 
@@ -149,34 +151,20 @@ export default class FlowEngine {
       )
     } else if (flow instanceof ForEach) {
       const forEach = flow
-      return await new Promise<ReturnType>((resolve, reject) => {
-        const promises: Promise<unknown>[] = []
-        input.bindingsStream.on('data', (bindings: Bindings) => {
-          promises.push(
-            this.run({
-              flow: forEach.subflow,
-              input: oneTupleTable(
-                input.variables,
-                bindings,
-                input.canContainUndefs
-              )
-            })
-          )
+      const groupIterator = await this.group(
+        input,
+        forEach.variables,
+        forEach.distinct
+      )
+      const resultPromisesIterator = groupIterator.map((subflowInput: Table) =>
+        this.run({
+          flow: forEach.subflow,
+          input: subflowInput
         })
-        input.bindingsStream.on('end', () => {
-          Promise.all(promises).then(
-            (result) => {
-              resolve(<ReturnType>(<unknown>result))
-            },
-            (error) => {
-              reject(error)
-            }
-          )
-        })
-        input.bindingsStream.on('error', (error: any) => {
-          reject(error)
-        })
-      })
+      )
+      const resultPromisesArray = await getItemsAsArray(resultPromisesIterator)
+      const results = await Promise.all(resultPromisesArray)
+      return <ReturnType>(<unknown>results)
     } else if (flow instanceof DataOperation) {
       const query = flow
       let results

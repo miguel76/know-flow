@@ -66,10 +66,12 @@ export default class FlowBuilder {
     this.generateFlow = options.generateFlow || ((t) => t)
   }
 
-  derive(localGenerateFlow: (localFlow: Flow<any>) => Flow<any>): FlowBuilder {
+  derive<InnerReturnType, ReturnType>(
+    localGenerateFlow: (localFlow: Flow<InnerReturnType>) => Flow<ReturnType>
+  ): FlowBuilder {
     return new FlowBuilder({
       flowFactory: this.flowFactory,
-      generateFlow: (flow: Flow<any>) =>
+      generateFlow: (flow: Flow<InnerReturnType>) =>
         this.generateFlow(localGenerateFlow(flow))
     })
   }

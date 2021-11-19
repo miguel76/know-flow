@@ -52,8 +52,8 @@ exports[`run foreach traversal value reader 1`] = `
 Array [
   "value1",
   "42",
-  "http://example.org/Res2",
   "3.14",
+  "http://example.org/Res2",
 ]
 `;
 
