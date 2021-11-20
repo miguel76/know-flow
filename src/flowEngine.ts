@@ -20,12 +20,14 @@ import {
   cloneTable,
   fromTableToValuesOp,
   noBindingSingletonTable,
-  oneTupleTable
+  oneTupleTable,
+  toSparqlFragment,
+  toSparqlQuery
 } from './utils'
 import { Map } from 'immutable'
 // import { Wildcard } from 'sparqljs'
 import { AsyncIterator } from 'asynciterator'
-import { groupOrdered } from './grouping'
+import { group, groupOrdered } from './grouping'
 import { getItemsAsArray } from './iterators'
 
 const algebraFactory = new Factory()
@@ -103,17 +105,19 @@ export default class FlowEngine {
       )
       return newBindings
     } else {
-      const inputOp = await fromTableToValuesOp(input)
-      const orderOp = algebraFactory.createOrderBy(
-        inputOp,
-        groupingVariables.map((varname) =>
-          algebraFactory.createTermExpression(
-            algebraFactory.dataFactory.variable(varname)
-          )
-        )
-      )
-      const result = await this.query(orderOp)
-      return groupOrdered(result, groupingVariables).map((g) => g.members)
+      // const inputOp = await fromTableToValuesOp(input)
+      // const orderOp = algebraFactory.createOrderBy(
+      //   inputOp,
+      //   groupingVariables.map((varname) =>
+      //     algebraFactory.createTermExpression(
+      //       algebraFactory.dataFactory.variable(varname.substr(1))
+      //     )
+      //   )
+      // )
+      // console.log(toSparqlQuery(orderOp))
+      // const result = await this.query(orderOp)
+      // return groupOrdered(result, groupingVariables).map((g) => g.members)
+      return (await group(input, groupingVariables)).map((g) => g.members)
     }
   }
 

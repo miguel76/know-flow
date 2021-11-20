@@ -60,13 +60,15 @@ export class SplitIterator<
     done: () => void,
     push: (group: Group<GroupIdType, ItemType>) => void
   ) {
-    const newGroupId = this.groupOf(item)
-    if (this.currGroup === undefined || this.currGroup.groupId !== newGroupId) {
+    if (
+      this.currGroup === undefined ||
+      !this.belongsToGroup(item, this.currGroup.groupId)
+    ) {
       if (this.currGroup) {
         this.currGroup.members.close()
       }
       this.currGroup = {
-        groupId: newGroupId,
+        groupId: this.groupOf(item),
         members: new WritableIterator()
       }
       push(this.currGroup)

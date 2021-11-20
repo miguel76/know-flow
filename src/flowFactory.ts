@@ -12,9 +12,8 @@ import {
   Let,
   Parallel
 } from './flow'
-import { Bindings, BindingsStream } from '@comunica/types'
+import { Bindings } from '@comunica/types'
 import { syncTable, promisifyFromSync } from './utils'
-import { ArrayIterator } from 'asynciterator'
 import { Map } from 'immutable'
 import { RDFToValueOrObject } from './toNative'
 
@@ -33,39 +32,6 @@ function isPropertyPathSymbol(p: any): p is Algebra.PropertyPathSymbol {
     Algebra.types.ZERO_OR_MORE_PATH,
     Algebra.types.ZERO_OR_ONE_PATH
   ].includes(p.type)
-}
-
-function isPath(op: Algebra.Operation): op is Algebra.Path {
-  return op.type === Algebra.types.PATH
-}
-
-function isBgp(op: Algebra.Operation): op is Algebra.Bgp {
-  return op.type === Algebra.types.BGP
-}
-
-function isPromise<Type>(value: Type | Promise<Type>): value is Promise<Type> {
-  return value && typeof (<any>value).then === 'function'
-}
-
-function asyncify<Domain, Range>(
-  fn: (x: Domain) => Range | ((x: Domain) => Promise<Range>)
-): (x: Domain) => Promise<Range> {
-  return (x: Domain) => {
-    try {
-      const value = fn(x)
-      if (isPromise(value)) {
-        return <Promise<Range>>value
-      } else {
-        return new Promise<Range>((resolve, reject) => {
-          resolve(<Range>value)
-        })
-      }
-    } catch (e) {
-      return new Promise<Range>((resolve, reject) => {
-        reject(e)
-      })
-    }
-  }
 }
 
 interface TranslateOptions {
@@ -548,6 +514,7 @@ export default class FlowFactory {
 
   createTermReader(
     config: {
+      variable?: string
       path?: Algebra.PropertyPathSymbol | RDF.Term | string
       graph?: RDF.Term
       filter?: Algebra.Expression | string
@@ -583,17 +550,25 @@ export default class FlowFactory {
           subflow: actionIfTypeAndLang
         })
       : actionIfTypeAndLang
-    return config && config.path
-      ? this.createTraverse({
-          path: config.path,
-          graph: config.graph,
-          subflow: actionIfFilter
+    const actionAfterPathAndFilter =
+      config && config.path
+        ? this.createTraverse({
+            path: config.path,
+            graph: config.graph,
+            subflow: actionIfFilter
+          })
+        : actionIfFilter
+    return config && config.variable
+      ? this.createLet({
+          subflow: actionAfterPathAndFilter,
+          currVarname: config.variable
         })
-      : actionIfFilter
+      : actionAfterPathAndFilter
   }
 
   createValueReader(
     config: {
+      variable?: string
       path?: Algebra.PropertyPathSymbol | RDF.Term | string
       graph?: RDF.Term
       filter?: Algebra.Expression | string
@@ -612,6 +587,7 @@ export default class FlowFactory {
 
   createStringReader(
     config: {
+      variable?: string
       path?: Algebra.PropertyPathSymbol | RDF.Term | string
       graph?: RDF.Term
       filter?: Algebra.Expression | string

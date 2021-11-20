@@ -16,6 +16,184 @@ exports[`run action show default bindings 1`] = `undefined`;
 
 exports[`run action show one set of bindings 1`] = `Immutable.Map {}`;
 
+exports[`run all triples foreach x 1 1`] = `
+Array [
+  Object {
+    "o": "42",
+    "p": "http://example.org/prop1",
+    "s": "http://example.org/Res1",
+  },
+  Object {
+    "o": "value1",
+    "p": "http://example.org/prop1",
+    "s": "http://example.org/Res1",
+  },
+  Object {
+    "o": "http://example.org/Res2",
+    "p": "http://example.org/prop1",
+    "s": "http://example.org/Res1",
+  },
+  Object {
+    "o": "http://example.org/Res3",
+    "p": "http://example.org/prop2",
+    "s": "http://example.org/Res1",
+  },
+  Object {
+    "o": "http://example.org/Res1",
+    "p": "http://example.org/prop3",
+    "s": "http://example.org/Res1",
+  },
+  Object {
+    "o": "3.14",
+    "p": "http://example.org/prop1",
+    "s": "http://example.org/Res2",
+  },
+  Object {
+    "o": "http://example.org/Res1",
+    "p": "http://example.org/prop2",
+    "s": "http://example.org/Res2",
+  },
+]
+`;
+
+exports[`run all triples foreach x 1 implicit 1`] = `
+Array [
+  Object {
+    "o": "value1",
+    "p": "http://example.org/prop1",
+    "s": "http://example.org/Res1",
+  },
+  Object {
+    "o": "42",
+    "p": "http://example.org/prop1",
+    "s": "http://example.org/Res1",
+  },
+  Object {
+    "o": "http://example.org/Res2",
+    "p": "http://example.org/prop1",
+    "s": "http://example.org/Res1",
+  },
+  Object {
+    "o": "http://example.org/Res3",
+    "p": "http://example.org/prop2",
+    "s": "http://example.org/Res1",
+  },
+  Object {
+    "o": "http://example.org/Res1",
+    "p": "http://example.org/prop3",
+    "s": "http://example.org/Res1",
+  },
+  Object {
+    "o": "3.14",
+    "p": "http://example.org/prop1",
+    "s": "http://example.org/Res2",
+  },
+  Object {
+    "o": "http://example.org/Res1",
+    "p": "http://example.org/prop2",
+    "s": "http://example.org/Res2",
+  },
+]
+`;
+
+exports[`run all triples foreach x 2 1`] = `
+Array [
+  Array [
+    Object {
+      "o": "42",
+      "p": "http://example.org/prop1",
+      "s": "http://example.org/Res1",
+    },
+    Object {
+      "o": "value1",
+      "p": "http://example.org/prop1",
+      "s": "http://example.org/Res1",
+    },
+    Object {
+      "o": "http://example.org/Res2",
+      "p": "http://example.org/prop1",
+      "s": "http://example.org/Res1",
+    },
+    Object {
+      "o": "http://example.org/Res3",
+      "p": "http://example.org/prop2",
+      "s": "http://example.org/Res1",
+    },
+    Object {
+      "o": "http://example.org/Res1",
+      "p": "http://example.org/prop3",
+      "s": "http://example.org/Res1",
+    },
+  ],
+  Array [
+    Object {
+      "o": "3.14",
+      "p": "http://example.org/prop1",
+      "s": "http://example.org/Res2",
+    },
+    Object {
+      "o": "http://example.org/Res1",
+      "p": "http://example.org/prop2",
+      "s": "http://example.org/Res2",
+    },
+  ],
+]
+`;
+
+exports[`run all triples foreach x 3 1`] = `
+Array [
+  Array [
+    Array [
+      Object {
+        "o": "42",
+        "p": "http://example.org/prop1",
+        "s": "http://example.org/Res1",
+      },
+      Object {
+        "o": "value1",
+        "p": "http://example.org/prop1",
+        "s": "http://example.org/Res1",
+      },
+      Object {
+        "o": "http://example.org/Res2",
+        "p": "http://example.org/prop1",
+        "s": "http://example.org/Res1",
+      },
+    ],
+    Array [
+      Object {
+        "o": "http://example.org/Res3",
+        "p": "http://example.org/prop2",
+        "s": "http://example.org/Res1",
+      },
+    ],
+    Array [
+      Object {
+        "o": "http://example.org/Res1",
+        "p": "http://example.org/prop3",
+        "s": "http://example.org/Res1",
+      },
+    ],
+  ],
+  Array [
+    Array [
+      Object {
+        "o": "3.14",
+        "p": "http://example.org/prop1",
+        "s": "http://example.org/Res2",
+      },
+    ],
+    Array [
+      Object {
+        "o": "http://example.org/Res1",
+        "p": "http://example.org/prop2",
+        "s": "http://example.org/Res2",
+      },
+    ],
+  ],
+]
+`;
+
 exports[`run constant 1`] = `42`;
 
 exports[`run empty parallel 1`] = `Array []`;
@@ -23,8 +201,8 @@ exports[`run empty parallel 1`] = `Array []`;
 exports[`run foreach foreach string reader 1`] = `
 Array [
   Array [
-    "value1",
     "42",
+    "value1",
     "http://example.org/Res2",
   ],
   Array [
@@ -37,8 +215,8 @@ Array [
 exports[`run foreach foreach value reader 1`] = `
 Array [
   Array [
-    "value1",
     "42",
+    "value1",
     "http://example.org/Res2",
   ],
   Array [
@@ -50,9 +228,9 @@ Array [
 
 exports[`run foreach traversal value reader 1`] = `
 Array [
-  "value1",
-  "42",
   "3.14",
+  "42",
+  "value1",
   "http://example.org/Res2",
 ]
 `;

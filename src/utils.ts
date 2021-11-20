@@ -34,11 +34,12 @@ export function promisifyFromSync<Domain, Range>(
     })
 }
 
+export function toSparqlQuery(op: Algebra.Operation, options = {}): string {
+  return toSparql(algebraFactory.createProject(op, [WILDCARD]), options)
+}
+
 export function toSparqlFragment(op: Algebra.Operation, options = {}): string {
-  const sparqlStr = toSparql(
-    algebraFactory.createProject(op, [WILDCARD]),
-    options
-  )
+  const sparqlStr = toSparqlQuery(op, options)
   return sparqlStr.substring(
     'SELECT * WHERE { '.length,
     sparqlStr.length - ' }'.length

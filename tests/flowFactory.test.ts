@@ -1,14 +1,6 @@
-import { FlowFactory, FlowEngine, stringifyFlow } from '../src/index'
+import { FlowFactory, FlowEngine } from '../src/index'
 
 import { newEngine } from '@comunica/actor-init-sparql-file'
-import {
-  ActionContext,
-  IActorQueryOperationOutput,
-  IActorQueryOperationOutputBindings,
-  IQueryEngine
-} from '@comunica/types'
-import { Algebra } from 'sparqlalgebrajs'
-import { toSparqlFragment } from '../dist/utils'
 const path = require('path')
 
 const ff = new FlowFactory({
@@ -130,6 +122,58 @@ const flows = {
         subflow: ff.createValueReader()
       })
     )
+  }),
+  'all triples foreach x 3': ff.createJoin({
+    right: '?s ?p ?o',
+    subflow: ff.createForEach({
+      var: ['?s'],
+      subflow: ff.createForEach({
+        var: ['?p'],
+        subflow: ff.createForEach({
+          var: ['?o'],
+          subflow: ff.createParallelDict({
+            s: ff.createValueReader({ variable: '?s' }),
+            p: ff.createValueReader({ variable: '?p' }),
+            o: ff.createValueReader({ variable: '?o' })
+          })
+        })
+      })
+    })
+  }),
+  'all triples foreach x 2': ff.createJoin({
+    right: '?s ?p ?o',
+    subflow: ff.createForEach({
+      var: ['?s'],
+      subflow: ff.createForEach({
+        var: ['?p', '?o'],
+        subflow: ff.createParallelDict({
+          s: ff.createValueReader({ variable: '?s' }),
+          p: ff.createValueReader({ variable: '?p' }),
+          o: ff.createValueReader({ variable: '?o' })
+        })
+      })
+    })
+  }),
+  'all triples foreach x 1': ff.createJoin({
+    right: '?s ?p ?o',
+    subflow: ff.createForEach({
+      var: ['?s', '?p', '?o'],
+      subflow: ff.createParallelDict({
+        s: ff.createValueReader({ variable: '?s' }),
+        p: ff.createValueReader({ variable: '?p' }),
+        o: ff.createValueReader({ variable: '?o' })
+      })
+    })
+  }),
+  'all triples foreach x 1 implicit': ff.createJoin({
+    right: '?s ?p ?o',
+    subflow: ff.createForEach({
+      subflow: ff.createParallelDict({
+        s: ff.createValueReader({ variable: '?s' }),
+        p: ff.createValueReader({ variable: '?p' }),
+        o: ff.createValueReader({ variable: '?o' })
+      })
+    })
   })
 }
 
