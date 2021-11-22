@@ -20,19 +20,27 @@ import {
   cloneTable,
   fromTableToValuesOp,
   noBindingSingletonTable,
-  oneTupleTable,
-  toSparqlFragment,
-  toSparqlQuery
+  oneTupleTable
 } from './utils'
 import { Map } from 'immutable'
 // import { Wildcard } from 'sparqljs'
 import { AsyncIterator } from 'asynciterator'
-import { group, groupOrdered } from './grouping'
+import { group } from './grouping'
 import { getItemsAsArray } from './iterators'
 
 const algebraFactory = new Factory()
 // const WILDCARD = new Wildcard()
 
+/**
+ * Assigns the value of a variable to another, optionally hiding the orginal
+ * variable.
+ * The previous value of the new variable is in any case overwritten.
+ * @param input - Input stream of bindings
+ * @param currVarName - Current variable name
+ * @param newVarName - New variable name
+ * @param hideCurrVar - True iff the orginal variable is to be hidden
+ * @returns Updated stream of bindings
+ */
 function assignVar(
   input: Table,
   currVarName: string,
@@ -74,10 +82,18 @@ function assignVar(
   }
 }
 
+/**
+ * Executes flows, i.e. networks of know-flow operations
+ */
 export default class FlowEngine {
   engine: IQueryEngine
   queryContext: any
 
+  /**
+   * Create a new instance of FlowEngine
+   * @param engine - SPARQL engine used to execute the queries
+   * @param queryContext - Context to be passed to `engine` along each query
+   */
   constructor(config: { engine: IQueryEngine; queryContext?: any }) {
     this.engine = config.engine // || newEngine();
     this.queryContext = config.queryContext || {}
@@ -91,9 +107,24 @@ export default class FlowEngine {
     )
   }
 
+  /**
+   * Split a stream of bindings in groups, according to the values of a subset
+   * of variables
+   * @param input - Input stream of bindings.
+   * @param groupingVariables - Name of variables used for groups.
+   * If undefined, every variable is considered (as in SELECT *).
+   * If empty, no variable is considered (the result is hence a single group).
+   * @param distinct - In the case every variable is considered for grouping
+   * (`groupingVariables` undefined or including all the variables in `input`),
+   * this boolean decides if identical tuples should be part of the same group
+   * or not.
+   * If not, each tuple goes to a separate group.
+   * @returns - An iterator of the streams of bindings associated with each
+   * group.
+   */
   private async group(
     input: Table,
-    groupingVariables: string[],
+    groupingVariables: string[] | undefined,
     distinct = false
   ): Promise<AsyncIterator<Table>> {
     const star =
@@ -121,6 +152,12 @@ export default class FlowEngine {
     }
   }
 
+  /**
+   * Executes a flow
+   * @param config.flow - flow to be executed
+   * @param config.input - optional input stream of bindings
+   * @returns the output of the flow
+   */
   async run<ReturnType>(
     config:
       | {
@@ -129,6 +166,7 @@ export default class FlowEngine {
         }
       | Flow<ReturnType>
   ): Promise<ReturnType> {
+    // Setup values for flow and input
     let flow: Flow<ReturnType>
     let input: Table
     if (config instanceof Flow) {
@@ -138,67 +176,103 @@ export default class FlowEngine {
       flow = (<{ flow: Flow<ReturnType>; input?: Table }>config).flow
       input = <Table>(<any>config).input || noBindingSingletonTable()
     }
+    // By case execution of each type of flow
     if (flow instanceof Action) {
-      return flow.exec(input)
+      return this.runAction(flow, input)
     } else if (flow instanceof Cascade) {
-      const flowResult = await this.run({ flow: flow.subflow, input })
-      return await flow.action(flowResult)
+      return this.runCascade(flow, input)
     } else if (flow instanceof Parallel) {
-      return <ReturnType>(
-        (<unknown>(
-          await Promise.all(
-            flow.subflows.map((subflow) =>
-              this.run({ flow: subflow, input: cloneTable(input) })
-            )
-          )
-        ))
-      )
+      return <ReturnType>(<unknown>await this.runParallel(flow, input))
     } else if (flow instanceof ForEach) {
-      const forEach = flow
-      const groupIterator = await this.group(
-        input,
-        forEach.variables,
-        forEach.distinct
-      )
-      const resultPromisesIterator = groupIterator.map((subflowInput: Table) =>
-        this.run({
-          flow: forEach.subflow,
-          input: subflowInput
-        })
-      )
-      const resultPromisesArray = await getItemsAsArray(resultPromisesIterator)
-      const results = await Promise.all(resultPromisesArray)
-      return <ReturnType>(<unknown>results)
+      return <ReturnType>(<unknown>await this.runForEach(flow, input))
     } else if (flow instanceof DataOperation) {
-      const query = flow
-      let results
-      if (query instanceof Let) {
-        const letFlow = query
-        results = assignVar(
-          input,
-          letFlow.currVarname,
-          letFlow.newVarname,
-          letFlow.hideCurrVar
-        )
-      } else {
-        const inputOp = await fromTableToValuesOp(input)
-        let queryOp
-        if (query instanceof Join) {
-          const join = query
-          queryOp = // (input === NO_BINDING_SINGLETON_TABLE) ?
-            // join.right :
-            algebraFactory.createJoin(inputOp, join.right)
-        } else if (query instanceof Filter) {
-          const filter = <Filter<ReturnType>>query
-          queryOp = algebraFactory.createFilter(inputOp, filter.expression)
-        } else {
-          throw new Error('Unrecognized query type')
-        }
-        results = await this.query(queryOp)
-      }
-      return await this.run({ flow: query.subflow, input: results })
+      return this.runDataOperation(flow, input)
     } else {
       throw new Error('Unrecognized flow type')
+    }
+  }
+
+  private async runAction<ReturnType>(
+    action: Action<ReturnType>,
+    input: Table
+  ): Promise<ReturnType> {
+    return action.exec(input)
+  }
+
+  private async runCascade<SubflowReturnType, ReturnType>(
+    cascade: Cascade<SubflowReturnType, ReturnType>,
+    input: Table
+  ): Promise<ReturnType> {
+    const subflowResult = await this.run({ flow: cascade.subflow, input })
+    return cascade.action(subflowResult)
+  }
+
+  private async runParallel<EachReturnType>(
+    parallel: Parallel<EachReturnType>,
+    input: Table
+  ): Promise<EachReturnType[]> {
+    return await Promise.all(
+      parallel.subflows.map((subflow) =>
+        this.run({ flow: subflow, input: cloneTable(input) })
+      )
+    )
+  }
+
+  private async runForEach<EachReturnType>(
+    forEach: ForEach<EachReturnType>,
+    input: Table
+  ): Promise<EachReturnType[]> {
+    const groupIterator = await this.group(
+      input,
+      forEach.variables,
+      forEach.distinct
+    )
+    const resultPromisesIterator = groupIterator.map((subflowInput: Table) =>
+      this.run({
+        flow: forEach.subflow,
+        input: subflowInput
+      })
+    )
+    const resultPromisesArray = await getItemsAsArray(resultPromisesIterator)
+    return Promise.all(resultPromisesArray)
+  }
+
+  private async runDataOperation<ReturnType>(
+    dataOperation: DataOperation<ReturnType>,
+    input: Table
+  ): Promise<ReturnType> {
+    let results
+    if (dataOperation instanceof Let) {
+      const letFlow = dataOperation
+      results = assignVar(
+        input,
+        letFlow.currVarname,
+        letFlow.newVarname,
+        letFlow.hideCurrVar
+      )
+    } else {
+      const valuesClause = await fromTableToValuesOp(input)
+      const query = this.queryFromDataOperation(dataOperation, valuesClause)
+      results = await this.query(query)
+    }
+    return this.run({ flow: dataOperation.subflow, input: results })
+  }
+
+  private queryFromDataOperation<ReturnType>(
+    dataOperation: DataOperation<ReturnType>,
+    inputQuery: Algebra.Operation
+  ): Algebra.Operation {
+    if (dataOperation instanceof Join) {
+      const join = dataOperation
+      return algebraFactory.createJoin(inputQuery, join.right)
+      // (input === NO_BINDING_SINGLETON_TABLE) ?
+      // join.right :
+      // algebraFactory.createJoin(inputQuery, join.right)
+    } else if (dataOperation instanceof Filter) {
+      const filter = dataOperation
+      return algebraFactory.createFilter(inputQuery, filter.expression)
+    } else {
+      throw new Error('Unrecognized data operation')
     }
   }
 }
