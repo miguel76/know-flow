@@ -29,7 +29,6 @@ import { group } from './grouping'
 import { getItemsAsArray } from './iterators'
 
 const algebraFactory = new Factory()
-// const WILDCARD = new Wildcard()
 
 /**
  * Assigns the value of a variable to another, optionally hiding the orginal
