@@ -7,7 +7,7 @@ import {
   IQueryEngine
 } from '@comunica/types'
 import { Algebra } from 'sparqlalgebrajs'
-import { toSparqlFragment } from './utils'
+import { toSparqlFragment } from './stringify'
 
 const tb = new FlowBuilder({
   prefixes: {
@@ -18,43 +18,43 @@ const tb = new FlowBuilder({
   }
 })
 
-let getLabel = tb.value('rdfs:label')
+const getLabel = tb.value('rdfs:label')
 
-let adorno = tb.input('wd:Q152388')
-let hegel = tb.input('wd:Q9235')
+const adorno = tb.input('wd:Q152388')
+const hegel = tb.input('wd:Q9235')
 
-let habermas = tb.input('wd:Q76357')
+const habermas = tb.input('wd:Q76357')
 
-let labelOfAdorno = adorno.next(getLabel)
+const labelOfAdorno = adorno.next(getLabel)
 
-// let getPersonInfo = tb.next({
+// const getPersonInfo = tb.next({
 //     name: tb.value('wdt:P735'),
 //     surname: tb.value('wdt:P734'),
 //     dateOfBirth: tb.value('wdt:P569')
 // });
 
-let getPersonInfo = tb.next({
+const getPersonInfo = tb.next({
   resource: tb.str(),
   name: tb.str('wdt:P1559'),
   dateOfBirth: tb.value('wdt:P569'),
   dateOfDeath: tb.value('wdt:P570')
 })
 
-let infoOnAdorno = adorno.next(getPersonInfo)
-let infoOnHegel = hegel.next(getPersonInfo)
+const infoOnAdorno = adorno.next(getPersonInfo)
+const infoOnHegel = hegel.next(getPersonInfo)
 
-let getStudentsInfo = tb.forEach('wdt:P802').next(getPersonInfo)
-let getTeachersInfo = tb.forEach('^wdt:P802').next(getPersonInfo)
+const getStudentsInfo = tb.forEach('wdt:P802').next(getPersonInfo)
+const getTeachersInfo = tb.forEach('^wdt:P802').next(getPersonInfo)
 
-let adornoStudentsInfo = adorno.next(getStudentsInfo)
-let hegelStudentsInfo = hegel.next(getStudentsInfo)
+const adornoStudentsInfo = adorno.next(getStudentsInfo)
+const hegelStudentsInfo = hegel.next(getStudentsInfo)
 
-let habermasTeachersInfo = habermas.next(getTeachersInfo)
+const habermasTeachersInfo = habermas.next(getTeachersInfo)
 // const engine = newEngine();
 
-let engine = newComunicaEngine()
+const engine = newComunicaEngine()
 
-let proxyEngine: IQueryEngine = {
+const proxyEngine: IQueryEngine = {
   query: async (queryOp: Algebra.Operation, queryContext: any) => {
     console.log('')
     console.log('Executing...')
@@ -90,7 +90,7 @@ let proxyEngine: IQueryEngine = {
 console.log(JSON.stringify(stringifyFlow(infoOnAdorno), null, 4))
 console.log(JSON.stringify(stringifyFlow(adornoStudentsInfo), null, 4))
 
-let te = new FlowEngine({
+const te = new FlowEngine({
   // engine: newComunicaEngine(),
   engine: proxyEngine,
   queryContext: {

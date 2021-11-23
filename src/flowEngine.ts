@@ -6,7 +6,6 @@ import {
   Join,
   Filter,
   Cascade,
-  Table,
   Let,
   DataOperation
 } from './flow'
@@ -17,11 +16,12 @@ import {
   IActorQueryOperationOutputBindings
 } from '@comunica/types'
 import {
+  Table,
   cloneTable,
   fromTableToValuesOp,
   noBindingSingletonTable,
   oneTupleTable
-} from './utils'
+} from './table'
 import { Map } from 'immutable'
 // import { Wildcard } from 'sparqljs'
 import { AsyncIterator } from 'asynciterator'

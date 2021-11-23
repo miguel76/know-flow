@@ -1,8 +1,7 @@
 import { Algebra, translate, Factory } from 'sparqlalgebrajs'
 import * as RDF from 'rdf-js'
+import { Table, TableSync, syncTable } from './table'
 import {
-  Table,
-  TableSync,
   Flow,
   Action,
   ForEach,
@@ -15,7 +14,6 @@ import {
   ParallelN
 } from './flow'
 import { Bindings } from '@comunica/types'
-import { syncTable, promisifyFromSync } from './utils'
 import { Map } from 'immutable'
 import { RDFToValueOrObject } from './toNative'
 
@@ -34,6 +32,19 @@ function isPropertyPathSymbol(p: any): p is Algebra.PropertyPathSymbol {
     Algebra.types.ZERO_OR_MORE_PATH,
     Algebra.types.ZERO_OR_ONE_PATH
   ].includes(p.type)
+}
+
+export function promisifyFromSync<Domain, Range>(
+  f: (x: Domain) => Range
+): (x: Domain) => Promise<Range> {
+  return (x: Domain) =>
+    new Promise<Range>((resolve, reject) => {
+      try {
+        resolve(f(x))
+      } catch (e) {
+        reject(e)
+      }
+    })
 }
 
 interface TranslateOptions {

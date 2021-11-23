@@ -1,8 +1,8 @@
-import FlowFactory from './flowFactory'
+import FlowFactory, { promisifyFromSync } from './flowFactory'
 import * as RDF from 'rdf-js'
 import { Algebra, Factory } from 'sparqlalgebrajs'
-import { Table, Flow, Cascade } from './flow'
-import { promisifyFromSync } from './utils'
+import { Flow, Cascade } from './flow'
+import { Table } from './table'
 
 export class FlowApplier<SubflowReturnType, ActionReturnType> extends Cascade<
   SubflowReturnType,

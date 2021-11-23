@@ -1,6 +1,6 @@
 import { Map } from 'immutable'
 import { Bindings } from '@comunica/types'
-import { Table } from './flow'
+import { Table } from './table'
 import { ArrayIterator, AsyncIterator } from 'asynciterator'
 import { getItemsAsArray, SplitIterator } from './iterators'
 import { Term } from '@rdfjs/types'
@@ -21,19 +21,6 @@ function compareTerms(term1: Term, term2: Term): number {
     : term1.value > term2.value
     ? +1
     : 0
-  if (term1 === undefined) {
-    if (term2 === undefined) {
-      return -1
-    }
-  } else {
-    if (term2 === undefined) {
-      return +1
-    } else if (term1 < term2) {
-      return -1
-    } else if (term1 > term2) {
-      return +1
-    }
-  }
 }
 
 export async function group(

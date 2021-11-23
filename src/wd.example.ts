@@ -1,5 +1,5 @@
 import FlowFactory from './flowFactory'
-import { tableFromArray } from './utils'
+import { tableFromArray } from './table'
 import FlowEngine from './flowEngine'
 import { newEngine } from '@comunica/actor-init-sparql'
 import { Types } from '.'

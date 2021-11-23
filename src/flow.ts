@@ -1,26 +1,5 @@
 import { Algebra } from 'sparqlalgebrajs'
-import { BindingsStream } from '@comunica/types'
-
-export interface Table {
-  bindingsStream: BindingsStream
-  variables: string[]
-  canContainUndefs: boolean
-}
-
-export interface TableSync {
-  bindingsArray: { [varname: string]: any }[]
-  variables: string[]
-  canContainUndefs: boolean
-}
-
-export interface Grouping {
-  groupingVariables: string[]
-  inGroupVariables: string[]
-  groups: {
-    groupingBindings: { [varname: string]: any }
-    inGroupBindings: { [varname: string]: any }[]
-  }[]
-}
+import { Table } from './table'
 
 /**
  * Base class for flows, which are networks of know-flow operations

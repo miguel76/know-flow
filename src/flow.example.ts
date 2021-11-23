@@ -1,15 +1,13 @@
-import FlowFactory from './flowFactory'
-import { stringifyFlow, tableFromArray } from './utils'
-import FlowEngine from './flowEngine'
+import { tableFromArray } from './table'
 import { newEngine } from '@comunica/actor-init-sparql'
-import { Types } from '.'
+import { Types, stringifyFlow, FlowFactory, FlowEngine } from '.'
 import { Factory } from 'sparqlalgebrajs'
 
 const engine = newEngine()
-let algebraFactory = new Factory()
-let dataFactory = algebraFactory.dataFactory
+const algebraFactory = new Factory()
+const dataFactory = algebraFactory.dataFactory
 
-let options = {
+const options = {
   prefixes: {
     rdf: 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
     rdfs: 'http://www.w3.org/2000/01/rdf-schema#',
@@ -18,44 +16,44 @@ let options = {
   }
 }
 
-let queryContext = {
+const queryContext = {
   sources: [{ type: 'sparql', value: 'https://dbpedia.org/sparql' }]
 }
 
-let flowFactory = new FlowFactory(options)
+const flowFactory = new FlowFactory(options)
 
-let table3 = tableFromArray([{}, {}, {}])
+const table3 = tableFromArray([{}, {}, {}])
 
-let action1 = flowFactory.createConstant('Action 1')
-let action2 = flowFactory.createConstant('Action 2')
-let action3 = flowFactory.createConstant('Action 3')
-let action4 = flowFactory.createConstant('Action 4')
-let action5 = flowFactory.createConstant('Action 5')
+const action1 = flowFactory.createConstant('Action 1')
+const action2 = flowFactory.createConstant('Action 2')
+const action3 = flowFactory.createConstant('Action 3')
+const action4 = flowFactory.createConstant('Action 4')
+const action5 = flowFactory.createConstant('Action 5')
 
-let flowSeq = flowFactory.createParallel([action1, action2, action3])
-let forEach = flowFactory.createForEach(action1)
+const flowSeq = flowFactory.createParallel([action1, action2, action3])
+const forEach = flowFactory.createForEach(action1)
 
-let traverse = flowFactory.createTraverse({
+const traverse = flowFactory.createTraverse({
   path: 'rdf:type',
   subflow: action4
 })
 
-let join = flowFactory.createJoin({
+const join = flowFactory.createJoin({
   right: '$_ rdf:type rdf:List; rdfs:label "ciccio"',
   subflow: action5
 })
 
-let showList = {}
+const showList = {}
 
 function showAttr(
   attrPath: string,
   attrLabel: string,
   language?: string
 ): Types.Flow<string> {
-  let show = flowFactory.createActionOnFirst(
+  const show = flowFactory.createActionOnFirst(
     (bindings) => attrLabel + ': ' + bindings.get('?_').value
   )
-  let filterAndShow = language
+  const filterAndShow = language
     ? flowFactory.createFilter({
         expression: 'langMatches( lang(?_), "' + language + '" )',
         subflow: show
@@ -67,7 +65,7 @@ function showAttr(
   })
 }
 
-let showLanguage = flowFactory.createCascade({
+const showLanguage = flowFactory.createCascade({
   subflow: flowFactory.createParallel([
     showAttr('rdf:label', 'Name'),
     showAttr('dbo:iso6392Code', 'ISO Code'),
@@ -76,7 +74,7 @@ let showLanguage = flowFactory.createCascade({
   action: (lines: string[]) => lines.join('\n')
 })
 
-let filter = flowFactory.createFilter({
+const filter = flowFactory.createFilter({
   expression: '$_ = "pluto"',
   subflow: action5
 })
@@ -94,7 +92,7 @@ console.log(stringifyFlow(join))
 console.log(filter)
 console.log(stringifyFlow(filter))
 
-let te = new FlowEngine({ engine, queryContext })
+const te = new FlowEngine({ engine, queryContext })
 
 te.run(action1).then(console.log, console.error)
 te.run(flowSeq).then(console.log, console.error)
