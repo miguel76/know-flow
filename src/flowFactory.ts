@@ -87,12 +87,25 @@ export type PathParam = Algebra.PropertyPathSymbol | RDF.Term | string
  * assigned prefixes).
  */
 export default class FlowFactory {
+  /** Factory for algebra objects. */
   algebraFactory: Factory
+  /** Factory for RDF objects. */
   dataFactory: RDF.DataFactory
+  /** Variable used as default. */
   defaultInput: RDF.Variable
+  /** Variable used as temporary for the output (for traversal). */
   defaultOutput: RDF.Variable
-  options: FlowFactoryOptions
+  /** Options used translating SPARQL from textual notation to object notation
+   * using {@link sparqlalgebrajs#translate}.
+   */
+  options: TranslateOptions
 
+  /**
+   * Creates a new FlowFactory
+   * @param options Options used translating SPARQL from textual notation to
+   * SPARQL algebra notation.
+   * @param options.algebraFactory Factory to build SPARQL algebra objects
+   */
   constructor(options: FlowFactoryOptions = {}) {
     this.algebraFactory =
       options.algebraFactory || new Factory(options.dataFactory)
