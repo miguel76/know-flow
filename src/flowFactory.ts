@@ -1,6 +1,6 @@
 import { Algebra, translate, Factory } from 'sparqlalgebrajs'
 import * as RDF from 'rdf-js'
-import { Table, TableSync, syncTable } from './table'
+import { Table, TableSync } from './table'
 import {
   Flow,
   ActionExecutor,
@@ -14,9 +14,8 @@ import {
   ParallelN,
   Action
 } from './flow'
-import { Bindings } from '@comunica/types'
-import { Map } from 'immutable'
 import { RDFToValueOrObject } from './toNative'
+import * as Actions from './actions'
 
 function isString(str: any): str is string {
   return typeof str === 'string'
@@ -98,6 +97,12 @@ export default class FlowFactory {
     this.options = options
   }
 
+  /**
+   * Creates a Cascade flow.
+   * @param config.subflow - Subflow to be executed before the action.
+   * @param config.action - Function to be executed as action after the subflow.
+   * @returns the new Cascade instance.
+   */
   createCascade<SubflowReturnType, ActionReturnType>(config: {
     subflow: Flow<SubflowReturnType>
     action: Action<SubflowReturnType, ActionReturnType>
@@ -105,6 +110,13 @@ export default class FlowFactory {
     return new Cascade(config.subflow, config.action)
   }
 
+  /**
+   * Creates an ActionExecutor
+   * @param config - Either configuration object or function to be executed as
+   * action
+   * @param config.action - Function to be executed as action.
+   * @returns the new ActionExecutor instance.
+   */
   createActionExecutor<ReturnType>(
     config:
       | {
@@ -114,62 +126,6 @@ export default class FlowFactory {
   ): ActionExecutor<ReturnType> {
     const action = 'action' in config ? config.action : config
     return new ActionExecutor(action)
-  }
-
-  createConstant<ReturnType>(value: ReturnType): ActionExecutor<ReturnType> {
-    return this.createActionExecutor(() => value)
-  }
-
-  createActionOnAll<ReturnType>(
-    config:
-      | {
-          action: Action<TableSync, ReturnType>
-        }
-      | Action<TableSync, ReturnType>
-  ): ActionExecutor<ReturnType> {
-    const action = 'action' in config ? config.action : config
-    return this.createActionExecutor(async (table) =>
-      action(await syncTable(table))
-    )
-  }
-
-  createActionOnFirst<ReturnType>(
-    config:
-      | {
-          action: Action<Bindings, ReturnType>
-          acceptEmpty?: boolean
-        }
-      | Action<Bindings, ReturnType>
-  ): ActionExecutor<ReturnType> {
-    const action = 'action' in config ? config.action : config
-    const acceptEmpty = 'acceptEmpty' in config && config.acceptEmpty
-    return this.createActionExecutor(async (table) => {
-      const oneTuple = await syncTable(table, 1)
-      let bindings: Bindings
-      if (oneTuple.bindingsArray.length === 0) {
-        if (acceptEmpty) {
-          bindings = Map<string, RDF.Term>({})
-        } else {
-          throw new Error('Expected at least a value, zero found')
-        }
-      } else {
-        bindings = Map<string, RDF.Term>(oneTuple.bindingsArray[0])
-      }
-      return action(bindings)
-    })
-  }
-
-  createActionOnFirstDefault<ReturnType>(
-    config:
-      | {
-          action: Action<RDF.Term, ReturnType>
-        }
-      | Action<RDF.Term, ReturnType>
-  ): ActionExecutor<ReturnType> {
-    const action = 'action' in config ? config.action : config
-    return this.createActionOnFirst(async (bindings: Bindings) =>
-      action(bindings.get('?_'))
-    )
   }
 
   createParallel<EachReturnType>(
@@ -225,7 +181,7 @@ export default class FlowFactory {
         )
       )
     } else {
-      return this.createConstant(obj)
+      return this.createActionExecutor(Actions.constant(obj))
     }
   }
 
@@ -460,9 +416,7 @@ export default class FlowFactory {
       datatype?: string
     } = {}
   ): Flow<RDF.Term> {
-    const action = this.createActionOnFirstDefault({
-      action: (x) => x
-    })
+    const action = this.createActionExecutor(Actions.onFirstDefault((x) => x))
     const actionIfLang = config.lang
       ? this.createFilter({
           expression: 'langMatches( lang(?_), "' + config.lang + '" )',
@@ -544,8 +498,8 @@ export default class FlowFactory {
   log<ReturnType>(next: Flow<ReturnType>, label?: string): Flow<ReturnType> {
     const logFlowId = ++this.logFlowCount
     let callCount = 0
-    const loggingFlow = this.createActionOnAll({
-      action: (table: TableSync) => {
+    const loggingFlow = this.createActionExecutor(
+      Actions.onAll((table: TableSync) => {
         const callId = ++callCount
         console.log(
           '# Input of node ' +
@@ -557,8 +511,8 @@ export default class FlowFactory {
         console.log(table.bindingsArray)
         console.log('')
         return callId
-      }
-    })
+      })
+    )
     const seq = this.createParallel<any>({
       subflows: [loggingFlow, next]
     })

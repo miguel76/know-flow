@@ -1,4 +1,4 @@
-import { FlowFactory, FlowEngine } from '../src/index'
+import { FlowFactory, FlowEngine, Actions } from '../src/index'
 
 import { newEngine } from '@comunica/actor-init-sparql-file'
 const path = require('path')
@@ -42,12 +42,12 @@ const fe = new FlowEngine({
   }
 })
 
-const showBindings = ff.createActionOnAll((b) => b)
-const showOneBinding = ff.createActionOnFirst((b) => b)
-const showOne = ff.createActionOnFirstDefault((b) => b)
+const showBindings = ff.createActionExecutor(Actions.onAll((b) => b))
+const showOneBinding = ff.createActionExecutor(Actions.onFirst((b) => b))
+const showOne = ff.createActionExecutor(Actions.onFirstDefault((b) => b))
 
 const flows = {
-  constant: ff.createConstant(42),
+  constant: ff.createActionExecutor(Actions.constant(42)),
   'action constant': ff.createActionExecutor(() => {
     return 42
   }),

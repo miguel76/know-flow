@@ -4,6 +4,7 @@ import FlowBuilder, { FlowApplier } from './flowBuilder'
 import { stringifyFlow, toSparqlFragment } from './stringify'
 import FlowEngine from './flowEngine'
 import { Table, tableFromArray } from './table'
+import * as Actions from './actions'
 
 export {
   Types,
@@ -16,5 +17,6 @@ export {
   FlowBuilder,
   FlowApplier,
   Table,
-  tableFromArray
+  tableFromArray,
+  Actions
 }
