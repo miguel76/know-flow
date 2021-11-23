@@ -165,7 +165,7 @@ export default class FlowEngine {
     }
     // By case execution of each type of flow
     if (flow instanceof ActionExecutor) {
-      return this.runAction(flow, input)
+      return this.runActionExecutor(flow, input)
     } else if (flow instanceof Cascade) {
       return this.runCascade(flow, input)
     } else if (flow instanceof Parallel) {
@@ -179,13 +179,25 @@ export default class FlowEngine {
     }
   }
 
-  private async runAction<ReturnType>(
-    action: ActionExecutor<ReturnType>,
+  /**
+   * Executes an ActionExecutor
+   * @param actionExecutor - The flow to be executed
+   * @param input - The input stream of bindings
+   * @returns The output of the flow
+   */
+  private async runActionExecutor<ReturnType>(
+    actionExecutor: ActionExecutor<ReturnType>,
     input: Table
   ): Promise<ReturnType> {
-    return action.action(input)
+    return actionExecutor.action(input)
   }
 
+  /**
+   * Executes a Cascade
+   * @param cascade - The flow to be executed
+   * @param input - The input stream of bindings
+   * @returns The output of the flow
+   */
   private async runCascade<SubflowReturnType, ReturnType>(
     cascade: Cascade<SubflowReturnType, ReturnType>,
     input: Table
@@ -194,6 +206,12 @@ export default class FlowEngine {
     return cascade.action(subflowResult)
   }
 
+  /**
+   * Executes a Parallel
+   * @param parallel - The flow to be executed
+   * @param input - The input stream of bindings
+   * @returns The output of the flow
+   */
   private async runParallel<EachReturnType>(
     parallel: Parallel<EachReturnType>,
     input: Table
@@ -205,6 +223,12 @@ export default class FlowEngine {
     )
   }
 
+  /**
+   * Executes a ForEach
+   * @param forEach - The flow to be executed
+   * @param input - The input stream of bindings
+   * @returns The output of the flow
+   */
   private async runForEach<EachReturnType>(
     forEach: ForEach<EachReturnType>,
     input: Table
@@ -224,6 +248,12 @@ export default class FlowEngine {
     return Promise.all(resultPromisesArray)
   }
 
+  /**
+   * Executes a DataOperation
+   * @param dataOperation - The flow to be executed
+   * @param input - The input stream of bindings
+   * @returns The output of the flow
+   */
   private async runDataOperation<ReturnType>(
     dataOperation: DataOperation<ReturnType>,
     input: Table
@@ -245,6 +275,12 @@ export default class FlowEngine {
     return this.run({ flow: dataOperation.subflow, input: results })
   }
 
+  /**
+   * Generates the SPARQL query corresponding to a data operation.
+   * @param dataOperation - The data operation.
+   * @param inputQuery - The input query, on top of which the new query is built.
+   * @returns - The new query.
+   */
   private queryFromDataOperation<ReturnType>(
     dataOperation: DataOperation<ReturnType>,
     inputQuery: Algebra.Operation
@@ -252,9 +288,6 @@ export default class FlowEngine {
     if (dataOperation instanceof Join) {
       const join = dataOperation
       return algebraFactory.createJoin(inputQuery, join.right)
-      // (input === NO_BINDING_SINGLETON_TABLE) ?
-      // join.right :
-      // algebraFactory.createJoin(inputQuery, join.right)
     } else if (dataOperation instanceof Filter) {
       const filter = dataOperation
       return algebraFactory.createFilter(inputQuery, filter.expression)
