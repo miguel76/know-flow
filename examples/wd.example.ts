@@ -1,8 +1,5 @@
-import FlowFactory from './flowFactory'
-import { tableFromArray } from './table'
-import FlowEngine from './flowEngine'
 import { newEngine } from '@comunica/actor-init-sparql'
-import { Types } from '.'
+import { Types, FlowFactory, FlowEngine, tableFromArray } from '..'
 import { Factory, Algebra } from 'sparqlalgebrajs'
 import {
   ActionContext,
@@ -16,7 +13,7 @@ const algebraFactory = new Factory()
 const dataFactory = algebraFactory.dataFactory
 
 const proxyEngine: IQueryEngine = {
-  query: async (queryOp: Algebra.Operation, queryContext: any) => {
+  query: async (queryOp: Algebra.Operation | string, queryContext: any) => {
     // console.log('');
     // console.log('Executing...');
     // console.log(toSparqlFragment(queryOp));

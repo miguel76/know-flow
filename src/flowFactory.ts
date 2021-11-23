@@ -34,6 +34,11 @@ function isPropertyPathSymbol(p: any): p is Algebra.PropertyPathSymbol {
   ].includes(p.type)
 }
 
+/**
+ * Convert a generic syncronous function to an asyncronous version.
+ * @param f - Input function.
+ * @returns `f` as an asyncronous function.
+ */
 export function promisifyFromSync<Domain, Range>(
   f: (x: Domain) => Range
 ): (x: Domain) => Promise<Range> {
@@ -47,6 +52,9 @@ export function promisifyFromSync<Domain, Range>(
     })
 }
 
+/**
+ * Options object accepted by {@link sparqlalgebrajs#translate}
+ */
 interface TranslateOptions {
   dataFactory?: RDF.DataFactory
   quads?: boolean
@@ -58,12 +66,26 @@ interface TranslateOptions {
   sparqlStar?: boolean
 }
 
+/**
+ * Options object accepted by {@link sparqlalgebrajs#translate}, plus an
+ * optional {@link sparqlalgebrajs#Factory} to build algebra objects.
+ */
 export interface FlowFactoryOptions extends TranslateOptions {
   algebraFactory?: Factory
 }
 
+/**
+ * Something used to represent a property path: a full property path
+ * ({@link sparqlalgebrajs#Algebra.PropertyPathSymbol}), a single predicate
+ * ({@link rdf-js#Term}), or a string parseable as one of the two (SPARQL/Turtle
+ * syntax).
+ */
 export type PathParam = Algebra.PropertyPathSymbol | RDF.Term | string
 
+/**
+ * Factory used to build flow objects, based on a set of options (e.g., a set of
+ * assigned prefixes).
+ */
 export default class FlowFactory {
   algebraFactory: Factory
   dataFactory: RDF.DataFactory

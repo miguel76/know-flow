@@ -1,6 +1,11 @@
-import { tableFromArray } from './table'
 import { newEngine } from '@comunica/actor-init-sparql'
-import { Types, stringifyFlow, FlowFactory, FlowEngine } from '.'
+import {
+  Types,
+  stringifyFlow,
+  FlowFactory,
+  FlowEngine,
+  tableFromArray
+} from '..'
 import { Factory } from 'sparqlalgebrajs'
 
 const engine = newEngine()

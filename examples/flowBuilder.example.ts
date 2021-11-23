@@ -1,4 +1,4 @@
-import { FlowBuilder, FlowEngine, stringifyFlow } from './index'
+import { FlowBuilder, FlowEngine, stringifyFlow, toSparqlFragment } from '..'
 import { newEngine as newComunicaEngine } from '@comunica/actor-init-sparql'
 import {
   ActionContext,
@@ -7,7 +7,6 @@ import {
   IQueryEngine
 } from '@comunica/types'
 import { Algebra } from 'sparqlalgebrajs'
-import { toSparqlFragment } from './stringify'
 
 const tb = new FlowBuilder({
   prefixes: {
