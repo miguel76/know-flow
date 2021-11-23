@@ -10,7 +10,9 @@ import {
   Filter,
   Cascade,
   Let,
-  Parallel
+  ParallelTwo,
+  ParallelThree,
+  ParallelN
 } from './flow'
 import { Bindings } from '@comunica/types'
 import { syncTable, promisifyFromSync } from './utils'
@@ -71,10 +73,7 @@ export default class FlowFactory {
     subflow: Flow<SubflowReturnType>
     action: (subflowResult: SubflowReturnType) => Promise<ActionReturnType>
   }): Cascade<SubflowReturnType, ActionReturnType> {
-    return new Cascade<SubflowReturnType, ActionReturnType>(
-      config.subflow,
-      config.action
-    )
+    return new Cascade(config.subflow, config.action)
   }
 
   createCascade<SubflowReturnType, ActionReturnType>(config: {
@@ -97,7 +96,7 @@ export default class FlowFactory {
     const exec = <(input: Table) => Promise<ReturnType>>(
       ((<any>config).exec || config)
     )
-    return new Action<ReturnType>(exec)
+    return new Action(exec)
   }
 
   createAction<ReturnType>(
@@ -262,9 +261,9 @@ export default class FlowFactory {
           subflows: Flow<EachReturnType>[]
         }
       | Flow<EachReturnType>[]
-  ): Parallel<EachReturnType> {
+  ): ParallelN<EachReturnType> {
     const subflows = Array.isArray(config) ? config : config.subflows
-    return new Parallel<EachReturnType>(subflows)
+    return new ParallelN(subflows)
   }
 
   createParallelDict<EachReturnType>(
@@ -311,6 +310,28 @@ export default class FlowFactory {
     } else {
       return this.createConstant(obj)
     }
+  }
+
+  createParallelTwo<ReturnType1, ReturnType2>(
+    config:
+      | {
+          subflows: [Flow<ReturnType1>, Flow<ReturnType2>]
+        }
+      | [Flow<ReturnType1>, Flow<ReturnType2>]
+  ): ParallelTwo<ReturnType1, ReturnType2> {
+    const subflows = Array.isArray(config) ? config : config.subflows
+    return new ParallelTwo(subflows)
+  }
+
+  createParallelThree<ReturnType1, ReturnType2, ReturnType3>(
+    config:
+      | {
+          subflows: [Flow<ReturnType1>, Flow<ReturnType2>, Flow<ReturnType3>]
+        }
+      | [Flow<ReturnType1>, Flow<ReturnType2>, Flow<ReturnType3>]
+  ): ParallelThree<ReturnType1, ReturnType2, ReturnType3> {
+    const subflows = Array.isArray(config) ? config : config.subflows
+    return new ParallelThree(subflows)
   }
 
   createForEach<EachReturnType>(
