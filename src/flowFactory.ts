@@ -199,9 +199,17 @@ export default class FlowFactory {
   }
 
   /**
-   * Creates a ForEach flow
-   * @param config - Configuration object
-   * @returns New ForEach instance
+   * Creates a ForEach flow.
+   * @param config - Configuration object.
+   * @param config.subflow - Subflow to be executed each time.
+   * @param config.var - Variable(s) used for the iteration. If not defined, all
+   * the variables in the current sequence of bindings are considered.
+   * @param config.distinct - True if, when `config.var` is not defined, the
+   * subflow is called for each different binding, not considering repetitions.
+   * @param config.path - Property path to be traversed before iteration.
+   * @param config.graph - Named graph to be optionally considered for the
+   * traversal.
+   * @returns New ForEach instance.
    */
   createForEach<EachReturnType>(
     config:
