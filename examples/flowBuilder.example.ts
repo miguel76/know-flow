@@ -54,10 +54,12 @@ const habermasTeachersInfo = habermas.next(getTeachersInfo)
 const engine = newComunicaEngine()
 
 const proxyEngine: IQueryEngine = {
-  query: async (queryOp: Algebra.Operation, queryContext: any) => {
+  query: async (queryOp: Algebra.Operation | string, queryContext: any) => {
     console.log('')
     console.log('Executing...')
-    console.log(toSparqlFragment(queryOp))
+    console.log(
+      typeof queryOp === 'string' ? queryOp : toSparqlFragment(queryOp)
+    )
     const res = <IActorQueryOperationOutputBindings>(
       await engine.query(queryOp, queryContext)
     )

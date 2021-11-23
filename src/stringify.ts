@@ -1,7 +1,7 @@
 import { Algebra, toSparql, Factory } from 'sparqlalgebrajs'
 import {
   Flow,
-  Action,
+  ActionExecutor,
   Parallel,
   ForEach,
   Join,
@@ -30,11 +30,11 @@ export function stringifyFlow<ReturnType>(
   flow: Flow<ReturnType>,
   options = {}
 ): any {
-  if (flow instanceof Action) {
+  if (flow instanceof ActionExecutor) {
     const action = flow
     return {
       type: 'action',
-      exec: action.exec.toString()
+      exec: action.action.toString()
     }
   } else if (flow instanceof Cascade) {
     const cascade = flow

@@ -3,7 +3,7 @@ import * as RDF from 'rdf-js'
 import { Table, TableSync, syncTable } from './table'
 import {
   Flow,
-  Action,
+  ActionExecutor,
   ForEach,
   Join,
   Filter,
@@ -11,7 +11,8 @@ import {
   Let,
   ParallelTwo,
   ParallelThree,
-  ParallelN
+  ParallelN,
+  Action
 } from './flow'
 import { Bindings } from '@comunica/types'
 import { Map } from 'immutable'
@@ -32,24 +33,6 @@ function isPropertyPathSymbol(p: any): p is Algebra.PropertyPathSymbol {
     Algebra.types.ZERO_OR_MORE_PATH,
     Algebra.types.ZERO_OR_ONE_PATH
   ].includes(p.type)
-}
-
-/**
- * Convert a generic syncronous function to an asyncronous version.
- * @param f - Input function.
- * @returns `f` as an asyncronous function.
- */
-export function promisifyFromSync<Domain, Range>(
-  f: (x: Domain) => Range
-): (x: Domain) => Promise<Range> {
-  return (x: Domain) =>
-    new Promise<Range>((resolve, reject) => {
-      try {
-        resolve(f(x))
-      } catch (e) {
-        reject(e)
-      }
-    })
 }
 
 /**
@@ -115,190 +98,78 @@ export default class FlowFactory {
     this.options = options
   }
 
-  createCascadeAsync<SubflowReturnType, ActionReturnType>(config: {
+  createCascade<SubflowReturnType, ActionReturnType>(config: {
     subflow: Flow<SubflowReturnType>
-    action: (subflowResult: SubflowReturnType) => Promise<ActionReturnType>
+    action: Action<SubflowReturnType, ActionReturnType>
   }): Cascade<SubflowReturnType, ActionReturnType> {
     return new Cascade(config.subflow, config.action)
   }
 
-  createCascade<SubflowReturnType, ActionReturnType>(config: {
-    subflow: Flow<SubflowReturnType>
-    action: (subflowResult: SubflowReturnType) => ActionReturnType
-  }): Cascade<SubflowReturnType, ActionReturnType> {
-    return this.createCascadeAsync({
-      subflow: config.subflow,
-      action: promisifyFromSync(config.action)
-    })
-  }
-
-  createActionAsync<ReturnType>(
+  createActionExecutor<ReturnType>(
     config:
       | {
-          exec: (input: Table) => Promise<ReturnType>
+          action: Action<Table, ReturnType>
         }
-      | ((input: Table) => Promise<ReturnType>)
-  ): Action<ReturnType> {
-    const exec = <(input: Table) => Promise<ReturnType>>(
-      ((<any>config).exec || config)
-    )
-    return new Action(exec)
+      | Action<Table, ReturnType>
+  ): ActionExecutor<ReturnType> {
+    const action = 'action' in config ? config.action : config
+    return new ActionExecutor(action)
   }
 
-  createAction<ReturnType>(
-    config:
-      | {
-          exec: (input: Table) => ReturnType
-        }
-      | ((input: Table) => ReturnType)
-  ): Action<ReturnType> {
-    const exec = <(input: Table) => ReturnType>((<any>config).exec || config)
-    return this.createActionAsync({
-      exec: promisifyFromSync(exec)
-    })
-  }
-
-  createConstant<ReturnType>(value: ReturnType): Action<ReturnType> {
-    return this.createAction({
-      exec: () => value
-    })
-  }
-
-  createActionAsyncOnAll<ReturnType>(
-    config:
-      | {
-          exec: (input: TableSync) => Promise<ReturnType>
-        }
-      | ((input: TableSync) => Promise<ReturnType>)
-  ): Action<ReturnType> {
-    const exec = <(input: TableSync) => Promise<ReturnType>>(
-      ((<any>config).exec || config)
-    )
-    return this.createActionAsync((table) => {
-      return new Promise<ReturnType>((resolve, reject) => {
-        syncTable(table).then(
-          (tableSync) => {
-            exec(tableSync).then(
-              (res) => {
-                resolve(res)
-              },
-              (error) => {
-                reject(error)
-              }
-            )
-          },
-          (error) => {
-            reject(error)
-          }
-        )
-      })
-    })
+  createConstant<ReturnType>(value: ReturnType): ActionExecutor<ReturnType> {
+    return this.createActionExecutor(() => value)
   }
 
   createActionOnAll<ReturnType>(
     config:
       | {
-          exec: (input: TableSync) => ReturnType
+          action: Action<TableSync, ReturnType>
         }
-      | ((input: TableSync) => ReturnType)
-  ): Action<ReturnType> {
-    const exec = <(input: TableSync) => ReturnType>(
-      ((<any>config).exec || config)
+      | Action<TableSync, ReturnType>
+  ): ActionExecutor<ReturnType> {
+    const action = 'action' in config ? config.action : config
+    return this.createActionExecutor(async (table) =>
+      action(await syncTable(table))
     )
-    return this.createActionAsyncOnAll({
-      exec: promisifyFromSync(exec)
-    })
-  }
-
-  createActionAsyncOnFirst<ReturnType>(
-    config:
-      | {
-          exec: (bindings: Bindings) => Promise<ReturnType>
-          acceptEmpty?: boolean
-        }
-      | ((bindings: Bindings) => Promise<ReturnType>)
-  ): Action<ReturnType> {
-    const exec = <(bindings: Bindings) => Promise<ReturnType>>(
-      ((<any>config).exec || config)
-    )
-    const acceptEmpty =
-      (<any>config).acceptEmpty !== undefined ? (<any>config).acceptEmpty : true
-    return this.createActionAsync((table) => {
-      return new Promise<ReturnType>((resolve, reject) => {
-        const cb = (bindings: Bindings) => {
-          exec(bindings).then(
-            (res) => {
-              resolve(res)
-            },
-            (err) => {
-              reject(err)
-            }
-          )
-        }
-        let firstTime = true
-        table.bindingsStream.on('data', (binding) => {
-          if (firstTime) {
-            cb(binding)
-            firstTime = false
-          }
-        })
-        table.bindingsStream.on('end', () => {
-          if (firstTime) {
-            if (acceptEmpty) {
-              cb(Map<string, RDF.Term>({}))
-            } else {
-              reject(new Error('Expected at least a value, zero found'))
-            }
-          }
-        })
-        table.bindingsStream.on('error', (e) => {
-          reject(e)
-        })
-      })
-    })
   }
 
   createActionOnFirst<ReturnType>(
     config:
       | {
-          exec: (bindings: Bindings) => ReturnType
+          action: Action<Bindings, ReturnType>
+          acceptEmpty?: boolean
         }
-      | ((bindings: Bindings) => ReturnType)
-  ): Action<ReturnType> {
-    const exec = <(bindings: Bindings) => ReturnType>(
-      ((<any>config).exec || config)
-    )
-    return this.createActionAsyncOnFirst({
-      exec: promisifyFromSync(exec)
-    })
-  }
-
-  createActionAsyncOnFirstDefault<ReturnType>(
-    config:
-      | {
-          exec: (term: RDF.Term) => Promise<ReturnType>
+      | Action<Bindings, ReturnType>
+  ): ActionExecutor<ReturnType> {
+    const action = 'action' in config ? config.action : config
+    const acceptEmpty = 'acceptEmpty' in config && config.acceptEmpty
+    return this.createActionExecutor(async (table) => {
+      const oneTuple = await syncTable(table, 1)
+      let bindings: Bindings
+      if (oneTuple.bindingsArray.length === 0) {
+        if (acceptEmpty) {
+          bindings = Map<string, RDF.Term>({})
+        } else {
+          throw new Error('Expected at least a value, zero found')
         }
-      | ((term: RDF.Term) => Promise<ReturnType>)
-  ): Action<ReturnType> {
-    const exec = <(term: RDF.Term) => Promise<ReturnType>>(
-      ((<any>config).exec || config)
-    )
-    return this.createActionAsyncOnFirst({
-      exec: (bindings: Bindings) => exec(bindings.get('?_'))
+      } else {
+        bindings = Map<string, RDF.Term>(oneTuple.bindingsArray[0])
+      }
+      return action(bindings)
     })
   }
 
   createActionOnFirstDefault<ReturnType>(
     config:
       | {
-          exec: (term: RDF.Term) => ReturnType
+          action: Action<RDF.Term, ReturnType>
         }
-      | ((term: RDF.Term) => ReturnType)
-  ): Action<ReturnType> {
-    const exec = <(term: RDF.Term) => ReturnType>((<any>config).exec || config)
-    return this.createActionOnFirst({
-      exec: (bindings: Bindings) => exec(bindings.get('?_'))
-    })
+      | Action<RDF.Term, ReturnType>
+  ): ActionExecutor<ReturnType> {
+    const action = 'action' in config ? config.action : config
+    return this.createActionOnFirst(async (bindings: Bindings) =>
+      action(bindings.get('?_'))
+    )
   }
 
   createParallel<EachReturnType>(
@@ -590,7 +461,7 @@ export default class FlowFactory {
     } = {}
   ): Flow<RDF.Term> {
     const action = this.createActionOnFirstDefault({
-      exec: (x) => x
+      action: (x) => x
     })
     const actionIfLang = config.lang
       ? this.createFilter({
@@ -674,7 +545,7 @@ export default class FlowFactory {
     const logFlowId = ++this.logFlowCount
     let callCount = 0
     const loggingFlow = this.createActionOnAll({
-      exec: (table: TableSync) => {
+      action: (table: TableSync) => {
         const callId = ++callCount
         console.log(
           '# Input of node ' +

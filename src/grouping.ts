@@ -54,7 +54,13 @@ export function groupOrdered(
   input: Table,
   groupingVariables: string[]
 ): AsyncIterator<{ groupBindings: Bindings; members: Table }> {
-  console.log('In groupOrdered with grouping variables: ' + groupingVariables)
+  console.log(
+    'In groupOrdered with grouping variables [' +
+      groupingVariables +
+      '] over variables [' +
+      input.variables +
+      ']'
+  )
   return new SplitIterator(
     input.bindingsStream,
     (bindings) =>

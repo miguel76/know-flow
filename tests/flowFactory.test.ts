@@ -48,7 +48,7 @@ const showOne = ff.createActionOnFirstDefault((b) => b)
 
 const flows = {
   constant: ff.createConstant(42),
-  'action constant': ff.createAction(() => {
+  'action constant': ff.createActionExecutor(() => {
     return 42
   }),
   'action show bindings': showBindings,

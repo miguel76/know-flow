@@ -1,7 +1,7 @@
-import FlowFactory, { promisifyFromSync } from './flowFactory'
+import FlowFactory from './flowFactory'
 import * as RDF from 'rdf-js'
 import { Algebra, Factory } from 'sparqlalgebrajs'
-import { Flow, Cascade } from './flow'
+import { Flow, Cascade, Action } from './flow'
 import { Table } from './table'
 
 export class FlowApplier<SubflowReturnType, ActionReturnType> extends Cascade<
@@ -13,29 +13,19 @@ export class FlowApplier<SubflowReturnType, ActionReturnType> extends Cascade<
   constructor(
     flowFactory: FlowFactory,
     flow: Flow<SubflowReturnType>,
-    action: (x: SubflowReturnType) => Promise<ActionReturnType>
+    action: Action<SubflowReturnType, ActionReturnType>
   ) {
     super(flow, action)
     this.flowFactory = flowFactory
   }
 
   apply<NewReturnType>(
-    exec: (x: ActionReturnType) => NewReturnType
+    action: Action<ActionReturnType, NewReturnType>
   ): FlowApplier<ActionReturnType, NewReturnType> {
     return new FlowApplier<ActionReturnType, NewReturnType>(
       this.flowFactory,
       this.subflow,
-      promisifyFromSync(exec)
-    )
-  }
-
-  applyAsync<NewReturnType>(
-    exec: (x: ActionReturnType) => Promise<NewReturnType>
-  ): FlowApplier<ActionReturnType, NewReturnType> {
-    return new FlowApplier<ActionReturnType, NewReturnType>(
-      this.flowFactory,
-      this.subflow,
-      exec
+      action
     )
   }
 }
@@ -88,14 +78,8 @@ export default class FlowBuilder {
     )
   }
 
-  action<ReturnType>(exec: (input: Table) => ReturnType): Flow<ReturnType> {
-    return this.next(this.flowFactory.createAction({ exec }))
-  }
-
-  actionAsync<ReturnType>(
-    exec: (input: Table) => Promise<ReturnType>
-  ): Flow<ReturnType> {
-    return this.next(this.flowFactory.createActionAsync({ exec }))
+  action<ReturnType>(action: Action<Table, ReturnType>): Flow<ReturnType> {
+    return this.next(this.flowFactory.createActionExecutor(action))
   }
 
   traverse(path: Algebra.PropertyPathSymbol | RDF.Term | string): FlowBuilder {

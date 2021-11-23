@@ -48,8 +48,6 @@ const join = flowFactory.createJoin({
   subflow: action5
 })
 
-const showList = {}
-
 function showAttr(
   attrPath: string,
   attrLabel: string,

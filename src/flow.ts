@@ -11,21 +11,25 @@ import { Table } from './table'
 // eslint-disable-next-line no-unused-vars
 export abstract class Flow<ReturnType> {}
 
+export type Action<InputType, OutputType> =
+  | ((input: InputType) => Promise<OutputType>)
+  | ((input: InputType) => OutputType)
+
 /**
- * Actions are flows composed of a single async function taking as input the
- * current sequence of bindings.
+ * Action executors are flows composed of a single (potentially async) function
+ * taking as input the current sequence of bindings.
  */
-export class Action<ReturnType> extends Flow<ReturnType> {
-  /** Async function to be excuted */
-  exec: (input: Table) => Promise<ReturnType>
+export class ActionExecutor<ReturnType> extends Flow<ReturnType> {
+  /** Async/sync function to be excuted */
+  action: Action<Table, ReturnType>
 
   /**
-   * Creates a new action
-   * @param exec - Async function to be excuted
+   * Creates a new action executor
+   * @param action - Async/sync function to be excuted
    */
-  constructor(exec: (input: Table) => Promise<ReturnType>) {
+  constructor(action: Action<Table, ReturnType>) {
     super()
-    this.exec = exec
+    this.action = action
   }
 }
 
@@ -39,7 +43,7 @@ export class Cascade<
   /** Subflow to be executed before the action */
   subflow: Flow<SubflowReturnType>
   /** Function to be executed as action after the subflow */
-  action: (subflowResult: SubflowReturnType) => Promise<ActionReturnType>
+  action: Action<SubflowReturnType, ActionReturnType>
 
   /**
    * Creates a new cascade
@@ -48,7 +52,7 @@ export class Cascade<
    */
   constructor(
     subflow: Flow<SubflowReturnType>,
-    action: (subflowResult: SubflowReturnType) => Promise<ActionReturnType>
+    action: Action<SubflowReturnType, ActionReturnType>
   ) {
     super()
     this.subflow = subflow
@@ -129,12 +133,11 @@ export class ForEach<EachReturnType> extends Flow<EachReturnType[]> {
 
   /**
    * Creates a new ForEach
-   * @param subflow - Optionally, set of variables used for the iteration. If
-   * undefined all the variables in the input sequence of bindings are
-   * considered.
-   * @param variablesOrDistinct - In the case all the variables are selected for
-   * iteration, decides if multiple indentical bindings are considered in the
-   * same iteration or not
+   * @param subflow - Subflow to be executed each time
+   * @param variablesOrDistinct - If an arrary, the set of variables used for
+   * the iteration. If a boolean, all the variables in the input are
+   * considered and the boolean decides if repeated bindings are taken in the
+   * same iteration or not.
    */
   constructor(
     subflow: Flow<EachReturnType>,

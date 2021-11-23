@@ -34,22 +34,26 @@ export interface TableSync {
   canContainUndefs: boolean
 }
 
-export function syncTable(table: Table): Promise<TableSync> {
+export function syncTable(table: Table, limit?: number): Promise<TableSync> {
   return new Promise<TableSync>((resolve, reject) => {
     const bindingsArray: { [varname: string]: RDF.Term }[] = []
-    table.bindingsStream.on('data', (bindings: Bindings) => {
+    const bindingsStream =
+      limit === undefined
+        ? table.bindingsStream
+        : table.bindingsStream.take(limit)
+    bindingsStream.on('data', (bindings: Bindings) => {
       bindingsArray.push(Object.fromEntries(<any>bindings))
     })
-    table.bindingsStream.on('end', () => {
-      table.bindingsStream.close()
+    bindingsStream.on('end', () => {
+      bindingsStream.close()
       resolve({
         variables: table.variables,
         bindingsArray,
         canContainUndefs: table.canContainUndefs
       })
     })
-    table.bindingsStream.on('error', (error) => {
-      table.bindingsStream.close()
+    bindingsStream.on('error', (error) => {
+      bindingsStream.close()
       reject(error)
     })
   })

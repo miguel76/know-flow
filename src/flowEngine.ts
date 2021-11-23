@@ -1,6 +1,6 @@
 import {
   Flow,
-  Action,
+  ActionExecutor,
   Parallel,
   ForEach,
   Join,
@@ -135,18 +135,6 @@ export default class FlowEngine {
       )
       return newBindings
     } else {
-      // const inputOp = await fromTableToValuesOp(input)
-      // const orderOp = algebraFactory.createOrderBy(
-      //   inputOp,
-      //   groupingVariables.map((varname) =>
-      //     algebraFactory.createTermExpression(
-      //       algebraFactory.dataFactory.variable(varname.substr(1))
-      //     )
-      //   )
-      // )
-      // console.log(toSparqlQuery(orderOp))
-      // const result = await this.query(orderOp)
-      // return groupOrdered(result, groupingVariables).map((g) => g.members)
       return (await group(input, groupingVariables)).map((g) => g.members)
     }
   }
@@ -176,7 +164,7 @@ export default class FlowEngine {
       input = <Table>(<any>config).input || noBindingSingletonTable()
     }
     // By case execution of each type of flow
-    if (flow instanceof Action) {
+    if (flow instanceof ActionExecutor) {
       return this.runAction(flow, input)
     } else if (flow instanceof Cascade) {
       return this.runCascade(flow, input)
@@ -192,10 +180,10 @@ export default class FlowEngine {
   }
 
   private async runAction<ReturnType>(
-    action: Action<ReturnType>,
+    action: ActionExecutor<ReturnType>,
     input: Table
   ): Promise<ReturnType> {
-    return action.exec(input)
+    return action.action(input)
   }
 
   private async runCascade<SubflowReturnType, ReturnType>(
