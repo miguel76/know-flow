@@ -22,9 +22,16 @@ export interface Grouping {
   }[]
 }
 
+/**
+ * Base class for flows, which are networks of know-flow operations
+ */
 // eslint-disable-next-line no-unused-vars
 export class Flow<ReturnType> {}
 
+/**
+ * Actions are flows composed of a single async function taking as input the
+ * current stream of bindings.
+ */
 export class Action<ReturnType> extends Flow<ReturnType> {
   exec: (input: Table) => Promise<ReturnType>
 
@@ -34,6 +41,9 @@ export class Action<ReturnType> extends Flow<ReturnType> {
   }
 }
 
+/** Cascades are flows composed of a subflow and a follow up action, the latter
+ * taking as input the output of the former.
+ */
 export class Cascade<
   SubflowReturnType,
   ActionReturnType
@@ -51,6 +61,10 @@ export class Cascade<
   }
 }
 
+/**
+ * Parallel flows are composed of an array of subflows executed in parallel.
+ * The output is the array of the results of each subflow.
+ */
 export class Parallel<EachReturnType> extends Flow<EachReturnType[]> {
   subflows: Flow<EachReturnType>[]
 
@@ -60,6 +74,10 @@ export class Parallel<EachReturnType> extends Flow<EachReturnType[]> {
   }
 }
 
+/**
+ * ForEach flows consist of a subflow that is executed mutiple times, once for
+ * each input binding of either all the variables or a subset of them.
+ */
 export class ForEach<EachReturnType> extends Flow<EachReturnType[]> {
   subflow: Flow<EachReturnType>
   variables: string[] | undefined
@@ -80,6 +98,11 @@ export class ForEach<EachReturnType> extends Flow<EachReturnType[]> {
   }
 }
 
+/**
+ * Base class of data operations, which are the flows that are data aware.
+ * Data operations manipulate in some way (depnding on the specific subclass)
+ * the current stream of bindings, without side effects.
+ */
 export class DataOperation<ReturnType> extends Flow<ReturnType> {
   subflow: Flow<ReturnType>
 
@@ -89,6 +112,11 @@ export class DataOperation<ReturnType> extends Flow<ReturnType> {
   }
 }
 
+/**
+ * Let operations replace the value of a variable with the value taken from
+ * another variable.
+ * It optionally hides the variable originally holding the value
+ */
 export class Let<ReturnType> extends DataOperation<ReturnType> {
   currVarname: string
   newVarname: string
@@ -107,6 +135,11 @@ export class Let<ReturnType> extends DataOperation<ReturnType> {
   }
 }
 
+/**
+ * Join operations perform a Join between the current stream of bindings and the
+ * output of a SPARQL subquery.
+ * @see {@link https://www.w3.org/TR/sparql11-query/#defn_algJoin}
+ */
 export class Join<ReturnType> extends DataOperation<ReturnType> {
   right: Algebra.Operation
 
@@ -116,6 +149,10 @@ export class Join<ReturnType> extends DataOperation<ReturnType> {
   }
 }
 
+/**
+ * Filter operations perform a Filter over the current stream of bindings.
+ * @see {@link https://www.w3.org/TR/sparql11-query/#defn_algFilter}
+ */
 export class Filter<ReturnType> extends DataOperation<ReturnType> {
   expression: Algebra.Expression
 
