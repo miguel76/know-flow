@@ -112,52 +112,37 @@ export default class FlowFactory {
 
   /**
    * Creates an ActionExecutor.
-   * @param config - Either configuration object or action to be executed.
-   * @param config.action - Action to be executed.
+   * @param action - Action to be executed.
    * @returns The new ActionExecutor instance.
    */
   createActionExecutor<ReturnType>(
-    config:
-      | {
-          action: Action<Table, ReturnType>
-        }
-      | Action<Table, ReturnType>
+    action: Action<Table, ReturnType>
   ): ActionExecutor<ReturnType> {
-    const action = 'action' in config ? config.action : config
     return new ActionExecutor(action)
   }
 
   /**
-   * Creates a Parallel flow.
-   * @param config - Either configuration object or array of subflows to be
-   * executed.
-   * @param config.action - Array of subflows to be executed.
+   * Creates a Parallel flow from an array of subflows.
+   * @param subflows - Array of subflows to be executed.
    * @returns The new Parallel instance.
    */
   createParallel<EachReturnType>(
-    config:
-      | {
-          subflows: Flow<EachReturnType>[]
-        }
-      | Flow<EachReturnType>[]
+    subflows: Flow<EachReturnType>[]
   ): ParallelN<EachReturnType> {
-    const subflows = Array.isArray(config) ? config : config.subflows
     return new ParallelN(subflows)
   }
 
-  createParallelDict<EachReturnType>(
-    config:
-      | {
-          subflows: { [key: string]: Flow<EachReturnType> }
-        }
-      | { [key: string]: Flow<EachReturnType> }
-  ): Flow<{ [key: string]: EachReturnType }> {
-    const values = Object.values(config)
-    const subflowsMap =
-      !values.length || values[0] instanceof Flow ? config : config.subflows
+  /**
+   * Creates a Parallel flow from a dictionary of subflows.
+   * @param subflowsDict - Dictionary of subflows to be executed.
+   * @returns The new Parallel instance.
+   */
+  createParallelDict<EachReturnType>(subflowsDict: {
+    [key: string]: Flow<EachReturnType>
+  }): Flow<{ [key: string]: EachReturnType }> {
     const keys: string[] = []
     const subflows: Flow<EachReturnType>[] = []
-    Object.entries(subflowsMap).forEach(([key, subflow]) => {
+    Object.entries(subflowsDict).forEach(([key, subflow]) => {
       keys.push(key)
       subflows.push(subflow)
     })
@@ -170,6 +155,11 @@ export default class FlowFactory {
     })
   }
 
+  /**
+   * Creates a Parallel flow from a JS object containing nested subflows.
+   * @param obj - JS object containing nested subflows.
+   * @returns The new Parallel instance.
+   */
   createParallelFromObject(obj: any): Flow<any> {
     if (obj instanceof Flow) {
       return obj
@@ -192,13 +182,8 @@ export default class FlowFactory {
   }
 
   createParallelTwo<ReturnType1, ReturnType2>(
-    config:
-      | {
-          subflows: [Flow<ReturnType1>, Flow<ReturnType2>]
-        }
-      | [Flow<ReturnType1>, Flow<ReturnType2>]
+    subflows: [Flow<ReturnType1>, Flow<ReturnType2>]
   ): ParallelTwo<ReturnType1, ReturnType2> {
-    const subflows = Array.isArray(config) ? config : config.subflows
     return new ParallelTwo(subflows)
   }
 
@@ -213,6 +198,11 @@ export default class FlowFactory {
     return new ParallelThree(subflows)
   }
 
+  /**
+   * Creates a ForEach flow
+   * @param config - Configuration object
+   * @returns New ForEach instance
+   */
   createForEach<EachReturnType>(
     config:
       | {
@@ -519,12 +509,10 @@ export default class FlowFactory {
         return callId
       })
     )
-    const seq = this.createParallel<any>({
-      subflows: [loggingFlow, next]
-    })
+    const seq = this.createParallelTwo([loggingFlow as Flow<number>, next])
     return this.createCascade({
-      subflow: seq,
-      action: (resSeq: any) => {
+      subflow: seq as Flow<[number, ReturnType]>,
+      action: (resSeq) => {
         const callId = resSeq[0]
         const actionRes = resSeq[1]
         console.log(
