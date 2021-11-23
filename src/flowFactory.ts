@@ -101,7 +101,7 @@ export default class FlowFactory {
    * Creates a Cascade flow.
    * @param config.subflow - Subflow to be executed before the action.
    * @param config.action - Function to be executed as action after the subflow.
-   * @returns the new Cascade instance.
+   * @returns The new Cascade instance.
    */
   createCascade<SubflowReturnType, ActionReturnType>(config: {
     subflow: Flow<SubflowReturnType>
@@ -111,11 +111,10 @@ export default class FlowFactory {
   }
 
   /**
-   * Creates an ActionExecutor
-   * @param config - Either configuration object or function to be executed as
-   * action
-   * @param config.action - Function to be executed as action.
-   * @returns the new ActionExecutor instance.
+   * Creates an ActionExecutor.
+   * @param config - Either configuration object or action to be executed.
+   * @param config.action - Action to be executed.
+   * @returns The new ActionExecutor instance.
    */
   createActionExecutor<ReturnType>(
     config:
@@ -128,6 +127,13 @@ export default class FlowFactory {
     return new ActionExecutor(action)
   }
 
+  /**
+   * Creates a Parallel flow.
+   * @param config - Either configuration object or array of subflows to be
+   * executed.
+   * @param config.action - Array of subflows to be executed.
+   * @returns The new Parallel instance.
+   */
   createParallel<EachReturnType>(
     config:
       | {
