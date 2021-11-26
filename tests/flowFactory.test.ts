@@ -101,7 +101,7 @@ const flows = {
   'foreach traversal value reader': ff.createValues({
     bindings: ['ex:Res1', 'ex:Res2', 'ex:Res3', '"pippo"', '42', '3.14'],
     subflow: ff.createForEach({
-      path: 'ex:prop1',
+      select: { path: 'ex:prop1' },
       subflow: ff.createValueReader()
     })
   }),
@@ -109,7 +109,7 @@ const flows = {
     bindings: ['ex:Res1', 'ex:Res2', 'ex:Res3'],
     subflow: ff.createForEach(
       ff.createForEach({
-        path: 'ex:prop1',
+        select: { path: 'ex:prop1' },
         subflow: ff.createStringReader()
       })
     )
@@ -118,7 +118,7 @@ const flows = {
     bindings: ['ex:Res1', 'ex:Res2', 'ex:Res3'],
     subflow: ff.createForEach(
       ff.createForEach({
-        path: 'ex:prop1',
+        select: { path: 'ex:prop1' },
         subflow: ff.createValueReader()
       })
     )
@@ -126,15 +126,15 @@ const flows = {
   'all triples foreach x 3': ff.createJoin({
     right: '?s ?p ?o',
     subflow: ff.createForEach({
-      var: ['?s'],
+      select: ['?s'],
       subflow: ff.createForEach({
-        var: ['?p'],
+        select: ['?p'],
         subflow: ff.createForEach({
-          var: ['?o'],
+          select: ['?o'],
           subflow: ff.createParallelDict({
-            s: ff.createValueReader({ variable: '?s' }),
-            p: ff.createValueReader({ variable: '?p' }),
-            o: ff.createValueReader({ variable: '?o' })
+            s: ff.createValueReader({ var: '?s' }),
+            p: ff.createValueReader({ var: '?p' }),
+            o: ff.createValueReader({ var: '?o' })
           })
         })
       })
@@ -143,13 +143,13 @@ const flows = {
   'all triples foreach x 2': ff.createJoin({
     right: '?s ?p ?o',
     subflow: ff.createForEach({
-      var: ['?s'],
+      select: ['?s'],
       subflow: ff.createForEach({
-        var: ['?p', '?o'],
+        select: ['?p', '?o'],
         subflow: ff.createParallelDict({
-          s: ff.createValueReader({ variable: '?s' }),
-          p: ff.createValueReader({ variable: '?p' }),
-          o: ff.createValueReader({ variable: '?o' })
+          s: ff.createValueReader({ var: '?s' }),
+          p: ff.createValueReader({ var: '?p' }),
+          o: ff.createValueReader({ var: '?o' })
         })
       })
     })
@@ -157,21 +157,22 @@ const flows = {
   'all triples foreach x 1': ff.createJoin({
     right: '?s ?p ?o',
     subflow: ff.createForEach({
-      var: ['?s', '?p', '?o'],
+      select: ['?s', '?p', '?o'],
       subflow: ff.createParallelDict({
-        s: ff.createValueReader({ variable: '?s' }),
-        p: ff.createValueReader({ variable: '?p' }),
-        o: ff.createValueReader({ variable: '?o' })
+        s: ff.createValueReader({ var: '?s' }),
+        p: ff.createValueReader({ var: '?p' }),
+        o: ff.createValueReader({ var: '?o' })
       })
     })
   }),
   'all triples foreach x 1 implicit': ff.createJoin({
     right: '?s ?p ?o',
     subflow: ff.createForEach({
+      select: { allVars: true },
       subflow: ff.createParallelDict({
-        s: ff.createValueReader({ variable: '?s' }),
-        p: ff.createValueReader({ variable: '?p' }),
-        o: ff.createValueReader({ variable: '?o' })
+        s: ff.createValueReader({ var: '?s' }),
+        p: ff.createValueReader({ var: '?p' }),
+        o: ff.createValueReader({ var: '?o' })
       })
     })
   })

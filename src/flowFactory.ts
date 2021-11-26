@@ -12,7 +12,8 @@ import {
   ParallelTwo,
   ParallelThree,
   ParallelN,
-  Action
+  Action,
+  Hide
 } from './flow'
 import { RDFToValueOrObject } from './toNative'
 import * as Actions from './actions'
@@ -57,12 +58,174 @@ export interface FlowFactoryOptions extends TranslateOptions {
 }
 
 /**
- * Something used to represent a property path: a full property path
- * ({@link sparqlalgebrajs#Algebra.PropertyPathSymbol}), a single predicate
- * ({@link rdf-js#Term}), or a string parseable as one of the two (SPARQL/Turtle
- * syntax).
+ * Something used to represent a simple property path (on the default graph): a
+ * full property path ({@link sparqlalgebrajs#Algebra.PropertyPathSymbol}), a
+ * single predicate ({@link rdf-js#Term}), or a string parseable as one of the
+ * two (SPARQL/Turtle syntax).
  */
-export type PathParam = Algebra.PropertyPathSymbol | RDF.Term | string
+type PathParam = Algebra.PropertyPathSymbol | RDF.Term | string
+
+/**
+ * Something used to represent an RDF term: either a {@link rdf-js#Term} or a
+ * string parseable as one.
+ */
+export type TermParam = string | RDF.Term
+
+/**
+ * Parameters used to specify a traversal.
+ */
+export type TraversalParam = {
+  // Path specification
+  path: PathParam
+  // Optional graph name
+  graphName?: TermParam
+  // Name of the variable from which the path starts (defaults to `?_`)
+  from?: string
+  // Name of the variable to which the result is bound (defaults to `?_`)
+  as?: string
+}
+
+/**
+ * Parameters used to select a variable and possibly rename it
+ */
+export type SingleVariableParam =
+  | {
+      // The variable whose value is read
+      var?: string
+      // New name given to the variable
+      // as?: string
+    }
+  | string
+  | undefined
+
+type CanonSingleVariableParam = {
+  // The variable whose value is read
+  var: string
+  // New name given to the variable
+  // as?: string
+}
+
+/**
+ * Parameters used to select a single value
+ */
+export type SingleValueSelector = SingleVariableParam | TraversalParam
+
+type CanonSingleValueSelector = CanonSingleVariableParam | TraversalParam
+
+function canonSingleValuesSelector(
+  selector: SingleValueSelector
+): CanonSingleValueSelector {
+  return selector === undefined
+    ? { var: '?_' }
+    : typeof selector === 'string'
+    ? { var: selector }
+    : 'path' in selector
+    ? (selector as TraversalParam)
+    : 'var' in selector
+    ? (selector as CanonSingleVariableParam)
+    : { var: '?_' }
+}
+
+/**
+ * Parameters used to select all the variables in scope
+ */
+export type AllVariablesSelector = { allVars: true; distinct?: boolean }
+
+/**
+ * Parameters used to select a set of (named) values
+ */
+export type ValuesSelector =
+  | SingleValueSelector
+  | SingleValueSelector[]
+  | AllVariablesSelector
+
+type CanonValuesSelector = CanonSingleValueSelector[] | AllVariablesSelector
+
+function canonValuesSelector(selector: ValuesSelector): CanonValuesSelector {
+  return Array.isArray(selector)
+    ? selector.map(canonSingleValuesSelector)
+    : typeof selector === 'object' && 'allVars' in selector
+    ? {
+        allVars: true,
+        distinct: 'distinct' in selector ? selector.distinct : false
+      }
+    : [canonSingleValuesSelector(selector)]
+}
+
+// function newVariablesFromSelector(selector: CanonValuesSelector) {
+//   return 'allVars' in selector
+//     ? []
+//     : selector.map((s) => s.as).filter((v) => v !== undefined)
+// }
+
+// function newVariablesFromTraversals(selector: CanonValuesSelector) {
+//   return 'allVars' in selector
+//     ? []
+//     : selector
+//         .filter((s) => 'path' in s)
+//         .map((s: TraversalParam) => s.as)
+//         .filter((v) => v !== undefined)
+// }
+
+function newVariablesFromTraversals(traversals: TraversalParam[]) {
+  return traversals.map((t) => t.as).filter((v) => v !== undefined)
+}
+
+function variablesFromValuesSelector(selector: CanonValuesSelector) {
+  return 'allVars' in selector
+    ? undefined
+    : [
+        ...selector
+          .filter((s) => 'var' in s)
+          .map((s: CanonSingleVariableParam) => s.var),
+        ...newVariablesFromTraversals(
+          selector.filter((s) => 'path' in s) as TraversalParam[]
+        )
+      ]
+}
+
+// function renamingFromSelector(
+//   selector: CanonValuesSelector
+// ): SingleVarRenameConfig[] {
+//   return 'allVars' in selector
+//     ? []
+//     : selector
+//         .filter((s) => 'var' in s && 'as' in s)
+//         .map((s: CanonSingleVariableParam) => ({
+//           currVarname: s.var,
+//           newVarname: s.as,
+//           hideCurrVar: false
+//         }))
+// }
+
+/**
+ * Parameters used to define a ForEach: either the selection of a set of values
+ * to iterate on or, if all the variables are considered, the 'distinct' flag
+ * to decide if repeated tuples must be considered in the same repetition.
+ */
+export type ForEachParam = { select: ValuesSelector }
+
+/**
+ * Object used to specify a single term reader (or similar) action: either a
+ * single variable or a traversal
+ */
+export type TermReaderParam = SingleValueSelector & {
+  filter?: Algebra.Expression | string
+  lang?: string
+  datatype?: string
+}
+
+type SubflowAndParams<SubflowReturnType, ParamType> =
+  | Flow<SubflowReturnType>
+  | ({ subflow: Flow<SubflowReturnType> } & ParamType)
+
+function getFlowConfig<SubflowReturnType, ParamType>(
+  config: SubflowAndParams<SubflowReturnType, ParamType>
+): { subflow: Flow<SubflowReturnType>; params: ParamType | {} } {
+  return config instanceof Flow
+    ? { subflow: config, params: {} }
+    : { subflow: config.subflow, params: { ...config } }
+}
 
 /**
  * Factory used to build flow objects, based on a set of options (e.g., a set of
@@ -200,58 +363,51 @@ export default class FlowFactory {
 
   /**
    * Creates a ForEach flow.
-   * @param config - Configuration object.
-   * @param config.subflow - Subflow to be executed each time.
-   * @param config.var - Variable(s) used for the iteration. If not defined, all
-   * the variables in the current sequence of bindings are considered.
-   * @param config.distinct - True if, when `config.var` is not defined, the
-   * subflow is called for each different binding, not considering repetitions.
-   * @param config.path - Property path to be traversed before iteration.
-   * @param config.graph - Named graph to be optionally considered for the
-   * traversal.
+   * @param config - The subflow or an object with the subflow and the ForEach
+   * parameters.
    * @returns New ForEach instance.
    */
   createForEach<EachReturnType>(
-    config:
-      | {
-          subflow: Flow<EachReturnType>
-          var?: string | string[]
-          distinct?: boolean
-        }
-      | {
-          subflow: Flow<EachReturnType>
-          path: PathParam
-          graph?: RDF.Term
-          // var?: string
-        }
-      | Flow<EachReturnType>
+    inputConfig: SubflowAndParams<EachReturnType, ForEachParam>
   ): Flow<EachReturnType[]> {
-    let subflow: Flow<EachReturnType>
-    let path: PathParam | undefined
-    let graph: RDF.Term | undefined
+    const config = getFlowConfig(inputConfig)
+    const selector = canonValuesSelector(
+      'select' in config.params ? config.params.select : {}
+    )
     let variablesOrDistinct: string[] | boolean
-    if (config instanceof Flow) {
-      subflow = config
-    } else if ('path' in config) {
-      subflow = config.subflow
-      path = config.path
-      graph = config.graph
-      // variablesOrDistinct = [config.var || '?_'];
-      variablesOrDistinct = ['?_']
+    let traversals: TraversalParam[]
+    let traversalUseDefault: boolean
+    if ('allVars' in selector) {
+      variablesOrDistinct = selector.distinct
+      traversals = []
     } else {
-      subflow = config.subflow
-      const v = config.var
-      variablesOrDistinct =
-        v === undefined ? !!config.distinct : Array.isArray(v) ? v : [v]
+      variablesOrDistinct = variablesFromValuesSelector(selector)
+      traversals = selector.filter((s) => 'path' in s) as TraversalParam[]
+      traversalUseDefault = !traversals.every((t) => t.as)
+      if (traversalUseDefault && !variablesOrDistinct.includes('?_')) {
+        variablesOrDistinct.push('?_')
+      }
     }
-    const forEach = new ForEach<EachReturnType>(subflow, variablesOrDistinct)
-    return path
-      ? this.createTraverse({
-          path,
-          graph,
-          subflow: forEach
-        })
-      : forEach
+    const forEach = new ForEach<EachReturnType>(
+      config.subflow,
+      variablesOrDistinct
+    )
+    if (traversals.length === 0) {
+      return forEach
+    } else {
+      const join = this.createJoin({
+        right: this.buildOpForTraversals(traversals),
+        newDefault: traversalUseDefault ? '?_out' : undefined,
+        hideCurrVar: true,
+        subflow: forEach
+      })
+      return traversals.some((t) => t.as)
+        ? this.createHide({
+            variables: newVariablesFromTraversals(traversals),
+            subflow: join
+          })
+        : join
+    }
   }
 
   private selectEnvelope(patternStr: string): string {
@@ -278,7 +434,14 @@ export default class FlowFactory {
     )
   }
 
-  private buildTerm(input: RDF.Term | string): RDF.Term {
+  createHide<ReturnType>(config: {
+    subflow: Flow<ReturnType>
+    variables: string[]
+  }): Hide<ReturnType> {
+    return new Hide<ReturnType>(config.subflow, config.variables)
+  }
+
+  private buildTerm(input: TermParam): RDF.Term {
     if (typeof input === 'string') {
       const op = <Algebra.Values>this.translateOp('VALUES ?_ {' + input + '}')
       return op.bindings[0]['?_']
@@ -340,37 +503,92 @@ export default class FlowFactory {
     })
   }
 
-  createTraverse<ReturnType>(config: {
-    subflow: Flow<ReturnType>
-    path: PathParam
-    graph?: RDF.Term
-  }): Join<ReturnType> {
-    const path = config.path
-    if (isString(path)) {
-      return this.createJoin({
-        right: this.translateOp('?_ ' + path + ' ?_out'),
-        newDefault: '?_out',
-        hideCurrVar: true,
-        subflow: config.subflow
-      })
-    }
-    return this.createJoin({
-      right: isPropertyPathSymbol(path)
+  buildOpForTraversal(traversal: TraversalParam): Algebra.Path | Algebra.Bgp {
+    const from = traversal.from || '?_'
+    const to = traversal.as || '?_out'
+    if (isString(traversal.path)) {
+      const op = this.translateOp(from + ' ' + traversal.path + ' ' + to)
+      if (op.type === 'bgp') {
+        const bgp = op as Algebra.Bgp
+        if (traversal.graphName !== undefined) {
+          bgp.patterns.forEach((pattern) => {
+            pattern.graph = this.buildTerm(traversal.graphName)
+          })
+        }
+        return bgp
+      } else if (op.type === 'path') {
+        const pathOp = op as Algebra.Path
+        if (traversal.graphName !== undefined) {
+          pathOp.graph = this.buildTerm(traversal.graphName)
+        }
+        return pathOp
+      }
+    } else {
+      return isPropertyPathSymbol(traversal.path)
         ? this.algebraFactory.createPath(
-            this.defaultInput,
-            path,
-            this.defaultOutput,
-            config.graph
+            this.dataFactory.variable(from.substr(1)),
+            traversal.path,
+            this.dataFactory.variable(to.substr(1)),
+            this.buildTerm(traversal.graphName)
           )
         : this.algebraFactory.createBgp([
             this.algebraFactory.createPattern(
-              this.defaultInput,
-              path,
-              this.defaultOutput,
-              config.graph
+              this.dataFactory.variable(from.substr(1)),
+              traversal.path,
+              this.dataFactory.variable(to.substr(1)),
+              this.buildTerm(traversal.graphName)
             )
-          ]),
-      newDefault: '?_out',
+          ])
+    }
+  }
+
+  buildJoin(operations: Algebra.Operation[]): Algebra.Operation {
+    if (operations.length === 0) {
+      return null
+    } else if (operations.length === 1) {
+      return operations[0]
+    } else {
+      return this.algebraFactory.createJoin(
+        operations[0],
+        this.buildJoin(operations.slice(1))
+      )
+    }
+  }
+
+  buildOpForTraversals(traversals: TraversalParam[]): Algebra.Operation {
+    const ops = traversals.map((t) => this.buildOpForTraversal(t))
+    const opsToBeJoined: Algebra.Operation[] = []
+    const patterns = ops
+      .filter((op) => op.type === 'bgp')
+      .flatMap((bgp: Algebra.Bgp) => bgp.patterns)
+    if (patterns.length > 0) {
+      opsToBeJoined.push(this.algebraFactory.createBgp(patterns))
+    }
+    const paths = ops.filter((op) => op.type === 'path')
+    opsToBeJoined.push(...paths)
+    return this.buildJoin(opsToBeJoined)
+  }
+
+  createTraversals<ReturnType>(config: {
+    subflow: Flow<ReturnType>
+    traversals: TraversalParam[]
+  }): Join<ReturnType> {
+    return this.createJoin({
+      right: this.buildOpForTraversals(config.traversals),
+      newDefault: config.traversals.every((t) => t.as) ? undefined : '?_out',
+      hideCurrVar: true,
+      subflow: config.subflow
+    })
+  }
+
+  createTraversal<ReturnType>(
+    config: {
+      subflow: Flow<ReturnType>
+    } & TraversalParam
+  ): Join<ReturnType> {
+    return this.createJoin({
+      right: this.buildOpForTraversal(config),
+      newDefault: config.as ? undefined : '?_out',
       hideCurrVar: true,
       subflow: config.subflow
     })
@@ -410,16 +628,7 @@ export default class FlowFactory {
     return new Filter<ReturnType>(config.subflow, expression)
   }
 
-  createTermReader(
-    config: {
-      variable?: string
-      path?: Algebra.PropertyPathSymbol | RDF.Term | string
-      graph?: RDF.Term
-      filter?: Algebra.Expression | string
-      lang?: string
-      datatype?: string
-    } = {}
-  ): Flow<RDF.Term> {
+  createTermReader(config: TermReaderParam = {}): Flow<RDF.Term> {
     const action = this.createActionExecutor(Actions.onFirstDefault((x) => x))
     const actionIfLang = config.lang
       ? this.createFilter({
@@ -447,29 +656,22 @@ export default class FlowFactory {
         })
       : actionIfTypeAndLang
     const actionAfterPathAndFilter =
-      config && config.path
-        ? this.createTraverse({
-            path: config.path,
-            graph: config.graph,
+      'path' in config
+        ? this.createTraversal({
+            ...config,
             subflow: actionIfFilter
           })
         : actionIfFilter
-    return config && config.variable
+    return 'var' in config
       ? this.createLet({
           subflow: actionAfterPathAndFilter,
-          currVarname: config.variable
+          currVarname: config.var
         })
       : actionAfterPathAndFilter
   }
 
   createValueReader(
-    config: {
-      variable?: string
-      path?: Algebra.PropertyPathSymbol | RDF.Term | string
-      graph?: RDF.Term
-      filter?: Algebra.Expression | string
-      lang?: string
-      datatype?: string
+    config: TermReaderParam & {
       plainIDs?: boolean
     } = {}
   ): Flow<any> {
@@ -481,16 +683,7 @@ export default class FlowFactory {
     })
   }
 
-  createStringReader(
-    config: {
-      variable?: string
-      path?: Algebra.PropertyPathSymbol | RDF.Term | string
-      graph?: RDF.Term
-      filter?: Algebra.Expression | string
-      lang?: string
-      datatype?: string
-    } = {}
-  ): Flow<string> {
+  createStringReader(config: TermReaderParam = {}): Flow<string> {
     // TODO: manage arrays of values too
     return this.createCascade({
       subflow: this.createTermReader(config),

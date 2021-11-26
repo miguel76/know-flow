@@ -84,7 +84,7 @@ export default class FlowBuilder {
 
   traverse(path: Algebra.PropertyPathSymbol | RDF.Term | string): FlowBuilder {
     return this.derive((subflow: Flow<any>) =>
-      this.flowFactory.createTraverse({
+      this.flowFactory.createTraversal({
         subflow,
         path
       })

@@ -237,12 +237,12 @@ Array [
 
 exports[`run foreach value reader 1`] = `
 Array [
+  "3.14",
+  "42",
+  "pippo",
   "http://example.org/Res1",
   "http://example.org/Res2",
   "http://example.org/Res3",
-  "pippo",
-  "42",
-  "3.14",
 ]
 `;
 
