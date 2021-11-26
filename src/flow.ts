@@ -204,6 +204,54 @@ export class Let<ReturnType> extends DataOperation<ReturnType> {
 }
 
 /**
+ * Object to configure the renaming of a variable
+ */
+export type SingleVarRenameConfig = {
+  /** Current of the variable. */
+  currVarname: string
+  /** New name of the variable. */
+  newVarname: string
+  /** If true, the original variable (`currVarname`) is hidden.  */
+  hideCurrVar: boolean
+}
+
+/**
+ * Rename operations rename a set of variables
+ */
+export class Rename<ReturnType> extends DataOperation<ReturnType> {
+  /** Name of the variable whose value is used. */
+  renamings: SingleVarRenameConfig[]
+
+  /**
+   * Creates a new Let
+   * @param subflow - Subflow executed after the operation.
+   * @param renamings - Configuration of the renamings applied.
+   */
+  constructor(subflow: Flow<ReturnType>, renamings: SingleVarRenameConfig[]) {
+    super(subflow)
+    this.renamings = renamings
+  }
+}
+
+/**
+ * Hide operations omit a set of variables from the bindings
+ */
+export class Hide<ReturnType> extends DataOperation<ReturnType> {
+  /** Names of the variables to omit. */
+  variables: string[]
+
+  /**
+   * Creates a new Hide
+   * @param subflow - Subflow executed after the operation.
+   * @param variables - Names of the variables to omit.
+   */
+  constructor(subflow: Flow<ReturnType>, variables: string[]) {
+    super(subflow)
+    this.variables = variables
+  }
+}
+
+/**
  * Join operations perform a Join between the current sequence of bindings and
  * the output of a SPARQL subquery.
  * @see {@link https://www.w3.org/TR/sparql11-query/#defn_algJoin}
