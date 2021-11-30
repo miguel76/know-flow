@@ -1,5 +1,13 @@
 import * as Types from './flow'
-import FlowFactory, { FlowFactoryOptions, PathParam } from './flowFactory'
+import FlowFactory, {
+  FlowFactoryOptions,
+  TermParam,
+  RenameParam,
+  ForEachParam,
+  TraversalParam,
+  TermReaderParam,
+  SingleVariableParam
+} from './flowFactory'
 import FlowBuilder, { FlowApplier } from './flowBuilder'
 import { stringifyFlow, toSparqlFragment } from './stringify'
 import FlowEngine from './flowEngine'
@@ -10,7 +18,6 @@ export {
   Types,
   FlowFactory,
   FlowFactoryOptions,
-  PathParam,
   stringifyFlow,
   toSparqlFragment,
   FlowEngine,
