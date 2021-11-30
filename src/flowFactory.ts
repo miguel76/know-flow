@@ -13,7 +13,9 @@ import {
   ParallelThree,
   ParallelN,
   Action,
-  Hide
+  Hide,
+  Rename,
+  SingleVarRenameConfig
 } from './flow'
 import { RDFToValueOrObject } from './toNative'
 import * as Actions from './actions'
@@ -152,21 +154,6 @@ function canonValuesSelector(selector: ValuesSelector): CanonValuesSelector {
     : [canonSingleValuesSelector(selector)]
 }
 
-// function newVariablesFromSelector(selector: CanonValuesSelector) {
-//   return 'allVars' in selector
-//     ? []
-//     : selector.map((s) => s.as).filter((v) => v !== undefined)
-// }
-
-// function newVariablesFromTraversals(selector: CanonValuesSelector) {
-//   return 'allVars' in selector
-//     ? []
-//     : selector
-//         .filter((s) => 'path' in s)
-//         .map((s: TraversalParam) => s.as)
-//         .filter((v) => v !== undefined)
-// }
-
 function newVariablesFromTraversals(traversals: TraversalParam[]) {
   return traversals.map((t) => t.as).filter((v) => v !== undefined)
 }
@@ -181,6 +168,36 @@ function variablesFromValuesSelector(selector: CanonValuesSelector) {
         ...newVariablesFromTraversals(
           selector.filter((s) => 'path' in s) as TraversalParam[]
         )
+      ]
+}
+
+/**
+ * Parameters to configure the renaming of a variable
+ */
+type SingleVarRenameParam = {
+  /** Current of the variable. Defaults to default variable (?_). */
+  currVarname?: string
+  /** New name of the variable. Defaults to default variable (?_). */
+  newVarname?: string
+  /** If true, the original variable (`currVarname`) is hidden. Defaults to
+   * false. */
+  hideCurrVar?: boolean
+}
+
+/**
+ * Parameters to configure the renaming of a set of variables
+ */
+export type RenameParam = SingleVarRenameParam | SingleVarRenameParam[]
+
+function canonRenameConfig(renameParam: RenameParam): SingleVarRenameConfig[] {
+  return Array.isArray(renameParam)
+    ? renameParam.flatMap(canonRenameConfig)
+    : [
+        {
+          currVarname: renameParam.currVarname || '?_',
+          newVarname: renameParam.newVarname || '?_',
+          hideCurrVar: !!renameParam.hideCurrVar
+        }
       ]
 }
 
@@ -372,7 +389,7 @@ export default class FlowFactory {
   ): Flow<EachReturnType[]> {
     const config = getFlowConfig(inputConfig)
     const selector = canonValuesSelector(
-      'select' in config.params ? config.params.select : {}
+      'select' in config.params ? config.params.select : config.params
     )
     let variablesOrDistinct: string[] | boolean
     let traversals: TraversalParam[]
@@ -434,11 +451,31 @@ export default class FlowFactory {
     )
   }
 
+  /**
+   * Creates a Hide data operation.
+   * @param config - The subflow and the name of the variables to hide.
+   * @returns New Hide instance.
+   */
   createHide<ReturnType>(config: {
     subflow: Flow<ReturnType>
     variables: string[]
   }): Hide<ReturnType> {
     return new Hide<ReturnType>(config.subflow, config.variables)
+  }
+
+  /**
+   * Creates a Rename data operation.
+   * @param config - The subflow and the spec of the renamings.
+   * @returns New Rename instance.
+   */
+  createRename<ReturnType>(config: {
+    subflow: Flow<ReturnType>
+    renamings: RenameParam
+  }): Rename<ReturnType> {
+    return new Rename<ReturnType>(
+      config.subflow,
+      canonRenameConfig(config.renamings)
+    )
   }
 
   private buildTerm(input: TermParam): RDF.Term {
@@ -482,6 +519,11 @@ export default class FlowFactory {
     }
   }
 
+  /**
+   * Creates a Values flow.
+   * @param config - The subflow and the bindings to add.
+   * @returns New Values instance.
+   */
   createValues<ReturnType>(config: {
     subflow: Flow<ReturnType>
     bindings:
@@ -503,7 +545,9 @@ export default class FlowFactory {
     })
   }
 
-  buildOpForTraversal(traversal: TraversalParam): Algebra.Path | Algebra.Bgp {
+  private buildOpForTraversal(
+    traversal: TraversalParam
+  ): Algebra.Path | Algebra.Bgp {
     const from = traversal.from || '?_'
     const to = traversal.as || '?_out'
     if (isString(traversal.path)) {
@@ -542,7 +586,7 @@ export default class FlowFactory {
     }
   }
 
-  buildJoin(operations: Algebra.Operation[]): Algebra.Operation {
+  private buildJoin(operations: Algebra.Operation[]): Algebra.Operation {
     if (operations.length === 0) {
       return null
     } else if (operations.length === 1) {
@@ -555,7 +599,9 @@ export default class FlowFactory {
     }
   }
 
-  buildOpForTraversals(traversals: TraversalParam[]): Algebra.Operation {
+  private buildOpForTraversals(
+    traversals: TraversalParam[]
+  ): Algebra.Operation {
     const ops = traversals.map((t) => this.buildOpForTraversal(t))
     const opsToBeJoined: Algebra.Operation[] = []
     const patterns = ops
@@ -594,6 +640,16 @@ export default class FlowFactory {
     })
   }
 
+  /**
+   * Creates a Join flow.
+   * @param config.subflow - The subflow.
+   * @param config.right - SPARQL query at the right side of the join operation.
+   * @param config.newDefault - Optionally assigns to the default variable (?_)
+   * the value of the variable with this name.
+   * @param config.hideCurrVar - Flag Deciding if the variable specified in
+   * `newDefault` is to be hidden.
+   * @returns New Join instance.
+   */
   createJoin<ReturnType>(config: {
     subflow: Flow<ReturnType>
     right: Algebra.Operation | string
@@ -606,15 +662,26 @@ export default class FlowFactory {
     }
     let subflow = config.subflow
     if (config.newDefault) {
-      subflow = this.createLet({
+      subflow = this.createRename({
         subflow,
-        currVarname: config.newDefault,
-        hideCurrVar: config.hideCurrVar
+        renamings: [
+          {
+            currVarname: config.newDefault,
+            hideCurrVar: config.hideCurrVar
+          }
+        ]
       })
     }
     return new Join<ReturnType>(subflow, right)
   }
 
+  /**
+   * Creates a Filter flow.
+   * @param config.subflow - The subflow.
+   * @param config.expression - The expression to be used for the Filter, either
+   * an Algebra.Expression or a string to be parsed as such.
+   * @returns New Filter instance.
+   */
   createFilter<ReturnType>(config: {
     subflow: Flow<ReturnType>
     expression: Algebra.Expression | string
@@ -663,9 +730,9 @@ export default class FlowFactory {
           })
         : actionIfFilter
     return 'var' in config
-      ? this.createLet({
+      ? this.createRename({
           subflow: actionAfterPathAndFilter,
-          currVarname: config.var
+          renamings: [{ currVarname: config.var }]
         })
       : actionAfterPathAndFilter
   }

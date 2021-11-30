@@ -7,7 +7,10 @@ import {
   Filter,
   Cascade,
   Let,
-  DataOperation
+  DataOperation,
+  Hide,
+  SingleVarRenameConfig,
+  Rename
 } from './flow'
 import * as RDF from 'rdf-js'
 import { Algebra, Factory } from 'sparqlalgebrajs'
@@ -79,6 +82,58 @@ function assignVar(
     }),
     canContainUndefs: input.canContainUndefs
   }
+}
+
+/**
+ * Reassigns values of variables one to another, optionally hiding the orginal
+ * variable, plus hiding some other variables too.
+ * @param input - Input stream of bindings
+ * @param renamings - Renamings to be performed
+ * @param toBeHidden - Names of the other variables to be hidden
+ * @returns Updated stream of bindings
+ */
+function scrambleVars(
+  input: Table,
+  renamings: SingleVarRenameConfig[] = [],
+  toBeHidden: string[] = []
+): Table {
+  const renamingsMap = Object.fromEntries(
+    renamings.map((r) => [r.currVarname, r])
+  )
+  const varsToHide = toBeHidden
+    .concat(renamings.filter((r) => r.hideCurrVar).map((r) => r.currVarname))
+    .concat(renamings.map((r) => r.newVarname))
+  const varsToAdd = renamings
+    .map((r) => r.newVarname)
+    .filter((v) => !input.variables.includes(v) || varsToHide.includes)
+  const variables = [
+    ...input.variables.filter((v) => !varsToHide.includes(v)),
+    ...varsToAdd
+  ]
+  return {
+    variables,
+    bindingsStream: input.bindingsStream.map((bindings) => {
+      const newBindings: { [key: string]: RDF.Term } = {}
+      bindings.forEach((value, varname) => {
+        if (varname in renamingsMap) {
+          newBindings[renamingsMap[varname].newVarname] = value
+        }
+        if (!varsToHide.includes(varname)) {
+          newBindings[varname] = value
+        }
+      })
+      return Map<string, RDF.Term>(newBindings)
+    }),
+    canContainUndefs: input.canContainUndefs
+  }
+}
+
+function hideVars(input: Table, variables: string[] = []) {
+  return scrambleVars(input, [], variables)
+}
+
+function renameVars(input: Table, renamings: SingleVarRenameConfig[] = []) {
+  return scrambleVars(input, renamings)
 }
 
 /**
@@ -267,6 +322,12 @@ export default class FlowEngine {
         letFlow.newVarname,
         letFlow.hideCurrVar
       )
+    } else if (dataOperation instanceof Hide) {
+      const hide = dataOperation
+      results = hideVars(input, hide.variables)
+    } else if (dataOperation instanceof Rename) {
+      const rename = dataOperation
+      results = renameVars(input, rename.renamings)
     } else {
       const valuesClause = await fromTableToValuesOp(input)
       const query = this.queryFromDataOperation(dataOperation, valuesClause)

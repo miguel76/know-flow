@@ -96,6 +96,229 @@ Array [
 ]
 `;
 
+exports[`run all triples foreach x 1 renamed 1`] = `
+Array [
+  Object {
+    "bindingsArray": Array [
+      Object {
+        "?_": Object {
+          "termType": "NamedNode",
+          "value": "http://example.org/prop1",
+        },
+        "?o": Object {
+          "datatype": Object {
+            "termType": "NamedNode",
+            "value": "http://www.w3.org/2001/XMLSchema#integer",
+          },
+          "language": "",
+          "termType": "Literal",
+          "value": "42",
+        },
+        "?s": Object {
+          "termType": "NamedNode",
+          "value": "http://example.org/Res1",
+        },
+        "?s2": Object {
+          "termType": "NamedNode",
+          "value": "http://example.org/Res1",
+        },
+      },
+    ],
+    "canContainUndefs": false,
+    "variables": Array [
+      "?s",
+      "?o",
+      "?s2",
+      "?_",
+    ],
+  },
+  Object {
+    "bindingsArray": Array [
+      Object {
+        "?_": Object {
+          "termType": "NamedNode",
+          "value": "http://example.org/prop1",
+        },
+        "?o": Object {
+          "datatype": Object {
+            "termType": "NamedNode",
+            "value": "http://www.w3.org/2001/XMLSchema#string",
+          },
+          "language": "",
+          "termType": "Literal",
+          "value": "value1",
+        },
+        "?s": Object {
+          "termType": "NamedNode",
+          "value": "http://example.org/Res1",
+        },
+        "?s2": Object {
+          "termType": "NamedNode",
+          "value": "http://example.org/Res1",
+        },
+      },
+    ],
+    "canContainUndefs": false,
+    "variables": Array [
+      "?s",
+      "?o",
+      "?s2",
+      "?_",
+    ],
+  },
+  Object {
+    "bindingsArray": Array [
+      Object {
+        "?_": Object {
+          "termType": "NamedNode",
+          "value": "http://example.org/prop1",
+        },
+        "?o": Object {
+          "termType": "NamedNode",
+          "value": "http://example.org/Res2",
+        },
+        "?s": Object {
+          "termType": "NamedNode",
+          "value": "http://example.org/Res1",
+        },
+        "?s2": Object {
+          "termType": "NamedNode",
+          "value": "http://example.org/Res1",
+        },
+      },
+    ],
+    "canContainUndefs": false,
+    "variables": Array [
+      "?s",
+      "?o",
+      "?s2",
+      "?_",
+    ],
+  },
+  Object {
+    "bindingsArray": Array [
+      Object {
+        "?_": Object {
+          "termType": "NamedNode",
+          "value": "http://example.org/prop2",
+        },
+        "?o": Object {
+          "termType": "NamedNode",
+          "value": "http://example.org/Res3",
+        },
+        "?s": Object {
+          "termType": "NamedNode",
+          "value": "http://example.org/Res1",
+        },
+        "?s2": Object {
+          "termType": "NamedNode",
+          "value": "http://example.org/Res1",
+        },
+      },
+    ],
+    "canContainUndefs": false,
+    "variables": Array [
+      "?s",
+      "?o",
+      "?s2",
+      "?_",
+    ],
+  },
+  Object {
+    "bindingsArray": Array [
+      Object {
+        "?_": Object {
+          "termType": "NamedNode",
+          "value": "http://example.org/prop3",
+        },
+        "?o": Object {
+          "termType": "NamedNode",
+          "value": "http://example.org/Res1",
+        },
+        "?s": Object {
+          "termType": "NamedNode",
+          "value": "http://example.org/Res1",
+        },
+        "?s2": Object {
+          "termType": "NamedNode",
+          "value": "http://example.org/Res1",
+        },
+      },
+    ],
+    "canContainUndefs": false,
+    "variables": Array [
+      "?s",
+      "?o",
+      "?s2",
+      "?_",
+    ],
+  },
+  Object {
+    "bindingsArray": Array [
+      Object {
+        "?_": Object {
+          "termType": "NamedNode",
+          "value": "http://example.org/prop1",
+        },
+        "?o": Object {
+          "datatype": Object {
+            "termType": "NamedNode",
+            "value": "http://www.w3.org/2001/XMLSchema#decimal",
+          },
+          "language": "",
+          "termType": "Literal",
+          "value": "3.14",
+        },
+        "?s": Object {
+          "termType": "NamedNode",
+          "value": "http://example.org/Res2",
+        },
+        "?s2": Object {
+          "termType": "NamedNode",
+          "value": "http://example.org/Res2",
+        },
+      },
+    ],
+    "canContainUndefs": false,
+    "variables": Array [
+      "?s",
+      "?o",
+      "?s2",
+      "?_",
+    ],
+  },
+  Object {
+    "bindingsArray": Array [
+      Object {
+        "?_": Object {
+          "termType": "NamedNode",
+          "value": "http://example.org/prop2",
+        },
+        "?o": Object {
+          "termType": "NamedNode",
+          "value": "http://example.org/Res1",
+        },
+        "?s": Object {
+          "termType": "NamedNode",
+          "value": "http://example.org/Res2",
+        },
+        "?s2": Object {
+          "termType": "NamedNode",
+          "value": "http://example.org/Res2",
+        },
+      },
+    ],
+    "canContainUndefs": false,
+    "variables": Array [
+      "?s",
+      "?o",
+      "?s2",
+      "?_",
+    ],
+  },
+]
+`;
+
 exports[`run all triples foreach x 2 1`] = `
 Array [
   Array [
@@ -192,6 +415,214 @@ Array [
     ],
   ],
 ]
+`;
+
+exports[`run all triples hide 1`] = `
+Object {
+  "bindingsArray": Array [
+    Object {
+      "?s": Object {
+        "termType": "NamedNode",
+        "value": "http://example.org/Res1",
+      },
+    },
+    Object {
+      "?s": Object {
+        "termType": "NamedNode",
+        "value": "http://example.org/Res1",
+      },
+    },
+    Object {
+      "?s": Object {
+        "termType": "NamedNode",
+        "value": "http://example.org/Res1",
+      },
+    },
+    Object {
+      "?s": Object {
+        "termType": "NamedNode",
+        "value": "http://example.org/Res1",
+      },
+    },
+    Object {
+      "?s": Object {
+        "termType": "NamedNode",
+        "value": "http://example.org/Res1",
+      },
+    },
+    Object {
+      "?s": Object {
+        "termType": "NamedNode",
+        "value": "http://example.org/Res2",
+      },
+    },
+    Object {
+      "?s": Object {
+        "termType": "NamedNode",
+        "value": "http://example.org/Res2",
+      },
+    },
+  ],
+  "canContainUndefs": false,
+  "variables": Array [
+    "?s",
+  ],
+}
+`;
+
+exports[`run all triples renamed 1`] = `
+Object {
+  "bindingsArray": Array [
+    Object {
+      "?_": Object {
+        "termType": "NamedNode",
+        "value": "http://example.org/prop1",
+      },
+      "?o": Object {
+        "datatype": Object {
+          "termType": "NamedNode",
+          "value": "http://www.w3.org/2001/XMLSchema#string",
+        },
+        "language": "",
+        "termType": "Literal",
+        "value": "value1",
+      },
+      "?s": Object {
+        "termType": "NamedNode",
+        "value": "http://example.org/Res1",
+      },
+      "?s2": Object {
+        "termType": "NamedNode",
+        "value": "http://example.org/Res1",
+      },
+    },
+    Object {
+      "?_": Object {
+        "termType": "NamedNode",
+        "value": "http://example.org/prop1",
+      },
+      "?o": Object {
+        "datatype": Object {
+          "termType": "NamedNode",
+          "value": "http://www.w3.org/2001/XMLSchema#integer",
+        },
+        "language": "",
+        "termType": "Literal",
+        "value": "42",
+      },
+      "?s": Object {
+        "termType": "NamedNode",
+        "value": "http://example.org/Res1",
+      },
+      "?s2": Object {
+        "termType": "NamedNode",
+        "value": "http://example.org/Res1",
+      },
+    },
+    Object {
+      "?_": Object {
+        "termType": "NamedNode",
+        "value": "http://example.org/prop1",
+      },
+      "?o": Object {
+        "termType": "NamedNode",
+        "value": "http://example.org/Res2",
+      },
+      "?s": Object {
+        "termType": "NamedNode",
+        "value": "http://example.org/Res1",
+      },
+      "?s2": Object {
+        "termType": "NamedNode",
+        "value": "http://example.org/Res1",
+      },
+    },
+    Object {
+      "?_": Object {
+        "termType": "NamedNode",
+        "value": "http://example.org/prop2",
+      },
+      "?o": Object {
+        "termType": "NamedNode",
+        "value": "http://example.org/Res3",
+      },
+      "?s": Object {
+        "termType": "NamedNode",
+        "value": "http://example.org/Res1",
+      },
+      "?s2": Object {
+        "termType": "NamedNode",
+        "value": "http://example.org/Res1",
+      },
+    },
+    Object {
+      "?_": Object {
+        "termType": "NamedNode",
+        "value": "http://example.org/prop3",
+      },
+      "?o": Object {
+        "termType": "NamedNode",
+        "value": "http://example.org/Res1",
+      },
+      "?s": Object {
+        "termType": "NamedNode",
+        "value": "http://example.org/Res1",
+      },
+      "?s2": Object {
+        "termType": "NamedNode",
+        "value": "http://example.org/Res1",
+      },
+    },
+    Object {
+      "?_": Object {
+        "termType": "NamedNode",
+        "value": "http://example.org/prop1",
+      },
+      "?o": Object {
+        "datatype": Object {
+          "termType": "NamedNode",
+          "value": "http://www.w3.org/2001/XMLSchema#decimal",
+        },
+        "language": "",
+        "termType": "Literal",
+        "value": "3.14",
+      },
+      "?s": Object {
+        "termType": "NamedNode",
+        "value": "http://example.org/Res2",
+      },
+      "?s2": Object {
+        "termType": "NamedNode",
+        "value": "http://example.org/Res2",
+      },
+    },
+    Object {
+      "?_": Object {
+        "termType": "NamedNode",
+        "value": "http://example.org/prop2",
+      },
+      "?o": Object {
+        "termType": "NamedNode",
+        "value": "http://example.org/Res1",
+      },
+      "?s": Object {
+        "termType": "NamedNode",
+        "value": "http://example.org/Res2",
+      },
+      "?s2": Object {
+        "termType": "NamedNode",
+        "value": "http://example.org/Res2",
+      },
+    },
+  ],
+  "canContainUndefs": false,
+  "variables": Array [
+    "?s",
+    "?o",
+    "?s2",
+    "?_",
+  ],
+}
 `;
 
 exports[`run constant 1`] = `42`;

@@ -175,6 +175,36 @@ const flows = {
         o: ff.createValueReader({ var: '?o' })
       })
     })
+  }),
+  'all triples renamed': ff.createJoin({
+    right: '?s ?p ?o',
+    subflow: ff.createRename({
+      renamings: [
+        { currVarname: '?s', newVarname: '?s2' },
+        { currVarname: '?p', hideCurrVar: true }
+      ],
+      subflow: showBindings
+    })
+  }),
+  'all triples foreach x 1 renamed': ff.createJoin({
+    right: '?s ?p ?o',
+    subflow: ff.createForEach({
+      select: ['?s', '?p', '?o'],
+      subflow: ff.createRename({
+        renamings: [
+          { currVarname: '?s', newVarname: '?s2' },
+          { currVarname: '?p', hideCurrVar: true }
+        ],
+        subflow: showBindings
+      })
+    })
+  }),
+  'all triples hide': ff.createJoin({
+    right: '?s ?p ?o',
+    subflow: ff.createHide({
+      variables: ['?p', '?o'],
+      subflow: showBindings
+    })
   })
 }
 
