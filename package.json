@@ -1,6 +1,6 @@
 {
     "name": "know-flow",
-    "version": "1.7.0",
+    "version": "2.0.0",
     "description": "JS(TS) library to query a knowledge graph (aka linked data source) in a data-flow-oriented way.",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
