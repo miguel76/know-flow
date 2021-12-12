@@ -3,17 +3,18 @@ import {
   ActionExecutor,
   Parallel,
   ForEach,
-  Join,
-  Filter,
   Cascade,
-  Let,
   DataOperation,
   Hide,
   SingleVarRenameConfig,
-  Rename
+  Rename,
+  SingleInputDataOperation,
+  InputFromLeftDataOperation,
+  InputFromRightDataOperation,
+  MultiInputDataOperation
 } from './flow'
 import * as RDF from 'rdf-js'
-import { Algebra, Factory } from 'sparqlalgebrajs'
+import { Algebra } from 'sparqlalgebrajs'
 import {
   IQueryEngine,
   IActorQueryOperationOutputBindings
@@ -30,59 +31,6 @@ import { Map } from 'immutable'
 import { AsyncIterator } from 'asynciterator'
 import { group } from './grouping'
 import { getItemsAsArray } from './iterators'
-
-const algebraFactory = new Factory()
-
-/**
- * Assigns the value of a variable to another, optionally hiding the orginal
- * variable.
- * The previous value of the new variable is in any case overwritten.
- * @param input - Input stream of bindings
- * @param currVarName - Current variable name
- * @param newVarName - New variable name
- * @param hideCurrVar - True iff the orginal variable is to be hidden
- * @returns Updated stream of bindings
- */
-function assignVar(
-  input: Table,
-  currVarName: string,
-  newVarName: string,
-  hideCurrVar: boolean
-): Table {
-  if (!input.variables.includes(currVarName)) {
-    throw new Error(
-      'New focus ' +
-        currVarName +
-        ' not found among the variables (' +
-        input.variables +
-        ').'
-    )
-  }
-  const variables = hideCurrVar
-    ? input.variables.filter((v) => v !== currVarName)
-    : input.variables
-  return {
-    variables: variables.includes(newVarName)
-      ? variables
-      : variables.concat(newVarName),
-    bindingsStream: input.bindingsStream.map((bindings) => {
-      const newBindings: { [key: string]: RDF.Term } = {}
-      bindings.forEach((value, varname) => {
-        if (varname === currVarName) {
-          newBindings[newVarName] = value
-        }
-        if (
-          varname !== newVarName &&
-          (varname !== currVarName || !hideCurrVar)
-        ) {
-          newBindings[varname] = value
-        }
-      })
-      return Map<string, RDF.Term>(newBindings)
-    }),
-    canContainUndefs: input.canContainUndefs
-  }
-}
 
 /**
  * Reassigns values of variables one to another, optionally hiding the orginal
@@ -314,15 +262,7 @@ export default class FlowEngine {
     input: Table
   ): Promise<ReturnType> {
     let results
-    if (dataOperation instanceof Let) {
-      const letFlow = dataOperation
-      results = assignVar(
-        input,
-        letFlow.currVarname,
-        letFlow.newVarname,
-        letFlow.hideCurrVar
-      )
-    } else if (dataOperation instanceof Hide) {
+    if (dataOperation instanceof Hide) {
       const hide = dataOperation
       results = hideVars(input, hide.variables)
     } else if (dataOperation instanceof Rename) {
@@ -346,14 +286,95 @@ export default class FlowEngine {
     dataOperation: DataOperation<ReturnType>,
     inputQuery: Algebra.Operation
   ): Algebra.Operation {
-    if (dataOperation instanceof Join) {
-      const join = dataOperation
-      return algebraFactory.createJoin(inputQuery, join.right)
-    } else if (dataOperation instanceof Filter) {
-      const filter = dataOperation
-      return algebraFactory.createFilter(inputQuery, filter.expression)
+    if (dataOperation instanceof SingleInputDataOperation) {
+      return this.queryFromSingleInputDataOperation(dataOperation, inputQuery)
+    } else if (dataOperation instanceof InputFromLeftDataOperation) {
+      return this.queryFromInputFromLeftDataOperation(dataOperation, inputQuery)
+    } else if (dataOperation instanceof InputFromRightDataOperation) {
+      return this.queryFromInputFromRightDataOperation(
+        dataOperation,
+        inputQuery
+      )
+    } else if (dataOperation instanceof MultiInputDataOperation) {
+      return this.queryFromMultiInputDataOperation(dataOperation, inputQuery)
     } else {
       throw new Error('Unrecognized data operation')
     }
+  }
+
+  /**
+   * Generates the SPARQL query corresponding to a single input data operation.
+   * @param dataOperation - The data operation.
+   * @param inputQuery - The input query, on top of which the new query is built.
+   * @returns - The new query.
+   */
+  private queryFromSingleInputDataOperation<
+    OpType extends Algebra.Single,
+    ReturnType
+  >(
+    dataOperation: SingleInputDataOperation<OpType, ReturnType>,
+    inputQuery: Algebra.Operation
+  ): OpType {
+    return { ...dataOperation.params, input: inputQuery } as OpType
+  }
+
+  /**
+   * Generates the SPARQL query corresponding to a double input data operation.
+   * @param dataOperation - The data operation.
+   * @param inputQuery - The input query, on top of which the new query is built,
+   * taken as left input.
+   * @returns - The new query.
+   */
+  private queryFromInputFromLeftDataOperation<
+    OpType extends Algebra.Double,
+    ReturnType
+  >(
+    dataOperation: InputFromLeftDataOperation<OpType, ReturnType>,
+    inputQuery: Algebra.Operation
+  ): OpType {
+    return {
+      ...dataOperation.params,
+      input: [inputQuery, dataOperation.rightInput]
+    } as OpType
+  }
+
+  /**
+   * Generates the SPARQL query corresponding to a double input data operation.
+   * @param dataOperation - The data operation.
+   * @param inputQuery - The input query, on top of which the new query is built,
+   * taken as right input.
+   * @returns - The new query.
+   */
+  private queryFromInputFromRightDataOperation<
+    OpType extends Algebra.Double,
+    ReturnType
+  >(
+    dataOperation: InputFromRightDataOperation<OpType, ReturnType>,
+    inputQuery: Algebra.Operation
+  ): OpType {
+    return {
+      ...dataOperation.params,
+      input: [dataOperation.leftInput, inputQuery]
+    } as OpType
+  }
+
+  /**
+   * Generates the SPARQL query corresponding to a multiple input data operation.
+   * @param dataOperation - The data operation.
+   * @param inputQuery - The input query, on top of which the new query is built,
+   * taken as right input.
+   * @returns - The new query.
+   */
+  private queryFromMultiInputDataOperation<
+    OpType extends Algebra.Multi,
+    ReturnType
+  >(
+    dataOperation: MultiInputDataOperation<OpType, ReturnType>,
+    inputQuery: Algebra.Operation
+  ): OpType {
+    return {
+      ...dataOperation.params,
+      input: [inputQuery, ...dataOperation.input]
+    } as OpType
   }
 }

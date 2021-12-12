@@ -170,38 +170,156 @@ export abstract class DataOperation<ReturnType> extends Flow<ReturnType> {
 }
 
 /**
- * Let operations replace the value of a variable with the value taken from
- * another variable.
- * It optionally hides the variable originally holding the value
+ * Base class of data operations based on a SPARQL algebra operation.
  */
-export class Let<ReturnType> extends DataOperation<ReturnType> {
-  /** Name of the variable whose value is used. */
-  currVarname: string
-  /** Name of the variable to which the value is assigned. */
-  newVarname: string
-  /** If true, the original variable (`currVarname`) is hidden.  */
-  hideCurrVar: boolean
+export abstract class SPARQLAlgebraDataOperation<
+  OpType extends Algebra.BaseOperation,
+  ReturnType
+> extends DataOperation<ReturnType> {
+  /** Type of the algebra operation */
+  dataOperationType: OpType['type']
+  /** Subflow executed after the operation. */
+  subflow: Flow<ReturnType>
 
-  /**
-   * Creates a new Let
-   * @param subflow - Subflow executed after the operation.
-   * @param currVarname - Name of the variable whose value is used.
-   * @param newVarname - Name of the variable to which the value is assigned.
-   * @param hideCurrVar - If true, the original variable (`currVarname`) is
-   * hidden.
-   */
-  constructor(
-    subflow: Flow<ReturnType>,
-    currVarname: string,
-    newVarname: string,
-    hideCurrVar: boolean
-  ) {
+  constructor(type: Algebra.Operation['type'], subflow: Flow<ReturnType>) {
     super(subflow)
-    this.currVarname = currVarname
-    this.newVarname = newVarname
-    this.hideCurrVar = hideCurrVar
+    this.dataOperationType = type
   }
 }
+
+/**
+ * Class of data operations which have a single input, i.e. the current sequence
+ * of bindings.
+ */
+export class SingleInputDataOperation<
+  OpType extends Algebra.Single,
+  ReturnType
+> extends SPARQLAlgebraDataOperation<OpType, ReturnType> {
+  /** Parameters for the operation */
+  params: Omit<OpType, 'type | input'>
+
+  constructor(
+    type: OpType['type'],
+    subflow: Flow<ReturnType>,
+    params: Omit<OpType, 'type | input'>
+  ) {
+    super(type, subflow)
+    this.params = params
+  }
+}
+
+/**
+ * Class of data operations which have two inputs with different roles,
+ * labelled 'left' and 'right', and the current sequence of bindings is used as
+ * 'left' input.
+ */
+export class InputFromLeftDataOperation<
+  OpType extends Algebra.Double,
+  ReturnType
+> extends SPARQLAlgebraDataOperation<OpType, ReturnType> {
+  /** Parameters for the operation */
+  params: Omit<OpType, 'type | input'>
+  /** SPARQL subquery which is the 'right' input of the data operation. */
+  rightInput: Algebra.Operation
+
+  constructor(
+    type: OpType['type'],
+    subflow: Flow<ReturnType>,
+    rightInput: Algebra.Operation,
+    params: Omit<OpType, 'type | input'>
+  ) {
+    super(type, subflow)
+    this.params = params
+    this.rightInput = rightInput
+  }
+}
+
+/**
+ * Base class of data operations which have two inputs with different roles,
+ * labelled 'left' and 'right', and the current sequence of bindings is used as
+ * 'right' input.
+ */
+export class InputFromRightDataOperation<
+  OpType extends Algebra.Double,
+  ReturnType
+> extends SPARQLAlgebraDataOperation<OpType, ReturnType> {
+  /** Parameters for the operation */
+  params: Omit<OpType, 'type | input'>
+  /** SPARQL subquery which is the 'left' input of the data operation. */
+  leftInput: Algebra.Operation
+
+  constructor(
+    type: OpType['type'],
+    subflow: Flow<ReturnType>,
+    leftInput: Algebra.Operation,
+    params: Omit<OpType, 'type | input'>
+  ) {
+    super(type, subflow)
+    this.leftInput = leftInput
+    this.params = params
+  }
+}
+
+/**
+ * Class of data operations which have multiple inputs, i.e. at least one
+ * more than the input sequence of bindings, with no specific meaning given to
+ * the order of the inputs (associative and symmetric).
+ */
+export class MultiInputDataOperation<
+  OpType extends Algebra.Multi,
+  ReturnType
+> extends SPARQLAlgebraDataOperation<OpType, ReturnType> {
+  /** Parameters for the operation */
+  params: Omit<OpType, 'type | input'>
+  /** Set of SPARQL subqueries which are inputs of the data operation, along
+   * with the current sequence of bindings. */
+  input: Algebra.Operation[]
+
+  constructor(
+    type: OpType['type'],
+    subflow: Flow<ReturnType>,
+    input: Algebra.Operation[],
+    params: Omit<OpType, 'type | input'>
+  ) {
+    super(type, subflow)
+    this.input = input
+    this.params = params
+  }
+}
+
+// /**
+//  * Let operations replace the value of a variable with the value taken from
+//  * another variable.
+//  * It optionally hides the variable originally holding the value
+//  */
+// export class Let<ReturnType> extends DataOperation<ReturnType> {
+//   /** Name of the variable whose value is used. */
+//   currVarname: string
+//   /** Name of the variable to which the value is assigned. */
+//   newVarname: string
+//   /** If true, the original variable (`currVarname`) is hidden.  */
+//   hideCurrVar: boolean
+
+//   /**
+//    * Creates a new Let
+//    * @param subflow - Subflow executed after the operation.
+//    * @param currVarname - Name of the variable whose value is used.
+//    * @param newVarname - Name of the variable to which the value is assigned.
+//    * @param hideCurrVar - If true, the original variable (`currVarname`) is
+//    * hidden.
+//    */
+//   constructor(
+//     subflow: Flow<ReturnType>,
+//     currVarname: string,
+//     newVarname: string,
+//     hideCurrVar: boolean
+//   ) {
+//     super(subflow)
+//     this.currVarname = currVarname
+//     this.newVarname = newVarname
+//     this.hideCurrVar = hideCurrVar
+//   }
+// }
 
 /**
  * Object to configure the renaming of a variable
@@ -251,63 +369,127 @@ export class Hide<ReturnType> extends DataOperation<ReturnType> {
   }
 }
 
-/**
- * Join operations perform a Join between the current sequence of bindings and
- * the output of a SPARQL subquery.
- * @see {@link https://www.w3.org/TR/sparql11-query/#defn_algJoin}
- */
-export class Join<ReturnType> extends DataOperation<ReturnType> {
-  /** SPARQL subquery which is joined with the current sequence of bindings. */
-  right: Algebra.Operation
+// /**
+//  * Filter operations perform a Filter over the current sequence of bindings.
+//  * @see {@link https://www.w3.org/TR/sparql11-query/#defn_algFilter}
+//  */
+// export class Filter<ReturnType> extends DataOperation<ReturnType> {
+//   /** Expression used for filter the current sequence of bindings. */
+//   expression: Algebra.Expression
 
-  /**
-   * Creates a new Join
-   * @param subflow - Subflow executed after the operation.
-   * @param right - SPARQL subquery which is joined with the current sequence of
-   * bindings.
-   */
-  constructor(subflow: Flow<ReturnType>, right: Algebra.Operation) {
-    super(subflow)
-    this.right = right
-  }
-}
+//   /**
+//    * Creates a new Filter
+//    * @param subflow - Subflow executed after the operation.
+//    * @param expression - Expression used for filter the current sequence of
+//    * bindings.
+//    */
+//   constructor(subflow: Flow<ReturnType>, expression: Algebra.Expression) {
+//     super(subflow)
+//     this.expression = expression
+//   }
+// }
 
-/**
- * Filter operations perform a Filter over the current sequence of bindings.
- * @see {@link https://www.w3.org/TR/sparql11-query/#defn_algFilter}
- */
-export class Filter<ReturnType> extends DataOperation<ReturnType> {
-  /** Expression used for filter the current sequence of bindings. */
-  expression: Algebra.Expression
+// /**
+//  * Aggregate operations perform grouping and aggregation over the current
+//  * sequence of bindings.
+//  * @see {@link https://www.w3.org/TR/sparql11-query/#defn_algGroup} and
+//  * {@link https://www.w3.org/TR/sparql11-query/#defn_algAggregation}.
+//  */
+// export class Aggregate<ReturnType> extends DataOperation<ReturnType> {
+//   /** Variables used for grouping. */
+//   variables: RDF.Variable[]
+//   /** Aggregate expressions, each bound to a new variable. */
+//   aggregates: Algebra.BoundAggregate[]
 
-  /**
-   * Creates a new Filter
-   * @param subflow - Subflow executed after the operation.
-   * @param expression - Expression used for filter the current sequence of
-   * bindings.
-   */
-  constructor(subflow: Flow<ReturnType>, expression: Algebra.Expression) {
-    super(subflow)
-    this.expression = expression
-  }
-}
+//   /**
+//    * Creates a new Aggregate
+//    * @param subflow - Subflow executed after the operation.
+//    * @param variables - Variables used for grouping.
+//    * @param aggregates - Aggregate expressions, each bound to a new variable.
+//    */
+//   constructor(
+//     subflow: Flow<ReturnType>,
+//     variables: RDF.Variable[],
+//     aggregates: Algebra.BoundAggregate[]
+//   ) {
+//     super(subflow)
+//     this.variables = variables
+//     this.aggregates = aggregates
+//   }
+// }
 
-export class Aggregate<ReturnType> extends DataOperation<ReturnType> {
-  aggregates: Algebra.BoundAggregate[]
+// /**
+//  * Slice operations take a subsequence of the current sequence of bindings.
+//  * @see {@link https://www.w3.org/TR/sparql11-query/#defn_algSlice}.
+//  */
+// export class Slice<ReturnType> extends DataOperation<ReturnType> {
+//   /** Index of the first element of the sequence which is taken, starting from
+//    * 0. */
+//   start: number
+//   /** Length of the taken subsequence, or until the end if not defined. */
+//   length?: number
 
-  constructor(subflow: Flow<ReturnType>, aggregates: Algebra.BoundAggregate[]) {
-    super(subflow)
-    this.aggregates = aggregates
-  }
-}
+//   /**
+//    * Creates a new Slice
+//    * @param subflow - Subflow executed after the operation.
+//    * @param start - Index of the first element of the sequence which is taken,
+//    * starting from 0.
+//    * @param length - Length of the taken subsequence, or until the end if not
+//    * defined.
+//    */
+//   constructor(subflow: Flow<ReturnType>, start: number, length?: number) {
+//     super(subflow)
+//     this.start = start
+//     this.length = length
+//   }
+// }
 
-export class Slice<ReturnType> extends DataOperation<ReturnType> {
-  start: number
-  length?: number
+// /**
+//  * LeftJoinFromLeft operations perform a LeftJoin between the current sequence
+//  * of bindings and the output of SPARQL subquery.
+//  * @see {@link https://www.w3.org/TR/sparql11-query/#defn_algLeftJoin}
+//  */
+// export class LeftJoinFromLeft<
+//   ReturnType
+// > extends InputFromLeftDataOperation<ReturnType> {}
 
-  constructor(subflow: Flow<ReturnType>, start: number, length?: number) {
-    super(subflow)
-    this.start = start
-    this.length = length
-  }
-}
+// /**
+//  * LeftJoinFromRight operations perform a LeftJoin between the output of SPARQL
+//  * subquery and the current sequence of bindings.
+//  * @see {@link https://www.w3.org/TR/sparql11-query/#defn_algLeftJoin}
+//  */
+// export class LeftJoinFromRight<
+//   ReturnType
+// > extends InputFromRightDataOperation<ReturnType> {}
+
+// /**
+//  * MinusFromLeft operations perform a Minus between the current sequence of
+//  * bindings and the output of SPARQL subquery.
+//  * @see {@link https://www.w3.org/TR/sparql11-query/#defn_algMinus}
+//  */
+// export class MinusFromLeft<
+//   ReturnType
+// > extends InputFromLeftDataOperation<ReturnType> {}
+
+// /**
+//  * MinusFromRight operations perform a Minus between the output of SPARQL subquery
+//  * and the current sequence of bindings.
+//  * @see {@link https://www.w3.org/TR/sparql11-query/#defn_algMinus}
+//  */
+// export class MinusFromRight<
+//   ReturnType
+// > extends InputFromRightDataOperation<ReturnType> {}
+
+// /**
+//  * Join operations perform a Join between the current sequence of bindings and
+//  * the outputs of a set of SPARQL subqueries.
+//  * @see {@link https://www.w3.org/TR/sparql11-query/#defn_algJoin}
+//  */
+// export class Join<ReturnType> extends MultiInputDataOperation<ReturnType> {}
+
+// /**
+//  * Union operations perform a Union between the current sequence of bindings and
+//  * the outputs of a set of SPARQL subqueries.
+//  * @see {@link https://www.w3.org/TR/sparql11-query/#defn_algUnion}
+//  */
+// export class Union<ReturnType> extends MultiInputDataOperation<ReturnType> {}
