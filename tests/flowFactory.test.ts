@@ -54,130 +54,80 @@ const flows = {
   'action show bindings': showBindings,
   'action show one set of bindings': showOneBinding,
   'action show default bindings': showOne,
-  'undefined term reader': ff.createTermReader(),
-  'undefined value reader': ff.createValueReader(),
-  'single default binding show value': ff.createValues({
-    bindings: 'ex:Res1',
-    subflow: ff.createValueReader()
-  }),
-  'single default binding show term': ff.createValues({
-    bindings: 'ex:Res1',
-    subflow: ff.createTermReader()
-  }),
-  'single default binding show all': ff.createValues({
-    bindings: 'ex:Res1',
+  'single default binding show bindings': ff.createJoin({
+    input: 'VALUES ?_ {ex:Res1}',
     subflow: showBindings
   }),
-  traversal: ff.createValues({
-    bindings: 'ex:Res1',
-    subflow: ff.createValueReader({ path: 'ex:prop1' })
-  }),
-  'traversal path': ff.createValues({
-    bindings: 'ex:Res1',
-    subflow: ff.createValueReader({ path: 'ex:prop1/ex:prop2' })
-  }),
-  'multiple default bindings': ff.createValues({
-    bindings: ['ex:Res1', 'ex:Res2', 'ex:Res3'],
+  'multiple default bindings': ff.createJoin({
+    input: 'VALUES ?_ {ex:Res1 ex:Res2 ex:Res3}',
     subflow: showBindings
   }),
   join: ff.createJoin({
-    right: '?s ?p ?o',
+    input: '?s ?p ?o',
     subflow: showBindings
   }),
   'empty parallel': ff.createParallel([]),
-  parallel: ff.createValues({
-    bindings: ['ex:Res1', 'ex:Res2', 'ex:Res3'],
+  parallel: ff.createJoin({
+    input: 'VALUES ?_ {ex:Res1 ex:Res2 ex:Res3}',
     subflow: ff.createParallel([
-      ff.createValueReader(),
-      ff.createValueReader({ path: 'ex:prop1' }),
-      ff.createValueReader({ path: 'ex:prop2' }),
-      ff.createValueReader({ path: 'ex:prop3' })
+      showBindings,
+      ff.createJoin({
+        input: '?_ ex:prop1 ?new',
+        subflow: showBindings
+      }),
+      ff.createJoin({
+        input: '?_ ex:prop2 ?new',
+        subflow: showBindings
+      }),
+      ff.createJoin({
+        input: '?_ ex:prop3 ?new',
+        subflow: showBindings
+      })
     ])
   }),
-  'foreach value reader': ff.createValues({
-    bindings: ['ex:Res1', 'ex:Res2', 'ex:Res3', '"pippo"', '42', '3.14'],
-    subflow: ff.createForEach(ff.createValueReader())
-  }),
-  'foreach traversal value reader': ff.createValues({
-    bindings: ['ex:Res1', 'ex:Res2', 'ex:Res3', '"pippo"', '42', '3.14'],
-    subflow: ff.createForEach({
-      select: { path: 'ex:prop1' },
-      subflow: ff.createValueReader()
-    })
-  }),
-  'foreach foreach string reader': ff.createValues({
-    bindings: ['ex:Res1', 'ex:Res2', 'ex:Res3'],
-    subflow: ff.createForEach(
-      ff.createForEach({
-        select: { path: 'ex:prop1' },
-        subflow: ff.createStringReader()
-      })
-    )
-  }),
-  'foreach foreach value reader': ff.createValues({
-    bindings: ['ex:Res1', 'ex:Res2', 'ex:Res3'],
-    subflow: ff.createForEach(
-      ff.createForEach({
-        select: { path: 'ex:prop1' },
-        subflow: ff.createValueReader()
-      })
-    )
+  'foreach value reader': ff.createJoin({
+    input: 'VALUES ?_ { ex:Res1 ex:Res2 ex:Res3 "pippo" 42 3.14}',
+    subflow: ff.createForEach(showBindings)
   }),
   'all triples foreach x 3': ff.createJoin({
-    right: '?s ?p ?o',
+    input: '?s ?p ?o',
     subflow: ff.createForEach({
       select: ['?s'],
       subflow: ff.createForEach({
         select: ['?p'],
         subflow: ff.createForEach({
           select: ['?o'],
-          subflow: ff.createParallelDict({
-            s: ff.createValueReader({ var: '?s' }),
-            p: ff.createValueReader({ var: '?p' }),
-            o: ff.createValueReader({ var: '?o' })
-          })
+          subflow: showBindings
         })
       })
     })
   }),
   'all triples foreach x 2': ff.createJoin({
-    right: '?s ?p ?o',
+    input: '?s ?p ?o',
     subflow: ff.createForEach({
       select: ['?s'],
       subflow: ff.createForEach({
         select: ['?p', '?o'],
-        subflow: ff.createParallelDict({
-          s: ff.createValueReader({ var: '?s' }),
-          p: ff.createValueReader({ var: '?p' }),
-          o: ff.createValueReader({ var: '?o' })
-        })
+        subflow: showBindings
       })
     })
   }),
   'all triples foreach x 1': ff.createJoin({
-    right: '?s ?p ?o',
+    input: '?s ?p ?o',
     subflow: ff.createForEach({
       select: ['?s', '?p', '?o'],
-      subflow: ff.createParallelDict({
-        s: ff.createValueReader({ var: '?s' }),
-        p: ff.createValueReader({ var: '?p' }),
-        o: ff.createValueReader({ var: '?o' })
-      })
+      subflow: showBindings
     })
   }),
   'all triples foreach x 1 implicit': ff.createJoin({
-    right: '?s ?p ?o',
+    input: '?s ?p ?o',
     subflow: ff.createForEach({
       select: { allVars: true },
-      subflow: ff.createParallelDict({
-        s: ff.createValueReader({ var: '?s' }),
-        p: ff.createValueReader({ var: '?p' }),
-        o: ff.createValueReader({ var: '?o' })
-      })
+      subflow: showBindings
     })
   }),
   'all triples renamed': ff.createJoin({
-    right: '?s ?p ?o',
+    input: '?s ?p ?o',
     subflow: ff.createRename({
       renamings: [
         { currVarname: '?s', newVarname: '?s2' },
@@ -187,7 +137,7 @@ const flows = {
     })
   }),
   'all triples foreach x 1 renamed': ff.createJoin({
-    right: '?s ?p ?o',
+    input: '?s ?p ?o',
     subflow: ff.createForEach({
       select: ['?s', '?p', '?o'],
       subflow: ff.createRename({
@@ -200,7 +150,7 @@ const flows = {
     })
   }),
   'all triples hide': ff.createJoin({
-    right: '?s ?p ?o',
+    input: '?s ?p ?o',
     subflow: ff.createHide({
       variables: ['?p', '?o'],
       subflow: showBindings
