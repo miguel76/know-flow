@@ -375,16 +375,20 @@ export default class FlowFactory {
     subflow: Flow<ReturnType>
     expression: Algebra.Expression | string
   }): SingleInputDataOperation<Algebra.Filter, ReturnType> {
-    return this.createSingleInputDataOperation(Algebra.types.FILTER, {
-      expression:
-        typeof config.expression === 'string'
-          ? (
-              this.translateOperation(
-                'FILTER(' + config.expression + ')'
-              ) as Algebra.Filter
-            ).expression
-          : config.expression
-    })
+    return this.createSingleInputDataOperation(
+      Algebra.types.FILTER,
+      config.subflow,
+      {
+        expression:
+          typeof config.expression === 'string'
+            ? (
+                this.translateOperation(
+                  'FILTER(' + config.expression + ')'
+                ) as Algebra.Filter
+              ).expression
+            : config.expression
+      }
+    )
   }
 
   // Group

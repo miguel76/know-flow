@@ -1,0 +1,1318 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`describe action show bindings 1`] = `
+ActionExecutor {
+  "action": [Function],
+}
+`;
+
+exports[`describe action show default bindings 1`] = `
+ActionExecutor {
+  "action": [Function],
+}
+`;
+
+exports[`describe action show one set of bindings 1`] = `
+ActionExecutor {
+  "action": [Function],
+}
+`;
+
+exports[`describe all triples foreach x 1 1`] = `
+MultiInputDataOperation {
+  "dataOperationType": "join",
+  "input": Array [
+    Object {
+      "patterns": Array [
+        Quad {
+          "graph": DefaultGraph {
+            "termType": "DefaultGraph",
+            "value": "",
+          },
+          "object": Variable {
+            "termType": "Variable",
+            "value": "o",
+          },
+          "predicate": Variable {
+            "termType": "Variable",
+            "value": "p",
+          },
+          "subject": Variable {
+            "termType": "Variable",
+            "value": "s",
+          },
+          "termType": "Quad",
+          "type": "pattern",
+          "value": "",
+        },
+      ],
+      "type": "bgp",
+    },
+  ],
+  "params": Object {},
+  "subflow": ForEach {
+    "distinct": true,
+    "subflow": Cascade {
+      "action": [Function],
+      "subflow": ParallelN {
+        "subflows": Array [
+          Cascade {
+            "action": [Function],
+            "subflow": Rename {
+              "renamings": Array [
+                Object {
+                  "currVarname": "?s",
+                  "hideCurrVar": false,
+                  "newVarname": "?_",
+                },
+              ],
+              "subflow": ActionExecutor {
+                "action": [Function],
+              },
+            },
+          },
+          Cascade {
+            "action": [Function],
+            "subflow": Rename {
+              "renamings": Array [
+                Object {
+                  "currVarname": "?p",
+                  "hideCurrVar": false,
+                  "newVarname": "?_",
+                },
+              ],
+              "subflow": ActionExecutor {
+                "action": [Function],
+              },
+            },
+          },
+          Cascade {
+            "action": [Function],
+            "subflow": Rename {
+              "renamings": Array [
+                Object {
+                  "currVarname": "?o",
+                  "hideCurrVar": false,
+                  "newVarname": "?_",
+                },
+              ],
+              "subflow": ActionExecutor {
+                "action": [Function],
+              },
+            },
+          },
+        ],
+      },
+    },
+    "variables": Array [
+      "?s",
+      "?p",
+      "?o",
+    ],
+  },
+}
+`;
+
+exports[`describe all triples foreach x 1 implicit 1`] = `
+MultiInputDataOperation {
+  "dataOperationType": "join",
+  "input": Array [
+    Object {
+      "patterns": Array [
+        Quad {
+          "graph": DefaultGraph {
+            "termType": "DefaultGraph",
+            "value": "",
+          },
+          "object": Variable {
+            "termType": "Variable",
+            "value": "o",
+          },
+          "predicate": Variable {
+            "termType": "Variable",
+            "value": "p",
+          },
+          "subject": Variable {
+            "termType": "Variable",
+            "value": "s",
+          },
+          "termType": "Quad",
+          "type": "pattern",
+          "value": "",
+        },
+      ],
+      "type": "bgp",
+    },
+  ],
+  "params": Object {},
+  "subflow": ForEach {
+    "distinct": false,
+    "subflow": Cascade {
+      "action": [Function],
+      "subflow": ParallelN {
+        "subflows": Array [
+          Cascade {
+            "action": [Function],
+            "subflow": Rename {
+              "renamings": Array [
+                Object {
+                  "currVarname": "?s",
+                  "hideCurrVar": false,
+                  "newVarname": "?_",
+                },
+              ],
+              "subflow": ActionExecutor {
+                "action": [Function],
+              },
+            },
+          },
+          Cascade {
+            "action": [Function],
+            "subflow": Rename {
+              "renamings": Array [
+                Object {
+                  "currVarname": "?p",
+                  "hideCurrVar": false,
+                  "newVarname": "?_",
+                },
+              ],
+              "subflow": ActionExecutor {
+                "action": [Function],
+              },
+            },
+          },
+          Cascade {
+            "action": [Function],
+            "subflow": Rename {
+              "renamings": Array [
+                Object {
+                  "currVarname": "?o",
+                  "hideCurrVar": false,
+                  "newVarname": "?_",
+                },
+              ],
+              "subflow": ActionExecutor {
+                "action": [Function],
+              },
+            },
+          },
+        ],
+      },
+    },
+  },
+}
+`;
+
+exports[`describe all triples foreach x 2 1`] = `
+MultiInputDataOperation {
+  "dataOperationType": "join",
+  "input": Array [
+    Object {
+      "patterns": Array [
+        Quad {
+          "graph": DefaultGraph {
+            "termType": "DefaultGraph",
+            "value": "",
+          },
+          "object": Variable {
+            "termType": "Variable",
+            "value": "o",
+          },
+          "predicate": Variable {
+            "termType": "Variable",
+            "value": "p",
+          },
+          "subject": Variable {
+            "termType": "Variable",
+            "value": "s",
+          },
+          "termType": "Quad",
+          "type": "pattern",
+          "value": "",
+        },
+      ],
+      "type": "bgp",
+    },
+  ],
+  "params": Object {},
+  "subflow": ForEach {
+    "distinct": true,
+    "subflow": ForEach {
+      "distinct": true,
+      "subflow": Cascade {
+        "action": [Function],
+        "subflow": ParallelN {
+          "subflows": Array [
+            Cascade {
+              "action": [Function],
+              "subflow": Rename {
+                "renamings": Array [
+                  Object {
+                    "currVarname": "?s",
+                    "hideCurrVar": false,
+                    "newVarname": "?_",
+                  },
+                ],
+                "subflow": ActionExecutor {
+                  "action": [Function],
+                },
+              },
+            },
+            Cascade {
+              "action": [Function],
+              "subflow": Rename {
+                "renamings": Array [
+                  Object {
+                    "currVarname": "?p",
+                    "hideCurrVar": false,
+                    "newVarname": "?_",
+                  },
+                ],
+                "subflow": ActionExecutor {
+                  "action": [Function],
+                },
+              },
+            },
+            Cascade {
+              "action": [Function],
+              "subflow": Rename {
+                "renamings": Array [
+                  Object {
+                    "currVarname": "?o",
+                    "hideCurrVar": false,
+                    "newVarname": "?_",
+                  },
+                ],
+                "subflow": ActionExecutor {
+                  "action": [Function],
+                },
+              },
+            },
+          ],
+        },
+      },
+      "variables": Array [
+        "?p",
+        "?o",
+      ],
+    },
+    "variables": Array [
+      "?s",
+    ],
+  },
+}
+`;
+
+exports[`describe all triples foreach x 3 1`] = `
+MultiInputDataOperation {
+  "dataOperationType": "join",
+  "input": Array [
+    Object {
+      "patterns": Array [
+        Quad {
+          "graph": DefaultGraph {
+            "termType": "DefaultGraph",
+            "value": "",
+          },
+          "object": Variable {
+            "termType": "Variable",
+            "value": "o",
+          },
+          "predicate": Variable {
+            "termType": "Variable",
+            "value": "p",
+          },
+          "subject": Variable {
+            "termType": "Variable",
+            "value": "s",
+          },
+          "termType": "Quad",
+          "type": "pattern",
+          "value": "",
+        },
+      ],
+      "type": "bgp",
+    },
+  ],
+  "params": Object {},
+  "subflow": ForEach {
+    "distinct": true,
+    "subflow": ForEach {
+      "distinct": true,
+      "subflow": ForEach {
+        "distinct": true,
+        "subflow": Cascade {
+          "action": [Function],
+          "subflow": ParallelN {
+            "subflows": Array [
+              Cascade {
+                "action": [Function],
+                "subflow": Rename {
+                  "renamings": Array [
+                    Object {
+                      "currVarname": "?s",
+                      "hideCurrVar": false,
+                      "newVarname": "?_",
+                    },
+                  ],
+                  "subflow": ActionExecutor {
+                    "action": [Function],
+                  },
+                },
+              },
+              Cascade {
+                "action": [Function],
+                "subflow": Rename {
+                  "renamings": Array [
+                    Object {
+                      "currVarname": "?p",
+                      "hideCurrVar": false,
+                      "newVarname": "?_",
+                    },
+                  ],
+                  "subflow": ActionExecutor {
+                    "action": [Function],
+                  },
+                },
+              },
+              Cascade {
+                "action": [Function],
+                "subflow": Rename {
+                  "renamings": Array [
+                    Object {
+                      "currVarname": "?o",
+                      "hideCurrVar": false,
+                      "newVarname": "?_",
+                    },
+                  ],
+                  "subflow": ActionExecutor {
+                    "action": [Function],
+                  },
+                },
+              },
+            ],
+          },
+        },
+        "variables": Array [
+          "?o",
+        ],
+      },
+      "variables": Array [
+        "?p",
+      ],
+    },
+    "variables": Array [
+      "?s",
+    ],
+  },
+}
+`;
+
+exports[`describe empty parallel 1`] = `
+ParallelN {
+  "subflows": Array [],
+}
+`;
+
+exports[`describe foreach foreach string reader 1`] = `
+MultiInputDataOperation {
+  "dataOperationType": "join",
+  "input": Array [
+    Object {
+      "bindings": Array [
+        Object {
+          "?_": NamedNode {
+            "termType": "NamedNode",
+            "value": "http://example.org/Res1",
+          },
+        },
+        Object {
+          "?_": NamedNode {
+            "termType": "NamedNode",
+            "value": "http://example.org/Res2",
+          },
+        },
+        Object {
+          "?_": NamedNode {
+            "termType": "NamedNode",
+            "value": "http://example.org/Res3",
+          },
+        },
+      ],
+      "type": "values",
+      "variables": Array [
+        Variable {
+          "termType": "Variable",
+          "value": "_",
+        },
+      ],
+    },
+  ],
+  "params": Object {},
+  "subflow": ForEach {
+    "distinct": true,
+    "subflow": MultiInputDataOperation {
+      "dataOperationType": "join",
+      "input": Array [
+        Object {
+          "patterns": Array [
+            Quad {
+              "graph": DefaultGraph {
+                "termType": "DefaultGraph",
+                "value": "",
+              },
+              "object": Variable {
+                "termType": "Variable",
+                "value": "_out",
+              },
+              "predicate": NamedNode {
+                "termType": "NamedNode",
+                "value": "http://example.org/prop1",
+              },
+              "subject": Variable {
+                "termType": "Variable",
+                "value": "_",
+              },
+              "termType": "Quad",
+              "type": "pattern",
+              "value": "",
+            },
+          ],
+          "type": "bgp",
+        },
+      ],
+      "params": Object {},
+      "subflow": Rename {
+        "renamings": Array [
+          Object {
+            "currVarname": "?_out",
+            "hideCurrVar": true,
+            "newVarname": "?_",
+          },
+        ],
+        "subflow": ForEach {
+          "distinct": true,
+          "subflow": Cascade {
+            "action": [Function],
+            "subflow": ActionExecutor {
+              "action": [Function],
+            },
+          },
+          "variables": Array [
+            "?_",
+          ],
+        },
+      },
+    },
+    "variables": Array [
+      "?_",
+    ],
+  },
+}
+`;
+
+exports[`describe foreach foreach value reader 1`] = `
+MultiInputDataOperation {
+  "dataOperationType": "join",
+  "input": Array [
+    Object {
+      "bindings": Array [
+        Object {
+          "?_": NamedNode {
+            "termType": "NamedNode",
+            "value": "http://example.org/Res1",
+          },
+        },
+        Object {
+          "?_": NamedNode {
+            "termType": "NamedNode",
+            "value": "http://example.org/Res2",
+          },
+        },
+        Object {
+          "?_": NamedNode {
+            "termType": "NamedNode",
+            "value": "http://example.org/Res3",
+          },
+        },
+      ],
+      "type": "values",
+      "variables": Array [
+        Variable {
+          "termType": "Variable",
+          "value": "_",
+        },
+      ],
+    },
+  ],
+  "params": Object {},
+  "subflow": ForEach {
+    "distinct": true,
+    "subflow": MultiInputDataOperation {
+      "dataOperationType": "join",
+      "input": Array [
+        Object {
+          "patterns": Array [
+            Quad {
+              "graph": DefaultGraph {
+                "termType": "DefaultGraph",
+                "value": "",
+              },
+              "object": Variable {
+                "termType": "Variable",
+                "value": "_out",
+              },
+              "predicate": NamedNode {
+                "termType": "NamedNode",
+                "value": "http://example.org/prop1",
+              },
+              "subject": Variable {
+                "termType": "Variable",
+                "value": "_",
+              },
+              "termType": "Quad",
+              "type": "pattern",
+              "value": "",
+            },
+          ],
+          "type": "bgp",
+        },
+      ],
+      "params": Object {},
+      "subflow": Rename {
+        "renamings": Array [
+          Object {
+            "currVarname": "?_out",
+            "hideCurrVar": true,
+            "newVarname": "?_",
+          },
+        ],
+        "subflow": ForEach {
+          "distinct": true,
+          "subflow": Cascade {
+            "action": [Function],
+            "subflow": ActionExecutor {
+              "action": [Function],
+            },
+          },
+          "variables": Array [
+            "?_",
+          ],
+        },
+      },
+    },
+    "variables": Array [
+      "?_",
+    ],
+  },
+}
+`;
+
+exports[`describe foreach traversal value reader 1`] = `
+MultiInputDataOperation {
+  "dataOperationType": "join",
+  "input": Array [
+    Object {
+      "bindings": Array [
+        Object {
+          "?_": NamedNode {
+            "termType": "NamedNode",
+            "value": "http://example.org/Res1",
+          },
+        },
+        Object {
+          "?_": NamedNode {
+            "termType": "NamedNode",
+            "value": "http://example.org/Res2",
+          },
+        },
+        Object {
+          "?_": NamedNode {
+            "termType": "NamedNode",
+            "value": "http://example.org/Res3",
+          },
+        },
+        Object {
+          "?_": Literal {
+            "datatype": NamedNode {
+              "termType": "NamedNode",
+              "value": "http://www.w3.org/2001/XMLSchema#string",
+            },
+            "language": "",
+            "termType": "Literal",
+            "value": "pippo",
+          },
+        },
+        Object {
+          "?_": Literal {
+            "datatype": NamedNode {
+              "termType": "NamedNode",
+              "value": "http://www.w3.org/2001/XMLSchema#integer",
+            },
+            "language": "",
+            "termType": "Literal",
+            "value": "42",
+          },
+        },
+        Object {
+          "?_": Literal {
+            "datatype": NamedNode {
+              "termType": "NamedNode",
+              "value": "http://www.w3.org/2001/XMLSchema#decimal",
+            },
+            "language": "",
+            "termType": "Literal",
+            "value": "3.14",
+          },
+        },
+      ],
+      "type": "values",
+      "variables": Array [
+        Variable {
+          "termType": "Variable",
+          "value": "_",
+        },
+      ],
+    },
+  ],
+  "params": Object {},
+  "subflow": MultiInputDataOperation {
+    "dataOperationType": "join",
+    "input": Array [
+      Object {
+        "patterns": Array [
+          Quad {
+            "graph": DefaultGraph {
+              "termType": "DefaultGraph",
+              "value": "",
+            },
+            "object": Variable {
+              "termType": "Variable",
+              "value": "_out",
+            },
+            "predicate": NamedNode {
+              "termType": "NamedNode",
+              "value": "http://example.org/prop1",
+            },
+            "subject": Variable {
+              "termType": "Variable",
+              "value": "_",
+            },
+            "termType": "Quad",
+            "type": "pattern",
+            "value": "",
+          },
+        ],
+        "type": "bgp",
+      },
+    ],
+    "params": Object {},
+    "subflow": Rename {
+      "renamings": Array [
+        Object {
+          "currVarname": "?_out",
+          "hideCurrVar": true,
+          "newVarname": "?_",
+        },
+      ],
+      "subflow": ForEach {
+        "distinct": true,
+        "subflow": Cascade {
+          "action": [Function],
+          "subflow": ActionExecutor {
+            "action": [Function],
+          },
+        },
+        "variables": Array [
+          "?_",
+        ],
+      },
+    },
+  },
+}
+`;
+
+exports[`describe foreach value reader 1`] = `
+MultiInputDataOperation {
+  "dataOperationType": "join",
+  "input": Array [
+    Object {
+      "bindings": Array [
+        Object {
+          "?_": NamedNode {
+            "termType": "NamedNode",
+            "value": "http://example.org/Res1",
+          },
+        },
+        Object {
+          "?_": NamedNode {
+            "termType": "NamedNode",
+            "value": "http://example.org/Res2",
+          },
+        },
+        Object {
+          "?_": NamedNode {
+            "termType": "NamedNode",
+            "value": "http://example.org/Res3",
+          },
+        },
+        Object {
+          "?_": Literal {
+            "datatype": NamedNode {
+              "termType": "NamedNode",
+              "value": "http://www.w3.org/2001/XMLSchema#string",
+            },
+            "language": "",
+            "termType": "Literal",
+            "value": "pippo",
+          },
+        },
+        Object {
+          "?_": Literal {
+            "datatype": NamedNode {
+              "termType": "NamedNode",
+              "value": "http://www.w3.org/2001/XMLSchema#integer",
+            },
+            "language": "",
+            "termType": "Literal",
+            "value": "42",
+          },
+        },
+        Object {
+          "?_": Literal {
+            "datatype": NamedNode {
+              "termType": "NamedNode",
+              "value": "http://www.w3.org/2001/XMLSchema#decimal",
+            },
+            "language": "",
+            "termType": "Literal",
+            "value": "3.14",
+          },
+        },
+      ],
+      "type": "values",
+      "variables": Array [
+        Variable {
+          "termType": "Variable",
+          "value": "_",
+        },
+      ],
+    },
+  ],
+  "params": Object {},
+  "subflow": ForEach {
+    "distinct": true,
+    "subflow": Cascade {
+      "action": [Function],
+      "subflow": ActionExecutor {
+        "action": [Function],
+      },
+    },
+    "variables": Array [
+      "?_",
+    ],
+  },
+}
+`;
+
+exports[`describe multiple default bindings 1`] = `
+MultiInputDataOperation {
+  "dataOperationType": "join",
+  "input": Array [
+    Object {
+      "bindings": Array [
+        Object {
+          "?_": NamedNode {
+            "termType": "NamedNode",
+            "value": "http://example.org/Res1",
+          },
+        },
+        Object {
+          "?_": NamedNode {
+            "termType": "NamedNode",
+            "value": "http://example.org/Res2",
+          },
+        },
+        Object {
+          "?_": NamedNode {
+            "termType": "NamedNode",
+            "value": "http://example.org/Res3",
+          },
+        },
+      ],
+      "type": "values",
+      "variables": Array [
+        Variable {
+          "termType": "Variable",
+          "value": "_",
+        },
+      ],
+    },
+  ],
+  "params": Object {},
+  "subflow": ActionExecutor {
+    "action": [Function],
+  },
+}
+`;
+
+exports[`describe parallel 1`] = `
+MultiInputDataOperation {
+  "dataOperationType": "join",
+  "input": Array [
+    Object {
+      "bindings": Array [
+        Object {
+          "?_": NamedNode {
+            "termType": "NamedNode",
+            "value": "http://example.org/Res1",
+          },
+        },
+        Object {
+          "?_": NamedNode {
+            "termType": "NamedNode",
+            "value": "http://example.org/Res2",
+          },
+        },
+        Object {
+          "?_": NamedNode {
+            "termType": "NamedNode",
+            "value": "http://example.org/Res3",
+          },
+        },
+      ],
+      "type": "values",
+      "variables": Array [
+        Variable {
+          "termType": "Variable",
+          "value": "_",
+        },
+      ],
+    },
+  ],
+  "params": Object {},
+  "subflow": ParallelN {
+    "subflows": Array [
+      Cascade {
+        "action": [Function],
+        "subflow": ActionExecutor {
+          "action": [Function],
+        },
+      },
+      Cascade {
+        "action": [Function],
+        "subflow": MultiInputDataOperation {
+          "dataOperationType": "join",
+          "input": Array [
+            Object {
+              "patterns": Array [
+                Quad {
+                  "graph": DefaultGraph {
+                    "termType": "DefaultGraph",
+                    "value": "",
+                  },
+                  "object": Variable {
+                    "termType": "Variable",
+                    "value": "_out",
+                  },
+                  "predicate": NamedNode {
+                    "termType": "NamedNode",
+                    "value": "http://example.org/prop1",
+                  },
+                  "subject": Variable {
+                    "termType": "Variable",
+                    "value": "_",
+                  },
+                  "termType": "Quad",
+                  "type": "pattern",
+                  "value": "",
+                },
+              ],
+              "type": "bgp",
+            },
+          ],
+          "params": Object {},
+          "subflow": Rename {
+            "renamings": Array [
+              Object {
+                "currVarname": "?_out",
+                "hideCurrVar": true,
+                "newVarname": "?_",
+              },
+            ],
+            "subflow": ActionExecutor {
+              "action": [Function],
+            },
+          },
+        },
+      },
+      Cascade {
+        "action": [Function],
+        "subflow": MultiInputDataOperation {
+          "dataOperationType": "join",
+          "input": Array [
+            Object {
+              "patterns": Array [
+                Quad {
+                  "graph": DefaultGraph {
+                    "termType": "DefaultGraph",
+                    "value": "",
+                  },
+                  "object": Variable {
+                    "termType": "Variable",
+                    "value": "_out",
+                  },
+                  "predicate": NamedNode {
+                    "termType": "NamedNode",
+                    "value": "http://example.org/prop2",
+                  },
+                  "subject": Variable {
+                    "termType": "Variable",
+                    "value": "_",
+                  },
+                  "termType": "Quad",
+                  "type": "pattern",
+                  "value": "",
+                },
+              ],
+              "type": "bgp",
+            },
+          ],
+          "params": Object {},
+          "subflow": Rename {
+            "renamings": Array [
+              Object {
+                "currVarname": "?_out",
+                "hideCurrVar": true,
+                "newVarname": "?_",
+              },
+            ],
+            "subflow": ActionExecutor {
+              "action": [Function],
+            },
+          },
+        },
+      },
+      Cascade {
+        "action": [Function],
+        "subflow": MultiInputDataOperation {
+          "dataOperationType": "join",
+          "input": Array [
+            Object {
+              "patterns": Array [
+                Quad {
+                  "graph": DefaultGraph {
+                    "termType": "DefaultGraph",
+                    "value": "",
+                  },
+                  "object": Variable {
+                    "termType": "Variable",
+                    "value": "_out",
+                  },
+                  "predicate": NamedNode {
+                    "termType": "NamedNode",
+                    "value": "http://example.org/prop3",
+                  },
+                  "subject": Variable {
+                    "termType": "Variable",
+                    "value": "_",
+                  },
+                  "termType": "Quad",
+                  "type": "pattern",
+                  "value": "",
+                },
+              ],
+              "type": "bgp",
+            },
+          ],
+          "params": Object {},
+          "subflow": Rename {
+            "renamings": Array [
+              Object {
+                "currVarname": "?_out",
+                "hideCurrVar": true,
+                "newVarname": "?_",
+              },
+            ],
+            "subflow": ActionExecutor {
+              "action": [Function],
+            },
+          },
+        },
+      },
+    ],
+  },
+}
+`;
+
+exports[`describe single default binding show all 1`] = `
+MultiInputDataOperation {
+  "dataOperationType": "join",
+  "input": Array [
+    Object {
+      "bindings": Array [
+        Object {
+          "?_": NamedNode {
+            "termType": "NamedNode",
+            "value": "http://example.org/Res1",
+          },
+        },
+      ],
+      "type": "values",
+      "variables": Array [
+        Variable {
+          "termType": "Variable",
+          "value": "_",
+        },
+      ],
+    },
+  ],
+  "params": Object {},
+  "subflow": ActionExecutor {
+    "action": [Function],
+  },
+}
+`;
+
+exports[`describe single default binding show term 1`] = `
+MultiInputDataOperation {
+  "dataOperationType": "join",
+  "input": Array [
+    Object {
+      "bindings": Array [
+        Object {
+          "?_": NamedNode {
+            "termType": "NamedNode",
+            "value": "http://example.org/Res1",
+          },
+        },
+      ],
+      "type": "values",
+      "variables": Array [
+        Variable {
+          "termType": "Variable",
+          "value": "_",
+        },
+      ],
+    },
+  ],
+  "params": Object {},
+  "subflow": ActionExecutor {
+    "action": [Function],
+  },
+}
+`;
+
+exports[`describe single default binding show value 1`] = `
+MultiInputDataOperation {
+  "dataOperationType": "join",
+  "input": Array [
+    Object {
+      "bindings": Array [
+        Object {
+          "?_": NamedNode {
+            "termType": "NamedNode",
+            "value": "http://example.org/Res1",
+          },
+        },
+      ],
+      "type": "values",
+      "variables": Array [
+        Variable {
+          "termType": "Variable",
+          "value": "_",
+        },
+      ],
+    },
+  ],
+  "params": Object {},
+  "subflow": Cascade {
+    "action": [Function],
+    "subflow": ActionExecutor {
+      "action": [Function],
+    },
+  },
+}
+`;
+
+exports[`describe traversal 1`] = `
+MultiInputDataOperation {
+  "dataOperationType": "join",
+  "input": Array [
+    Object {
+      "bindings": Array [
+        Object {
+          "?_": NamedNode {
+            "termType": "NamedNode",
+            "value": "http://example.org/Res1",
+          },
+        },
+      ],
+      "type": "values",
+      "variables": Array [
+        Variable {
+          "termType": "Variable",
+          "value": "_",
+        },
+      ],
+    },
+  ],
+  "params": Object {},
+  "subflow": Cascade {
+    "action": [Function],
+    "subflow": MultiInputDataOperation {
+      "dataOperationType": "join",
+      "input": Array [
+        Object {
+          "patterns": Array [
+            Quad {
+              "graph": DefaultGraph {
+                "termType": "DefaultGraph",
+                "value": "",
+              },
+              "object": Variable {
+                "termType": "Variable",
+                "value": "_out",
+              },
+              "predicate": NamedNode {
+                "termType": "NamedNode",
+                "value": "http://example.org/prop1",
+              },
+              "subject": Variable {
+                "termType": "Variable",
+                "value": "_",
+              },
+              "termType": "Quad",
+              "type": "pattern",
+              "value": "",
+            },
+          ],
+          "type": "bgp",
+        },
+      ],
+      "params": Object {},
+      "subflow": Rename {
+        "renamings": Array [
+          Object {
+            "currVarname": "?_out",
+            "hideCurrVar": true,
+            "newVarname": "?_",
+          },
+        ],
+        "subflow": ActionExecutor {
+          "action": [Function],
+        },
+      },
+    },
+  },
+}
+`;
+
+exports[`describe traversal path 1`] = `
+MultiInputDataOperation {
+  "dataOperationType": "join",
+  "input": Array [
+    Object {
+      "bindings": Array [
+        Object {
+          "?_": NamedNode {
+            "termType": "NamedNode",
+            "value": "http://example.org/Res1",
+          },
+        },
+      ],
+      "type": "values",
+      "variables": Array [
+        Variable {
+          "termType": "Variable",
+          "value": "_",
+        },
+      ],
+    },
+  ],
+  "params": Object {},
+  "subflow": Cascade {
+    "action": [Function],
+    "subflow": MultiInputDataOperation {
+      "dataOperationType": "join",
+      "input": Array [
+        Object {
+          "patterns": Array [
+            Quad {
+              "graph": DefaultGraph {
+                "termType": "DefaultGraph",
+                "value": "",
+              },
+              "object": Variable {
+                "termType": "Variable",
+                "value": "var0",
+              },
+              "predicate": NamedNode {
+                "termType": "NamedNode",
+                "value": "http://example.org/prop1",
+              },
+              "subject": Variable {
+                "termType": "Variable",
+                "value": "_",
+              },
+              "termType": "Quad",
+              "type": "pattern",
+              "value": "",
+            },
+            Quad {
+              "graph": DefaultGraph {
+                "termType": "DefaultGraph",
+                "value": "",
+              },
+              "object": Variable {
+                "termType": "Variable",
+                "value": "_out",
+              },
+              "predicate": NamedNode {
+                "termType": "NamedNode",
+                "value": "http://example.org/prop2",
+              },
+              "subject": Variable {
+                "termType": "Variable",
+                "value": "var0",
+              },
+              "termType": "Quad",
+              "type": "pattern",
+              "value": "",
+            },
+          ],
+          "type": "bgp",
+        },
+      ],
+      "params": Object {},
+      "subflow": Rename {
+        "renamings": Array [
+          Object {
+            "currVarname": "?_out",
+            "hideCurrVar": true,
+            "newVarname": "?_",
+          },
+        ],
+        "subflow": ActionExecutor {
+          "action": [Function],
+        },
+      },
+    },
+  },
+}
+`;
+
+exports[`describe undefined term reader 1`] = `
+ActionExecutor {
+  "action": [Function],
+}
+`;
+
+exports[`describe undefined value reader 1`] = `
+Cascade {
+  "action": [Function],
+  "subflow": ActionExecutor {
+    "action": [Function],
+  },
+}
+`;

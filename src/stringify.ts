@@ -4,18 +4,15 @@ import {
   ActionExecutor,
   Parallel,
   ForEach,
-  Join,
-  Filter,
   Cascade,
-  Let
+  SingleInputDataOperation,
+  MultiInputDataOperation
 } from './flow'
-import { Wildcard } from 'sparqljs'
 
 const algebraFactory = new Factory()
-const WILDCARD = new Wildcard()
 
 export function toSparqlQuery(op: Algebra.Operation, options = {}): string {
-  return toSparql(algebraFactory.createProject(op, [WILDCARD]), options)
+  return toSparql(algebraFactory.createProject(op, []), options)
 }
 
 export function toSparqlFragment(op: Algebra.Operation, options = {}): string {
@@ -53,38 +50,39 @@ export function stringifyFlow<ReturnType>(
       type: 'for-each',
       subflow: stringifyFlow(flow.subflow)
     }
-  } else if (flow instanceof Let) {
-    const letFlow = flow
-    return {
-      type: 'let',
-      currVarname: letFlow.currVarname,
-      newVarname: letFlow.newVarname,
-      hideCurrVar: letFlow.hideCurrVar,
-      subflow: stringifyFlow(letFlow.subflow, options)
+  } else if (flow instanceof SingleInputDataOperation) {
+    const dataOperation = flow
+    if (dataOperation.dataOperationType === 'filter') {
+      const filter = dataOperation
+      const filterSparql = toSparqlFragment(
+        algebraFactory.createFilter(
+          algebraFactory.createBgp([]),
+          filter.params.expression
+        ),
+        options
+      )
+      return {
+        type: 'filter',
+        expression: filterSparql.substring(
+          'FILTER('.length,
+          filterSparql.length - ')'.length
+        ),
+        subflow: stringifyFlow(filter.subflow, options)
+      }
+    } else {
+      throw new Error('Unrecognized data operation')
     }
-  } else if (flow instanceof Filter) {
-    const filter = flow
-    const filterSparql = toSparqlFragment(
-      algebraFactory.createFilter(
-        algebraFactory.createBgp([]),
-        filter.expression
-      ),
-      options
-    )
-    return {
-      type: 'filter',
-      expression: filterSparql.substring(
-        'FILTER('.length,
-        filterSparql.length - ')'.length
-      ),
-      subflow: stringifyFlow(filter.subflow, options)
-    }
-  } else if (flow instanceof Join) {
-    const join = flow
-    return {
-      type: 'join',
-      right: toSparqlFragment(join.right, options),
-      subflow: stringifyFlow(join.subflow, options)
+  } else if (flow instanceof MultiInputDataOperation) {
+    const dataOperation = flow
+    if (dataOperation.dataOperationType === 'join') {
+      const join = dataOperation
+      return {
+        type: 'join',
+        right: join.input.map((op) => toSparqlFragment(op, options)),
+        subflow: stringifyFlow(join.subflow, options)
+      }
+    } else {
+      throw new Error('Unrecognized data operation')
     }
   } else {
     throw new Error('Unrecognized flow type')

@@ -14,7 +14,7 @@ import {
   MultiInputDataOperation
 } from './flow'
 import * as RDF from 'rdf-js'
-import { Algebra } from 'sparqlalgebrajs'
+import { Algebra, Factory, toSparql } from 'sparqlalgebrajs'
 import {
   IQueryEngine,
   IActorQueryOperationOutputBindings
@@ -90,6 +90,7 @@ function renameVars(input: Table, renamings: SingleVarRenameConfig[] = []) {
 export default class FlowEngine {
   engine: IQueryEngine
   queryContext: any
+  algebraFactory = new Factory()
 
   /**
    * Create a new instance of FlowEngine
@@ -101,11 +102,15 @@ export default class FlowEngine {
     this.queryContext = config.queryContext || {}
   }
 
+  private toSparqlQuery(op: Algebra.Operation, options = {}): string {
+    return toSparql(this.algebraFactory.createProject(op, []), options)
+  }
+
   private async query(
     queryOp: Algebra.Operation
   ): Promise<IActorQueryOperationOutputBindings> {
     return <IActorQueryOperationOutputBindings>(
-      await this.engine.query(queryOp, this.queryContext)
+      await this.engine.query(this.toSparqlQuery(queryOp), this.queryContext)
     )
   }
 
@@ -315,7 +320,11 @@ export default class FlowEngine {
     dataOperation: SingleInputDataOperation<OpType, ReturnType>,
     inputQuery: Algebra.Operation
   ): OpType {
-    return { ...dataOperation.params, input: inputQuery } as OpType
+    return {
+      type: dataOperation.dataOperationType,
+      ...dataOperation.params,
+      input: inputQuery
+    } as OpType
   }
 
   /**
@@ -333,6 +342,7 @@ export default class FlowEngine {
     inputQuery: Algebra.Operation
   ): OpType {
     return {
+      type: dataOperation.dataOperationType,
       ...dataOperation.params,
       input: [inputQuery, dataOperation.rightInput]
     } as OpType
@@ -353,6 +363,7 @@ export default class FlowEngine {
     inputQuery: Algebra.Operation
   ): OpType {
     return {
+      type: dataOperation.dataOperationType,
       ...dataOperation.params,
       input: [dataOperation.leftInput, inputQuery]
     } as OpType
@@ -373,6 +384,7 @@ export default class FlowEngine {
     inputQuery: Algebra.Operation
   ): OpType {
     return {
+      type: dataOperation.dataOperationType,
       ...dataOperation.params,
       input: [inputQuery, ...dataOperation.input]
     } as OpType

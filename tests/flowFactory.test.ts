@@ -54,6 +54,14 @@ const flows = {
   'action show bindings': showBindings,
   'action show one set of bindings': showOneBinding,
   'action show default bindings': showOne,
+  'filter true': ff.createFilter({
+    expression: 'true',
+    subflow: showBindings
+  }),
+  'empty join': ff.createJoin({
+    input: [],
+    subflow: showBindings
+  }),
   'single default binding show bindings': ff.createJoin({
     input: 'VALUES ?_ {ex:Res1}',
     subflow: showBindings
@@ -160,9 +168,15 @@ const flows = {
 
 // jest.setTimeout(60000);
 
-Object.entries(flows).forEach(([label, flow]) => {
+// Object.entries(flows).forEach(([label, flow]) => {
+//   test('describe ' + label, () => expect(flow).toMatchSnapshot())
+//   test('run ' + label, () => expect(fe.run(flow)).resolves.toMatchSnapshot())
+// })
+
+for (const [label, flow] of Object.entries(flows)) {
+  test('describe ' + label, () => expect(flow).toMatchSnapshot())
   test('run ' + label, () => expect(fe.run(flow)).resolves.toMatchSnapshot())
-})
+}
 
 // Object.entries(flows).forEach(([label, flow]) => {
 //     test('run ' + label, async () => {

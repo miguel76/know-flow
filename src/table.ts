@@ -26,7 +26,7 @@ export interface Table {
 export interface TableSync {
   /** The sequence of bindings as an array of dictionary objects containing
    * variable names as keys and RDF terms as objects */
-  bindingsArray: { [varname: string]: RDF.Term }[]
+  bindingsArray: { [varname: string]: RDF.Literal | RDF.NamedNode }[]
   /** Names of the used variables. */
   variables: string[]
   /** True iff there are some bindings for which some variables can be undefined
@@ -36,7 +36,8 @@ export interface TableSync {
 
 export function syncTable(table: Table, limit?: number): Promise<TableSync> {
   return new Promise<TableSync>((resolve, reject) => {
-    const bindingsArray: { [varname: string]: RDF.Term }[] = []
+    const bindingsArray: { [varname: string]: RDF.Literal | RDF.NamedNode }[] =
+      []
     const bindingsStream =
       limit === undefined
         ? table.bindingsStream
@@ -71,7 +72,9 @@ export async function fromTableToValuesOp(
   table: Table
 ): Promise<Algebra.Values> {
   return algebraFactory.createValues(
-    table.variables.map((varname) => dataFactory.variable(varname.substr(1))),
+    table.variables.map((varname) =>
+      dataFactory.variable(varname.substring(1))
+    ),
     (await syncTable(table)).bindingsArray
   )
 }

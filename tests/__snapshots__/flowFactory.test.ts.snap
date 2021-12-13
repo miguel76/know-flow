@@ -1,5 +1,764 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`describe action constant 1`] = `
+ActionExecutor {
+  "action": [Function],
+}
+`;
+
+exports[`describe action show bindings 1`] = `
+ActionExecutor {
+  "action": [Function],
+}
+`;
+
+exports[`describe action show default bindings 1`] = `
+ActionExecutor {
+  "action": [Function],
+}
+`;
+
+exports[`describe action show one set of bindings 1`] = `
+ActionExecutor {
+  "action": [Function],
+}
+`;
+
+exports[`describe all triples foreach x 1 1`] = `
+MultiInputDataOperation {
+  "dataOperationType": "join",
+  "input": Array [
+    Object {
+      "patterns": Array [
+        Quad {
+          "graph": DefaultGraph {
+            "termType": "DefaultGraph",
+            "value": "",
+          },
+          "object": Variable {
+            "termType": "Variable",
+            "value": "o",
+          },
+          "predicate": Variable {
+            "termType": "Variable",
+            "value": "p",
+          },
+          "subject": Variable {
+            "termType": "Variable",
+            "value": "s",
+          },
+          "termType": "Quad",
+          "type": "pattern",
+          "value": "",
+        },
+      ],
+      "type": "bgp",
+    },
+  ],
+  "params": Object {},
+  "subflow": ForEach {
+    "distinct": true,
+    "subflow": ActionExecutor {
+      "action": [Function],
+    },
+    "variables": Array [
+      "?s",
+      "?p",
+      "?o",
+    ],
+  },
+}
+`;
+
+exports[`describe all triples foreach x 1 implicit 1`] = `
+MultiInputDataOperation {
+  "dataOperationType": "join",
+  "input": Array [
+    Object {
+      "patterns": Array [
+        Quad {
+          "graph": DefaultGraph {
+            "termType": "DefaultGraph",
+            "value": "",
+          },
+          "object": Variable {
+            "termType": "Variable",
+            "value": "o",
+          },
+          "predicate": Variable {
+            "termType": "Variable",
+            "value": "p",
+          },
+          "subject": Variable {
+            "termType": "Variable",
+            "value": "s",
+          },
+          "termType": "Quad",
+          "type": "pattern",
+          "value": "",
+        },
+      ],
+      "type": "bgp",
+    },
+  ],
+  "params": Object {},
+  "subflow": ForEach {
+    "distinct": false,
+    "subflow": ActionExecutor {
+      "action": [Function],
+    },
+  },
+}
+`;
+
+exports[`describe all triples foreach x 1 renamed 1`] = `
+MultiInputDataOperation {
+  "dataOperationType": "join",
+  "input": Array [
+    Object {
+      "patterns": Array [
+        Quad {
+          "graph": DefaultGraph {
+            "termType": "DefaultGraph",
+            "value": "",
+          },
+          "object": Variable {
+            "termType": "Variable",
+            "value": "o",
+          },
+          "predicate": Variable {
+            "termType": "Variable",
+            "value": "p",
+          },
+          "subject": Variable {
+            "termType": "Variable",
+            "value": "s",
+          },
+          "termType": "Quad",
+          "type": "pattern",
+          "value": "",
+        },
+      ],
+      "type": "bgp",
+    },
+  ],
+  "params": Object {},
+  "subflow": ForEach {
+    "distinct": true,
+    "subflow": Rename {
+      "renamings": Array [
+        Object {
+          "currVarname": "?s",
+          "hideCurrVar": false,
+          "newVarname": "?s2",
+        },
+        Object {
+          "currVarname": "?p",
+          "hideCurrVar": true,
+          "newVarname": "?_",
+        },
+      ],
+      "subflow": ActionExecutor {
+        "action": [Function],
+      },
+    },
+    "variables": Array [
+      "?s",
+      "?p",
+      "?o",
+    ],
+  },
+}
+`;
+
+exports[`describe all triples foreach x 2 1`] = `
+MultiInputDataOperation {
+  "dataOperationType": "join",
+  "input": Array [
+    Object {
+      "patterns": Array [
+        Quad {
+          "graph": DefaultGraph {
+            "termType": "DefaultGraph",
+            "value": "",
+          },
+          "object": Variable {
+            "termType": "Variable",
+            "value": "o",
+          },
+          "predicate": Variable {
+            "termType": "Variable",
+            "value": "p",
+          },
+          "subject": Variable {
+            "termType": "Variable",
+            "value": "s",
+          },
+          "termType": "Quad",
+          "type": "pattern",
+          "value": "",
+        },
+      ],
+      "type": "bgp",
+    },
+  ],
+  "params": Object {},
+  "subflow": ForEach {
+    "distinct": true,
+    "subflow": ForEach {
+      "distinct": true,
+      "subflow": ActionExecutor {
+        "action": [Function],
+      },
+      "variables": Array [
+        "?p",
+        "?o",
+      ],
+    },
+    "variables": Array [
+      "?s",
+    ],
+  },
+}
+`;
+
+exports[`describe all triples foreach x 3 1`] = `
+MultiInputDataOperation {
+  "dataOperationType": "join",
+  "input": Array [
+    Object {
+      "patterns": Array [
+        Quad {
+          "graph": DefaultGraph {
+            "termType": "DefaultGraph",
+            "value": "",
+          },
+          "object": Variable {
+            "termType": "Variable",
+            "value": "o",
+          },
+          "predicate": Variable {
+            "termType": "Variable",
+            "value": "p",
+          },
+          "subject": Variable {
+            "termType": "Variable",
+            "value": "s",
+          },
+          "termType": "Quad",
+          "type": "pattern",
+          "value": "",
+        },
+      ],
+      "type": "bgp",
+    },
+  ],
+  "params": Object {},
+  "subflow": ForEach {
+    "distinct": true,
+    "subflow": ForEach {
+      "distinct": true,
+      "subflow": ForEach {
+        "distinct": true,
+        "subflow": ActionExecutor {
+          "action": [Function],
+        },
+        "variables": Array [
+          "?o",
+        ],
+      },
+      "variables": Array [
+        "?p",
+      ],
+    },
+    "variables": Array [
+      "?s",
+    ],
+  },
+}
+`;
+
+exports[`describe all triples hide 1`] = `
+MultiInputDataOperation {
+  "dataOperationType": "join",
+  "input": Array [
+    Object {
+      "patterns": Array [
+        Quad {
+          "graph": DefaultGraph {
+            "termType": "DefaultGraph",
+            "value": "",
+          },
+          "object": Variable {
+            "termType": "Variable",
+            "value": "o",
+          },
+          "predicate": Variable {
+            "termType": "Variable",
+            "value": "p",
+          },
+          "subject": Variable {
+            "termType": "Variable",
+            "value": "s",
+          },
+          "termType": "Quad",
+          "type": "pattern",
+          "value": "",
+        },
+      ],
+      "type": "bgp",
+    },
+  ],
+  "params": Object {},
+  "subflow": Hide {
+    "subflow": ActionExecutor {
+      "action": [Function],
+    },
+    "variables": Array [
+      "?p",
+      "?o",
+    ],
+  },
+}
+`;
+
+exports[`describe all triples renamed 1`] = `
+MultiInputDataOperation {
+  "dataOperationType": "join",
+  "input": Array [
+    Object {
+      "patterns": Array [
+        Quad {
+          "graph": DefaultGraph {
+            "termType": "DefaultGraph",
+            "value": "",
+          },
+          "object": Variable {
+            "termType": "Variable",
+            "value": "o",
+          },
+          "predicate": Variable {
+            "termType": "Variable",
+            "value": "p",
+          },
+          "subject": Variable {
+            "termType": "Variable",
+            "value": "s",
+          },
+          "termType": "Quad",
+          "type": "pattern",
+          "value": "",
+        },
+      ],
+      "type": "bgp",
+    },
+  ],
+  "params": Object {},
+  "subflow": Rename {
+    "renamings": Array [
+      Object {
+        "currVarname": "?s",
+        "hideCurrVar": false,
+        "newVarname": "?s2",
+      },
+      Object {
+        "currVarname": "?p",
+        "hideCurrVar": true,
+        "newVarname": "?_",
+      },
+    ],
+    "subflow": ActionExecutor {
+      "action": [Function],
+    },
+  },
+}
+`;
+
+exports[`describe constant 1`] = `
+ActionExecutor {
+  "action": [Function],
+}
+`;
+
+exports[`describe empty join 1`] = `
+MultiInputDataOperation {
+  "dataOperationType": "join",
+  "input": Array [],
+  "params": Object {},
+  "subflow": ActionExecutor {
+    "action": [Function],
+  },
+}
+`;
+
+exports[`describe empty parallel 1`] = `
+ParallelN {
+  "subflows": Array [],
+}
+`;
+
+exports[`describe filter true 1`] = `
+SingleInputDataOperation {
+  "dataOperationType": "filter",
+  "params": Object {
+    "expression": Object {
+      "expressionType": "term",
+      "term": Literal {
+        "datatype": NamedNode {
+          "termType": "NamedNode",
+          "value": "http://www.w3.org/2001/XMLSchema#boolean",
+        },
+        "language": "",
+        "termType": "Literal",
+        "value": "true",
+      },
+      "type": "expression",
+    },
+  },
+  "subflow": ActionExecutor {
+    "action": [Function],
+  },
+}
+`;
+
+exports[`describe foreach value reader 1`] = `
+MultiInputDataOperation {
+  "dataOperationType": "join",
+  "input": Array [
+    Object {
+      "bindings": Array [
+        Object {
+          "?_": NamedNode {
+            "termType": "NamedNode",
+            "value": "http://example.org/Res1",
+          },
+        },
+        Object {
+          "?_": NamedNode {
+            "termType": "NamedNode",
+            "value": "http://example.org/Res2",
+          },
+        },
+        Object {
+          "?_": NamedNode {
+            "termType": "NamedNode",
+            "value": "http://example.org/Res3",
+          },
+        },
+        Object {
+          "?_": Literal {
+            "datatype": NamedNode {
+              "termType": "NamedNode",
+              "value": "http://www.w3.org/2001/XMLSchema#string",
+            },
+            "language": "",
+            "termType": "Literal",
+            "value": "pippo",
+          },
+        },
+        Object {
+          "?_": Literal {
+            "datatype": NamedNode {
+              "termType": "NamedNode",
+              "value": "http://www.w3.org/2001/XMLSchema#integer",
+            },
+            "language": "",
+            "termType": "Literal",
+            "value": "42",
+          },
+        },
+        Object {
+          "?_": Literal {
+            "datatype": NamedNode {
+              "termType": "NamedNode",
+              "value": "http://www.w3.org/2001/XMLSchema#decimal",
+            },
+            "language": "",
+            "termType": "Literal",
+            "value": "3.14",
+          },
+        },
+      ],
+      "type": "values",
+      "variables": Array [
+        Variable {
+          "termType": "Variable",
+          "value": "_",
+        },
+      ],
+    },
+  ],
+  "params": Object {},
+  "subflow": ForEach {
+    "distinct": true,
+    "subflow": ActionExecutor {
+      "action": [Function],
+    },
+    "variables": Array [
+      "?_",
+    ],
+  },
+}
+`;
+
+exports[`describe join 1`] = `
+MultiInputDataOperation {
+  "dataOperationType": "join",
+  "input": Array [
+    Object {
+      "patterns": Array [
+        Quad {
+          "graph": DefaultGraph {
+            "termType": "DefaultGraph",
+            "value": "",
+          },
+          "object": Variable {
+            "termType": "Variable",
+            "value": "o",
+          },
+          "predicate": Variable {
+            "termType": "Variable",
+            "value": "p",
+          },
+          "subject": Variable {
+            "termType": "Variable",
+            "value": "s",
+          },
+          "termType": "Quad",
+          "type": "pattern",
+          "value": "",
+        },
+      ],
+      "type": "bgp",
+    },
+  ],
+  "params": Object {},
+  "subflow": ActionExecutor {
+    "action": [Function],
+  },
+}
+`;
+
+exports[`describe multiple default bindings 1`] = `
+MultiInputDataOperation {
+  "dataOperationType": "join",
+  "input": Array [
+    Object {
+      "bindings": Array [
+        Object {
+          "?_": NamedNode {
+            "termType": "NamedNode",
+            "value": "http://example.org/Res1",
+          },
+        },
+        Object {
+          "?_": NamedNode {
+            "termType": "NamedNode",
+            "value": "http://example.org/Res2",
+          },
+        },
+        Object {
+          "?_": NamedNode {
+            "termType": "NamedNode",
+            "value": "http://example.org/Res3",
+          },
+        },
+      ],
+      "type": "values",
+      "variables": Array [
+        Variable {
+          "termType": "Variable",
+          "value": "_",
+        },
+      ],
+    },
+  ],
+  "params": Object {},
+  "subflow": ActionExecutor {
+    "action": [Function],
+  },
+}
+`;
+
+exports[`describe parallel 1`] = `
+MultiInputDataOperation {
+  "dataOperationType": "join",
+  "input": Array [
+    Object {
+      "bindings": Array [
+        Object {
+          "?_": NamedNode {
+            "termType": "NamedNode",
+            "value": "http://example.org/Res1",
+          },
+        },
+        Object {
+          "?_": NamedNode {
+            "termType": "NamedNode",
+            "value": "http://example.org/Res2",
+          },
+        },
+        Object {
+          "?_": NamedNode {
+            "termType": "NamedNode",
+            "value": "http://example.org/Res3",
+          },
+        },
+      ],
+      "type": "values",
+      "variables": Array [
+        Variable {
+          "termType": "Variable",
+          "value": "_",
+        },
+      ],
+    },
+  ],
+  "params": Object {},
+  "subflow": ParallelN {
+    "subflows": Array [
+      ActionExecutor {
+        "action": [Function],
+      },
+      MultiInputDataOperation {
+        "dataOperationType": "join",
+        "input": Array [
+          Object {
+            "patterns": Array [
+              Quad {
+                "graph": DefaultGraph {
+                  "termType": "DefaultGraph",
+                  "value": "",
+                },
+                "object": Variable {
+                  "termType": "Variable",
+                  "value": "new",
+                },
+                "predicate": NamedNode {
+                  "termType": "NamedNode",
+                  "value": "http://example.org/prop1",
+                },
+                "subject": Variable {
+                  "termType": "Variable",
+                  "value": "_",
+                },
+                "termType": "Quad",
+                "type": "pattern",
+                "value": "",
+              },
+            ],
+            "type": "bgp",
+          },
+        ],
+        "params": Object {},
+        "subflow": ActionExecutor {
+          "action": [Function],
+        },
+      },
+      MultiInputDataOperation {
+        "dataOperationType": "join",
+        "input": Array [
+          Object {
+            "patterns": Array [
+              Quad {
+                "graph": DefaultGraph {
+                  "termType": "DefaultGraph",
+                  "value": "",
+                },
+                "object": Variable {
+                  "termType": "Variable",
+                  "value": "new",
+                },
+                "predicate": NamedNode {
+                  "termType": "NamedNode",
+                  "value": "http://example.org/prop2",
+                },
+                "subject": Variable {
+                  "termType": "Variable",
+                  "value": "_",
+                },
+                "termType": "Quad",
+                "type": "pattern",
+                "value": "",
+              },
+            ],
+            "type": "bgp",
+          },
+        ],
+        "params": Object {},
+        "subflow": ActionExecutor {
+          "action": [Function],
+        },
+      },
+      MultiInputDataOperation {
+        "dataOperationType": "join",
+        "input": Array [
+          Object {
+            "patterns": Array [
+              Quad {
+                "graph": DefaultGraph {
+                  "termType": "DefaultGraph",
+                  "value": "",
+                },
+                "object": Variable {
+                  "termType": "Variable",
+                  "value": "new",
+                },
+                "predicate": NamedNode {
+                  "termType": "NamedNode",
+                  "value": "http://example.org/prop3",
+                },
+                "subject": Variable {
+                  "termType": "Variable",
+                  "value": "_",
+                },
+                "termType": "Quad",
+                "type": "pattern",
+                "value": "",
+              },
+            ],
+            "type": "bgp",
+          },
+        ],
+        "params": Object {},
+        "subflow": ActionExecutor {
+          "action": [Function],
+        },
+      },
+    ],
+  },
+}
+`;
+
+exports[`describe single default binding show bindings 1`] = `
+MultiInputDataOperation {
+  "dataOperationType": "join",
+  "input": Array [
+    Object {
+      "bindings": Array [
+        Object {
+          "?_": NamedNode {
+            "termType": "NamedNode",
+            "value": "http://example.org/Res1",
+          },
+        },
+      ],
+      "type": "values",
+      "variables": Array [
+        Variable {
+          "termType": "Variable",
+          "value": "_",
+        },
+      ],
+    },
+  ],
+  "params": Object {},
+  "subflow": ActionExecutor {
+    "action": [Function],
+  },
+}
+`;
+
 exports[`run action constant 1`] = `42`;
 
 exports[`run action show bindings 1`] = `
@@ -19,39 +778,187 @@ exports[`run action show one set of bindings 1`] = `Immutable.Map {}`;
 exports[`run all triples foreach x 1 1`] = `
 Array [
   Object {
-    "o": "42",
-    "p": "http://example.org/prop1",
-    "s": "http://example.org/Res1",
+    "bindingsArray": Array [
+      Object {
+        "?o": Object {
+          "datatype": Object {
+            "termType": "NamedNode",
+            "value": "http://www.w3.org/2001/XMLSchema#integer",
+          },
+          "language": "",
+          "termType": "Literal",
+          "value": "42",
+        },
+        "?p": Object {
+          "termType": "NamedNode",
+          "value": "http://example.org/prop1",
+        },
+        "?s": Object {
+          "termType": "NamedNode",
+          "value": "http://example.org/Res1",
+        },
+      },
+    ],
+    "canContainUndefs": false,
+    "variables": Array [
+      "?s",
+      "?p",
+      "?o",
+    ],
   },
   Object {
-    "o": "value1",
-    "p": "http://example.org/prop1",
-    "s": "http://example.org/Res1",
+    "bindingsArray": Array [
+      Object {
+        "?o": Object {
+          "datatype": Object {
+            "termType": "NamedNode",
+            "value": "http://www.w3.org/2001/XMLSchema#string",
+          },
+          "language": "",
+          "termType": "Literal",
+          "value": "value1",
+        },
+        "?p": Object {
+          "termType": "NamedNode",
+          "value": "http://example.org/prop1",
+        },
+        "?s": Object {
+          "termType": "NamedNode",
+          "value": "http://example.org/Res1",
+        },
+      },
+    ],
+    "canContainUndefs": false,
+    "variables": Array [
+      "?s",
+      "?p",
+      "?o",
+    ],
   },
   Object {
-    "o": "http://example.org/Res2",
-    "p": "http://example.org/prop1",
-    "s": "http://example.org/Res1",
+    "bindingsArray": Array [
+      Object {
+        "?o": Object {
+          "termType": "NamedNode",
+          "value": "http://example.org/Res2",
+        },
+        "?p": Object {
+          "termType": "NamedNode",
+          "value": "http://example.org/prop1",
+        },
+        "?s": Object {
+          "termType": "NamedNode",
+          "value": "http://example.org/Res1",
+        },
+      },
+    ],
+    "canContainUndefs": false,
+    "variables": Array [
+      "?s",
+      "?p",
+      "?o",
+    ],
   },
   Object {
-    "o": "http://example.org/Res3",
-    "p": "http://example.org/prop2",
-    "s": "http://example.org/Res1",
+    "bindingsArray": Array [
+      Object {
+        "?o": Object {
+          "termType": "NamedNode",
+          "value": "http://example.org/Res3",
+        },
+        "?p": Object {
+          "termType": "NamedNode",
+          "value": "http://example.org/prop2",
+        },
+        "?s": Object {
+          "termType": "NamedNode",
+          "value": "http://example.org/Res1",
+        },
+      },
+    ],
+    "canContainUndefs": false,
+    "variables": Array [
+      "?s",
+      "?p",
+      "?o",
+    ],
   },
   Object {
-    "o": "http://example.org/Res1",
-    "p": "http://example.org/prop3",
-    "s": "http://example.org/Res1",
+    "bindingsArray": Array [
+      Object {
+        "?o": Object {
+          "termType": "NamedNode",
+          "value": "http://example.org/Res1",
+        },
+        "?p": Object {
+          "termType": "NamedNode",
+          "value": "http://example.org/prop3",
+        },
+        "?s": Object {
+          "termType": "NamedNode",
+          "value": "http://example.org/Res1",
+        },
+      },
+    ],
+    "canContainUndefs": false,
+    "variables": Array [
+      "?s",
+      "?p",
+      "?o",
+    ],
   },
   Object {
-    "o": "3.14",
-    "p": "http://example.org/prop1",
-    "s": "http://example.org/Res2",
+    "bindingsArray": Array [
+      Object {
+        "?o": Object {
+          "datatype": Object {
+            "termType": "NamedNode",
+            "value": "http://www.w3.org/2001/XMLSchema#decimal",
+          },
+          "language": "",
+          "termType": "Literal",
+          "value": "3.14",
+        },
+        "?p": Object {
+          "termType": "NamedNode",
+          "value": "http://example.org/prop1",
+        },
+        "?s": Object {
+          "termType": "NamedNode",
+          "value": "http://example.org/Res2",
+        },
+      },
+    ],
+    "canContainUndefs": false,
+    "variables": Array [
+      "?s",
+      "?p",
+      "?o",
+    ],
   },
   Object {
-    "o": "http://example.org/Res1",
-    "p": "http://example.org/prop2",
-    "s": "http://example.org/Res2",
+    "bindingsArray": Array [
+      Object {
+        "?o": Object {
+          "termType": "NamedNode",
+          "value": "http://example.org/Res1",
+        },
+        "?p": Object {
+          "termType": "NamedNode",
+          "value": "http://example.org/prop2",
+        },
+        "?s": Object {
+          "termType": "NamedNode",
+          "value": "http://example.org/Res2",
+        },
+      },
+    ],
+    "canContainUndefs": false,
+    "variables": Array [
+      "?s",
+      "?p",
+      "?o",
+    ],
   },
 ]
 `;
@@ -59,39 +966,187 @@ Array [
 exports[`run all triples foreach x 1 implicit 1`] = `
 Array [
   Object {
-    "o": "value1",
-    "p": "http://example.org/prop1",
-    "s": "http://example.org/Res1",
+    "bindingsArray": Array [
+      Object {
+        "?o": Object {
+          "datatype": Object {
+            "termType": "NamedNode",
+            "value": "http://www.w3.org/2001/XMLSchema#string",
+          },
+          "language": "",
+          "termType": "Literal",
+          "value": "value1",
+        },
+        "?p": Object {
+          "termType": "NamedNode",
+          "value": "http://example.org/prop1",
+        },
+        "?s": Object {
+          "termType": "NamedNode",
+          "value": "http://example.org/Res1",
+        },
+      },
+    ],
+    "canContainUndefs": false,
+    "variables": Array [
+      "?s",
+      "?p",
+      "?o",
+    ],
   },
   Object {
-    "o": "42",
-    "p": "http://example.org/prop1",
-    "s": "http://example.org/Res1",
+    "bindingsArray": Array [
+      Object {
+        "?o": Object {
+          "datatype": Object {
+            "termType": "NamedNode",
+            "value": "http://www.w3.org/2001/XMLSchema#integer",
+          },
+          "language": "",
+          "termType": "Literal",
+          "value": "42",
+        },
+        "?p": Object {
+          "termType": "NamedNode",
+          "value": "http://example.org/prop1",
+        },
+        "?s": Object {
+          "termType": "NamedNode",
+          "value": "http://example.org/Res1",
+        },
+      },
+    ],
+    "canContainUndefs": false,
+    "variables": Array [
+      "?s",
+      "?p",
+      "?o",
+    ],
   },
   Object {
-    "o": "http://example.org/Res2",
-    "p": "http://example.org/prop1",
-    "s": "http://example.org/Res1",
+    "bindingsArray": Array [
+      Object {
+        "?o": Object {
+          "termType": "NamedNode",
+          "value": "http://example.org/Res2",
+        },
+        "?p": Object {
+          "termType": "NamedNode",
+          "value": "http://example.org/prop1",
+        },
+        "?s": Object {
+          "termType": "NamedNode",
+          "value": "http://example.org/Res1",
+        },
+      },
+    ],
+    "canContainUndefs": false,
+    "variables": Array [
+      "?s",
+      "?p",
+      "?o",
+    ],
   },
   Object {
-    "o": "http://example.org/Res3",
-    "p": "http://example.org/prop2",
-    "s": "http://example.org/Res1",
+    "bindingsArray": Array [
+      Object {
+        "?o": Object {
+          "termType": "NamedNode",
+          "value": "http://example.org/Res3",
+        },
+        "?p": Object {
+          "termType": "NamedNode",
+          "value": "http://example.org/prop2",
+        },
+        "?s": Object {
+          "termType": "NamedNode",
+          "value": "http://example.org/Res1",
+        },
+      },
+    ],
+    "canContainUndefs": false,
+    "variables": Array [
+      "?s",
+      "?p",
+      "?o",
+    ],
   },
   Object {
-    "o": "http://example.org/Res1",
-    "p": "http://example.org/prop3",
-    "s": "http://example.org/Res1",
+    "bindingsArray": Array [
+      Object {
+        "?o": Object {
+          "termType": "NamedNode",
+          "value": "http://example.org/Res1",
+        },
+        "?p": Object {
+          "termType": "NamedNode",
+          "value": "http://example.org/prop3",
+        },
+        "?s": Object {
+          "termType": "NamedNode",
+          "value": "http://example.org/Res1",
+        },
+      },
+    ],
+    "canContainUndefs": false,
+    "variables": Array [
+      "?s",
+      "?p",
+      "?o",
+    ],
   },
   Object {
-    "o": "3.14",
-    "p": "http://example.org/prop1",
-    "s": "http://example.org/Res2",
+    "bindingsArray": Array [
+      Object {
+        "?o": Object {
+          "datatype": Object {
+            "termType": "NamedNode",
+            "value": "http://www.w3.org/2001/XMLSchema#decimal",
+          },
+          "language": "",
+          "termType": "Literal",
+          "value": "3.14",
+        },
+        "?p": Object {
+          "termType": "NamedNode",
+          "value": "http://example.org/prop1",
+        },
+        "?s": Object {
+          "termType": "NamedNode",
+          "value": "http://example.org/Res2",
+        },
+      },
+    ],
+    "canContainUndefs": false,
+    "variables": Array [
+      "?s",
+      "?p",
+      "?o",
+    ],
   },
   Object {
-    "o": "http://example.org/Res1",
-    "p": "http://example.org/prop2",
-    "s": "http://example.org/Res2",
+    "bindingsArray": Array [
+      Object {
+        "?o": Object {
+          "termType": "NamedNode",
+          "value": "http://example.org/Res1",
+        },
+        "?p": Object {
+          "termType": "NamedNode",
+          "value": "http://example.org/prop2",
+        },
+        "?s": Object {
+          "termType": "NamedNode",
+          "value": "http://example.org/Res2",
+        },
+      },
+    ],
+    "canContainUndefs": false,
+    "variables": Array [
+      "?s",
+      "?p",
+      "?o",
+    ],
   },
 ]
 `;
@@ -323,41 +1378,189 @@ exports[`run all triples foreach x 2 1`] = `
 Array [
   Array [
     Object {
-      "o": "42",
-      "p": "http://example.org/prop1",
-      "s": "http://example.org/Res1",
+      "bindingsArray": Array [
+        Object {
+          "?o": Object {
+            "datatype": Object {
+              "termType": "NamedNode",
+              "value": "http://www.w3.org/2001/XMLSchema#integer",
+            },
+            "language": "",
+            "termType": "Literal",
+            "value": "42",
+          },
+          "?p": Object {
+            "termType": "NamedNode",
+            "value": "http://example.org/prop1",
+          },
+          "?s": Object {
+            "termType": "NamedNode",
+            "value": "http://example.org/Res1",
+          },
+        },
+      ],
+      "canContainUndefs": false,
+      "variables": Array [
+        "?s",
+        "?p",
+        "?o",
+      ],
     },
     Object {
-      "o": "value1",
-      "p": "http://example.org/prop1",
-      "s": "http://example.org/Res1",
+      "bindingsArray": Array [
+        Object {
+          "?o": Object {
+            "datatype": Object {
+              "termType": "NamedNode",
+              "value": "http://www.w3.org/2001/XMLSchema#string",
+            },
+            "language": "",
+            "termType": "Literal",
+            "value": "value1",
+          },
+          "?p": Object {
+            "termType": "NamedNode",
+            "value": "http://example.org/prop1",
+          },
+          "?s": Object {
+            "termType": "NamedNode",
+            "value": "http://example.org/Res1",
+          },
+        },
+      ],
+      "canContainUndefs": false,
+      "variables": Array [
+        "?s",
+        "?p",
+        "?o",
+      ],
     },
     Object {
-      "o": "http://example.org/Res2",
-      "p": "http://example.org/prop1",
-      "s": "http://example.org/Res1",
+      "bindingsArray": Array [
+        Object {
+          "?o": Object {
+            "termType": "NamedNode",
+            "value": "http://example.org/Res2",
+          },
+          "?p": Object {
+            "termType": "NamedNode",
+            "value": "http://example.org/prop1",
+          },
+          "?s": Object {
+            "termType": "NamedNode",
+            "value": "http://example.org/Res1",
+          },
+        },
+      ],
+      "canContainUndefs": false,
+      "variables": Array [
+        "?s",
+        "?p",
+        "?o",
+      ],
     },
     Object {
-      "o": "http://example.org/Res3",
-      "p": "http://example.org/prop2",
-      "s": "http://example.org/Res1",
+      "bindingsArray": Array [
+        Object {
+          "?o": Object {
+            "termType": "NamedNode",
+            "value": "http://example.org/Res3",
+          },
+          "?p": Object {
+            "termType": "NamedNode",
+            "value": "http://example.org/prop2",
+          },
+          "?s": Object {
+            "termType": "NamedNode",
+            "value": "http://example.org/Res1",
+          },
+        },
+      ],
+      "canContainUndefs": false,
+      "variables": Array [
+        "?s",
+        "?p",
+        "?o",
+      ],
     },
     Object {
-      "o": "http://example.org/Res1",
-      "p": "http://example.org/prop3",
-      "s": "http://example.org/Res1",
+      "bindingsArray": Array [
+        Object {
+          "?o": Object {
+            "termType": "NamedNode",
+            "value": "http://example.org/Res1",
+          },
+          "?p": Object {
+            "termType": "NamedNode",
+            "value": "http://example.org/prop3",
+          },
+          "?s": Object {
+            "termType": "NamedNode",
+            "value": "http://example.org/Res1",
+          },
+        },
+      ],
+      "canContainUndefs": false,
+      "variables": Array [
+        "?s",
+        "?p",
+        "?o",
+      ],
     },
   ],
   Array [
     Object {
-      "o": "3.14",
-      "p": "http://example.org/prop1",
-      "s": "http://example.org/Res2",
+      "bindingsArray": Array [
+        Object {
+          "?o": Object {
+            "datatype": Object {
+              "termType": "NamedNode",
+              "value": "http://www.w3.org/2001/XMLSchema#decimal",
+            },
+            "language": "",
+            "termType": "Literal",
+            "value": "3.14",
+          },
+          "?p": Object {
+            "termType": "NamedNode",
+            "value": "http://example.org/prop1",
+          },
+          "?s": Object {
+            "termType": "NamedNode",
+            "value": "http://example.org/Res2",
+          },
+        },
+      ],
+      "canContainUndefs": false,
+      "variables": Array [
+        "?s",
+        "?p",
+        "?o",
+      ],
     },
     Object {
-      "o": "http://example.org/Res1",
-      "p": "http://example.org/prop2",
-      "s": "http://example.org/Res2",
+      "bindingsArray": Array [
+        Object {
+          "?o": Object {
+            "termType": "NamedNode",
+            "value": "http://example.org/Res1",
+          },
+          "?p": Object {
+            "termType": "NamedNode",
+            "value": "http://example.org/prop2",
+          },
+          "?s": Object {
+            "termType": "NamedNode",
+            "value": "http://example.org/Res2",
+          },
+        },
+      ],
+      "canContainUndefs": false,
+      "variables": Array [
+        "?s",
+        "?p",
+        "?o",
+      ],
     },
   ],
 ]
@@ -368,49 +1571,197 @@ Array [
   Array [
     Array [
       Object {
-        "o": "42",
-        "p": "http://example.org/prop1",
-        "s": "http://example.org/Res1",
+        "bindingsArray": Array [
+          Object {
+            "?o": Object {
+              "datatype": Object {
+                "termType": "NamedNode",
+                "value": "http://www.w3.org/2001/XMLSchema#integer",
+              },
+              "language": "",
+              "termType": "Literal",
+              "value": "42",
+            },
+            "?p": Object {
+              "termType": "NamedNode",
+              "value": "http://example.org/prop1",
+            },
+            "?s": Object {
+              "termType": "NamedNode",
+              "value": "http://example.org/Res1",
+            },
+          },
+        ],
+        "canContainUndefs": false,
+        "variables": Array [
+          "?s",
+          "?p",
+          "?o",
+        ],
       },
       Object {
-        "o": "value1",
-        "p": "http://example.org/prop1",
-        "s": "http://example.org/Res1",
+        "bindingsArray": Array [
+          Object {
+            "?o": Object {
+              "datatype": Object {
+                "termType": "NamedNode",
+                "value": "http://www.w3.org/2001/XMLSchema#string",
+              },
+              "language": "",
+              "termType": "Literal",
+              "value": "value1",
+            },
+            "?p": Object {
+              "termType": "NamedNode",
+              "value": "http://example.org/prop1",
+            },
+            "?s": Object {
+              "termType": "NamedNode",
+              "value": "http://example.org/Res1",
+            },
+          },
+        ],
+        "canContainUndefs": false,
+        "variables": Array [
+          "?s",
+          "?p",
+          "?o",
+        ],
       },
       Object {
-        "o": "http://example.org/Res2",
-        "p": "http://example.org/prop1",
-        "s": "http://example.org/Res1",
+        "bindingsArray": Array [
+          Object {
+            "?o": Object {
+              "termType": "NamedNode",
+              "value": "http://example.org/Res2",
+            },
+            "?p": Object {
+              "termType": "NamedNode",
+              "value": "http://example.org/prop1",
+            },
+            "?s": Object {
+              "termType": "NamedNode",
+              "value": "http://example.org/Res1",
+            },
+          },
+        ],
+        "canContainUndefs": false,
+        "variables": Array [
+          "?s",
+          "?p",
+          "?o",
+        ],
       },
     ],
     Array [
       Object {
-        "o": "http://example.org/Res3",
-        "p": "http://example.org/prop2",
-        "s": "http://example.org/Res1",
+        "bindingsArray": Array [
+          Object {
+            "?o": Object {
+              "termType": "NamedNode",
+              "value": "http://example.org/Res3",
+            },
+            "?p": Object {
+              "termType": "NamedNode",
+              "value": "http://example.org/prop2",
+            },
+            "?s": Object {
+              "termType": "NamedNode",
+              "value": "http://example.org/Res1",
+            },
+          },
+        ],
+        "canContainUndefs": false,
+        "variables": Array [
+          "?s",
+          "?p",
+          "?o",
+        ],
       },
     ],
     Array [
       Object {
-        "o": "http://example.org/Res1",
-        "p": "http://example.org/prop3",
-        "s": "http://example.org/Res1",
+        "bindingsArray": Array [
+          Object {
+            "?o": Object {
+              "termType": "NamedNode",
+              "value": "http://example.org/Res1",
+            },
+            "?p": Object {
+              "termType": "NamedNode",
+              "value": "http://example.org/prop3",
+            },
+            "?s": Object {
+              "termType": "NamedNode",
+              "value": "http://example.org/Res1",
+            },
+          },
+        ],
+        "canContainUndefs": false,
+        "variables": Array [
+          "?s",
+          "?p",
+          "?o",
+        ],
       },
     ],
   ],
   Array [
     Array [
       Object {
-        "o": "3.14",
-        "p": "http://example.org/prop1",
-        "s": "http://example.org/Res2",
+        "bindingsArray": Array [
+          Object {
+            "?o": Object {
+              "datatype": Object {
+                "termType": "NamedNode",
+                "value": "http://www.w3.org/2001/XMLSchema#decimal",
+              },
+              "language": "",
+              "termType": "Literal",
+              "value": "3.14",
+            },
+            "?p": Object {
+              "termType": "NamedNode",
+              "value": "http://example.org/prop1",
+            },
+            "?s": Object {
+              "termType": "NamedNode",
+              "value": "http://example.org/Res2",
+            },
+          },
+        ],
+        "canContainUndefs": false,
+        "variables": Array [
+          "?s",
+          "?p",
+          "?o",
+        ],
       },
     ],
     Array [
       Object {
-        "o": "http://example.org/Res1",
-        "p": "http://example.org/prop2",
-        "s": "http://example.org/Res2",
+        "bindingsArray": Array [
+          Object {
+            "?o": Object {
+              "termType": "NamedNode",
+              "value": "http://example.org/Res1",
+            },
+            "?p": Object {
+              "termType": "NamedNode",
+              "value": "http://example.org/prop2",
+            },
+            "?s": Object {
+              "termType": "NamedNode",
+              "value": "http://example.org/Res2",
+            },
+          },
+        ],
+        "canContainUndefs": false,
+        "variables": Array [
+          "?s",
+          "?p",
+          "?o",
+        ],
       },
     ],
   ],
@@ -627,53 +1978,42 @@ Object {
 
 exports[`run constant 1`] = `42`;
 
+exports[`run empty join 1`] = `
+Object {
+  "bindingsArray": Array [
+    Object {},
+  ],
+  "canContainUndefs": false,
+  "variables": Array [],
+}
+`;
+
 exports[`run empty parallel 1`] = `Array []`;
 
-exports[`run foreach foreach string reader 1`] = `
-Array [
-  Array [
-    "42",
-    "value1",
-    "http://example.org/Res2",
+exports[`run filter true 1`] = `
+Object {
+  "bindingsArray": Array [
+    Object {},
   ],
-  Array [
-    "3.14",
-  ],
-  Array [],
-]
-`;
-
-exports[`run foreach foreach value reader 1`] = `
-Array [
-  Array [
-    "42",
-    "value1",
-    "http://example.org/Res2",
-  ],
-  Array [
-    "3.14",
-  ],
-  Array [],
-]
-`;
-
-exports[`run foreach traversal value reader 1`] = `
-Array [
-  "3.14",
-  "42",
-  "value1",
-  "http://example.org/Res2",
-]
+  "canContainUndefs": false,
+  "variables": Array [],
+}
 `;
 
 exports[`run foreach value reader 1`] = `
 Array [
-  "3.14",
-  "42",
-  "pippo",
-  "http://example.org/Res1",
-  "http://example.org/Res2",
-  "http://example.org/Res3",
+  Object {
+    "bindingsArray": Array [
+      Object {},
+      Object {},
+      Object {},
+      Object {},
+      Object {},
+      Object {},
+    ],
+    "canContainUndefs": false,
+    "variables": Array [],
+  },
 ]
 `;
 
@@ -806,71 +2146,317 @@ Object {
 exports[`run multiple default bindings 1`] = `
 Object {
   "bindingsArray": Array [
-    Object {
-      "?_": NamedNode {
-        "termType": "NamedNode",
-        "value": "http://example.org/Res1",
-      },
-    },
-    Object {
-      "?_": NamedNode {
-        "termType": "NamedNode",
-        "value": "http://example.org/Res2",
-      },
-    },
-    Object {
-      "?_": NamedNode {
-        "termType": "NamedNode",
-        "value": "http://example.org/Res3",
-      },
-    },
+    Object {},
+    Object {},
+    Object {},
   ],
   "canContainUndefs": false,
-  "variables": Array [
-    "?_",
-  ],
+  "variables": Array [],
 }
 `;
 
 exports[`run parallel 1`] = `
 Array [
-  "http://example.org/Res1",
-  "value1",
-  "http://example.org/Res1",
-  "http://example.org/Res1",
+  Object {
+    "bindingsArray": Array [
+      Object {},
+      Object {},
+      Object {},
+    ],
+    "canContainUndefs": false,
+    "variables": Array [],
+  },
+  Object {
+    "bindingsArray": Array [
+      Object {
+        "?_": Object {
+          "termType": "NamedNode",
+          "value": "http://example.org/Res1",
+        },
+        "?new": Object {
+          "datatype": Object {
+            "termType": "NamedNode",
+            "value": "http://www.w3.org/2001/XMLSchema#string",
+          },
+          "language": "",
+          "termType": "Literal",
+          "value": "value1",
+        },
+      },
+      Object {
+        "?_": Object {
+          "termType": "NamedNode",
+          "value": "http://example.org/Res1",
+        },
+        "?new": Object {
+          "datatype": Object {
+            "termType": "NamedNode",
+            "value": "http://www.w3.org/2001/XMLSchema#string",
+          },
+          "language": "",
+          "termType": "Literal",
+          "value": "value1",
+        },
+      },
+      Object {
+        "?_": Object {
+          "termType": "NamedNode",
+          "value": "http://example.org/Res1",
+        },
+        "?new": Object {
+          "datatype": Object {
+            "termType": "NamedNode",
+            "value": "http://www.w3.org/2001/XMLSchema#string",
+          },
+          "language": "",
+          "termType": "Literal",
+          "value": "value1",
+        },
+      },
+      Object {
+        "?_": Object {
+          "termType": "NamedNode",
+          "value": "http://example.org/Res1",
+        },
+        "?new": Object {
+          "datatype": Object {
+            "termType": "NamedNode",
+            "value": "http://www.w3.org/2001/XMLSchema#integer",
+          },
+          "language": "",
+          "termType": "Literal",
+          "value": "42",
+        },
+      },
+      Object {
+        "?_": Object {
+          "termType": "NamedNode",
+          "value": "http://example.org/Res1",
+        },
+        "?new": Object {
+          "datatype": Object {
+            "termType": "NamedNode",
+            "value": "http://www.w3.org/2001/XMLSchema#integer",
+          },
+          "language": "",
+          "termType": "Literal",
+          "value": "42",
+        },
+      },
+      Object {
+        "?_": Object {
+          "termType": "NamedNode",
+          "value": "http://example.org/Res1",
+        },
+        "?new": Object {
+          "datatype": Object {
+            "termType": "NamedNode",
+            "value": "http://www.w3.org/2001/XMLSchema#integer",
+          },
+          "language": "",
+          "termType": "Literal",
+          "value": "42",
+        },
+      },
+      Object {
+        "?_": Object {
+          "termType": "NamedNode",
+          "value": "http://example.org/Res1",
+        },
+        "?new": Object {
+          "termType": "NamedNode",
+          "value": "http://example.org/Res2",
+        },
+      },
+      Object {
+        "?_": Object {
+          "termType": "NamedNode",
+          "value": "http://example.org/Res1",
+        },
+        "?new": Object {
+          "termType": "NamedNode",
+          "value": "http://example.org/Res2",
+        },
+      },
+      Object {
+        "?_": Object {
+          "termType": "NamedNode",
+          "value": "http://example.org/Res1",
+        },
+        "?new": Object {
+          "termType": "NamedNode",
+          "value": "http://example.org/Res2",
+        },
+      },
+      Object {
+        "?_": Object {
+          "termType": "NamedNode",
+          "value": "http://example.org/Res2",
+        },
+        "?new": Object {
+          "datatype": Object {
+            "termType": "NamedNode",
+            "value": "http://www.w3.org/2001/XMLSchema#decimal",
+          },
+          "language": "",
+          "termType": "Literal",
+          "value": "3.14",
+        },
+      },
+      Object {
+        "?_": Object {
+          "termType": "NamedNode",
+          "value": "http://example.org/Res2",
+        },
+        "?new": Object {
+          "datatype": Object {
+            "termType": "NamedNode",
+            "value": "http://www.w3.org/2001/XMLSchema#decimal",
+          },
+          "language": "",
+          "termType": "Literal",
+          "value": "3.14",
+        },
+      },
+      Object {
+        "?_": Object {
+          "termType": "NamedNode",
+          "value": "http://example.org/Res2",
+        },
+        "?new": Object {
+          "datatype": Object {
+            "termType": "NamedNode",
+            "value": "http://www.w3.org/2001/XMLSchema#decimal",
+          },
+          "language": "",
+          "termType": "Literal",
+          "value": "3.14",
+        },
+      },
+    ],
+    "canContainUndefs": false,
+    "variables": Array [
+      "?_",
+      "?new",
+    ],
+  },
+  Object {
+    "bindingsArray": Array [
+      Object {
+        "?_": Object {
+          "termType": "NamedNode",
+          "value": "http://example.org/Res2",
+        },
+        "?new": Object {
+          "termType": "NamedNode",
+          "value": "http://example.org/Res1",
+        },
+      },
+      Object {
+        "?_": Object {
+          "termType": "NamedNode",
+          "value": "http://example.org/Res2",
+        },
+        "?new": Object {
+          "termType": "NamedNode",
+          "value": "http://example.org/Res1",
+        },
+      },
+      Object {
+        "?_": Object {
+          "termType": "NamedNode",
+          "value": "http://example.org/Res2",
+        },
+        "?new": Object {
+          "termType": "NamedNode",
+          "value": "http://example.org/Res1",
+        },
+      },
+      Object {
+        "?_": Object {
+          "termType": "NamedNode",
+          "value": "http://example.org/Res1",
+        },
+        "?new": Object {
+          "termType": "NamedNode",
+          "value": "http://example.org/Res3",
+        },
+      },
+      Object {
+        "?_": Object {
+          "termType": "NamedNode",
+          "value": "http://example.org/Res1",
+        },
+        "?new": Object {
+          "termType": "NamedNode",
+          "value": "http://example.org/Res3",
+        },
+      },
+      Object {
+        "?_": Object {
+          "termType": "NamedNode",
+          "value": "http://example.org/Res1",
+        },
+        "?new": Object {
+          "termType": "NamedNode",
+          "value": "http://example.org/Res3",
+        },
+      },
+    ],
+    "canContainUndefs": false,
+    "variables": Array [
+      "?_",
+      "?new",
+    ],
+  },
+  Object {
+    "bindingsArray": Array [
+      Object {
+        "?_": Object {
+          "termType": "NamedNode",
+          "value": "http://example.org/Res1",
+        },
+        "?new": Object {
+          "termType": "NamedNode",
+          "value": "http://example.org/Res1",
+        },
+      },
+      Object {
+        "?_": Object {
+          "termType": "NamedNode",
+          "value": "http://example.org/Res1",
+        },
+        "?new": Object {
+          "termType": "NamedNode",
+          "value": "http://example.org/Res1",
+        },
+      },
+      Object {
+        "?_": Object {
+          "termType": "NamedNode",
+          "value": "http://example.org/Res1",
+        },
+        "?new": Object {
+          "termType": "NamedNode",
+          "value": "http://example.org/Res1",
+        },
+      },
+    ],
+    "canContainUndefs": false,
+    "variables": Array [
+      "?_",
+      "?new",
+    ],
+  },
 ]
 `;
 
-exports[`run single default binding show all 1`] = `
+exports[`run single default binding show bindings 1`] = `
 Object {
   "bindingsArray": Array [
-    Object {
-      "?_": NamedNode {
-        "termType": "NamedNode",
-        "value": "http://example.org/Res1",
-      },
-    },
+    Object {},
   ],
   "canContainUndefs": false,
-  "variables": Array [
-    "?_",
-  ],
+  "variables": Array [],
 }
 `;
-
-exports[`run single default binding show term 1`] = `
-NamedNode {
-  "termType": "NamedNode",
-  "value": "http://example.org/Res1",
-}
-`;
-
-exports[`run single default binding show value 1`] = `"http://example.org/Res1"`;
-
-exports[`run traversal 1`] = `"value1"`;
-
-exports[`run traversal path 1`] = `"http://example.org/Res1"`;
-
-exports[`run undefined term reader 1`] = `undefined`;
-
-exports[`run undefined value reader 1`] = `null`;
