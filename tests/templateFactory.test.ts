@@ -90,19 +90,19 @@ const flows = {
   }),
   'foreach value reader': tf.createValues({
     bindings: ['ex:Res1', 'ex:Res2', 'ex:Res3', '"pippo"', '42', '3.14'],
-    subflow: tf.createFor(tf.createValueReader())
+    subflow: tf.createForEach(tf.createValueReader())
   }),
   'foreach traversal value reader': tf.createValues({
     bindings: ['ex:Res1', 'ex:Res2', 'ex:Res3', '"pippo"', '42', '3.14'],
-    subflow: tf.createFor({
+    subflow: tf.createForEach({
       select: { path: 'ex:prop1' },
       subflow: tf.createValueReader()
     })
   }),
   'foreach foreach string reader': tf.createValues({
     bindings: ['ex:Res1', 'ex:Res2', 'ex:Res3'],
-    subflow: tf.createFor(
-      tf.createFor({
+    subflow: tf.createForEach(
+      tf.createForEach({
         select: { path: 'ex:prop1' },
         subflow: tf.createStringReader()
       })
@@ -110,8 +110,8 @@ const flows = {
   }),
   'foreach foreach value reader': tf.createValues({
     bindings: ['ex:Res1', 'ex:Res2', 'ex:Res3'],
-    subflow: tf.createFor(
-      tf.createFor({
+    subflow: tf.createForEach(
+      tf.createForEach({
         select: { path: 'ex:prop1' },
         subflow: tf.createValueReader()
       })
@@ -119,11 +119,11 @@ const flows = {
   }),
   'all triples foreach x 3': ff.createJoin({
     input: '?s ?p ?o',
-    subflow: tf.createFor({
+    subflow: tf.createForEach({
       select: ['?s'],
-      subflow: tf.createFor({
+      subflow: tf.createForEach({
         select: ['?p'],
-        subflow: tf.createFor({
+        subflow: tf.createForEach({
           select: ['?o'],
           subflow: ff.createParallelDict({
             s: tf.createValueReader({ var: '?s' }),
@@ -136,9 +136,9 @@ const flows = {
   }),
   'all triples foreach x 2': ff.createJoin({
     input: '?s ?p ?o',
-    subflow: tf.createFor({
+    subflow: tf.createForEach({
       select: ['?s'],
-      subflow: tf.createFor({
+      subflow: tf.createForEach({
         select: ['?p', '?o'],
         subflow: ff.createParallelDict({
           s: tf.createValueReader({ var: '?s' }),
@@ -150,7 +150,7 @@ const flows = {
   }),
   'all triples foreach x 1': ff.createJoin({
     input: '?s ?p ?o',
-    subflow: tf.createFor({
+    subflow: tf.createForEach({
       select: ['?s', '?p', '?o'],
       subflow: ff.createParallelDict({
         s: tf.createValueReader({ var: '?s' }),
@@ -161,7 +161,7 @@ const flows = {
   }),
   'all triples foreach x 1 implicit': ff.createJoin({
     input: '?s ?p ?o',
-    subflow: tf.createFor({
+    subflow: tf.createForEach({
       select: { allVars: true },
       subflow: ff.createParallelDict({
         s: tf.createValueReader({ var: '?s' }),
@@ -176,7 +176,7 @@ const flows = {
 
 Object.entries(flows).forEach(([label, flow]) => {
   test('describe ' + label, () => expect(flow).toMatchSnapshot())
-  // test('run ' + label, () => expect(fe.run(flow)).resolves.toMatchSnapshot())
+  test('run ' + label, () => expect(fe.run(flow)).resolves.toMatchSnapshot())
 })
 
 // Object.entries(flows).forEach(([label, flow]) => {

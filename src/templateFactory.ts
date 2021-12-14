@@ -87,12 +87,12 @@ export default class TemplateFactory {
   }
 
   /**
-   * Creates a For flow.
+   * Creates a for-each block.
    * @param config - The subflow or an object with the subflow and the For
    * parameters.
    * @returns New For instance.
    */
-  createFor<EachReturnType>(
+  createForEach<EachReturnType>(
     inputConfig: SubflowAndParams<EachReturnType, ForParam>
   ): Flow<EachReturnType[]> {
     const config = getFlowConfig(inputConfig)
