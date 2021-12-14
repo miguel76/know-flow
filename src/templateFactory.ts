@@ -131,6 +131,120 @@ export default class TemplateFactory {
     }
   }
 
+  // compose<
+  //   FlowReturnType,
+  //   SubflowsType extends
+  //     | Flow<FlowReturnType>
+  //     | Flow<FlowReturnType>[]
+  //     | { [key: string]: Flow<FlowReturnType> },
+  //   FlowsReturnType extends SubflowsType extends {
+  //     [key: string]: Flow<FlowReturnType>
+  //   }
+  //     ? { [key: string]: FlowReturnType }
+  //     : SubflowsType extends Flow<FlowReturnType>[]
+  //     ? FlowReturnType[]
+  //     : FlowReturnType
+  // >(subflows: SubflowsType): Flow<FlowsReturnType>
+
+  // compose<
+  //   FlowReturnType,
+  //   SubflowsType extends
+  //     | Flow<FlowReturnType>
+  //     | Flow<FlowReturnType>[]
+  //     | { [key: string]: Flow<FlowReturnType> },
+  //   FlowsReturnType extends SubflowsType extends {
+  //     [key: string]: Flow<FlowReturnType>
+  //   }
+  //     ? { [key: string]: FlowReturnType }
+  //     : SubflowsType extends Flow<FlowReturnType>[]
+  //     ? FlowReturnType[]
+  //     : FlowReturnType,
+  //   ActionReturnType
+  // >(
+  //   subflows: SubflowsType,
+  //   action: (input: FlowsReturnType) => ActionReturnType
+  // ): Flow<ActionReturnType>
+
+  compose<FlowReturnType, ActionReturnType>(
+    subflows: Flow<FlowReturnType>,
+    action: (input: FlowReturnType) => ActionReturnType
+  ): Flow<ActionReturnType>
+
+  compose<FlowReturnType, ActionReturnType>(
+    subflows: Flow<FlowReturnType>[],
+    action: (input: FlowReturnType[]) => ActionReturnType
+  ): Flow<ActionReturnType>
+
+  compose<FlowReturnType, ActionReturnType>(
+    subflows: { [key: string]: Flow<FlowReturnType> },
+    action: (input: { [key: string]: FlowReturnType }) => ActionReturnType
+  ): Flow<ActionReturnType>
+
+  compose<FlowReturnType>(subflows: Flow<FlowReturnType>): Flow<FlowReturnType>
+
+  compose<FlowReturnType>(
+    subflows: Flow<FlowReturnType>[]
+  ): Flow<FlowReturnType>
+
+  compose<FlowReturnType>(subflows: {
+    [key: string]: Flow<FlowReturnType>
+  }): Flow<FlowReturnType>
+
+  // compose<
+  //   FlowReturnType,
+  //   SubflowsType extends
+  //     | Flow<FlowReturnType>
+  //     | Flow<FlowReturnType>[]
+  //     | { [key: string]: Flow<FlowReturnType> },
+  //   FlowsReturnType extends SubflowsType extends {
+  //     [key: string]: Flow<FlowReturnType>
+  //   }
+  //     ? { [key: string]: FlowReturnType }
+  //     : SubflowsType extends Flow<FlowReturnType>[]
+  //     ? FlowReturnType[]
+  //     : FlowReturnType,
+  //   ActionReturnType = FlowsReturnType
+  // >(
+  //   subflows: SubflowsType,
+  //   action: (input: FlowsReturnType) => ActionReturnType = (x) =>
+  //     x as unknown as ActionReturnType
+  // ): Flow<ActionReturnType>
+
+  compose<
+    FlowReturnType,
+    SubflowsType extends
+      | Flow<FlowReturnType>
+      | Flow<FlowReturnType>[]
+      | { [key: string]: Flow<FlowReturnType> },
+    FlowsReturnType,
+    ActionReturnType = FlowsReturnType
+  >(
+    subflows: SubflowsType,
+    action: (input: FlowsReturnType) => ActionReturnType = (x) =>
+      x as unknown as ActionReturnType
+  ): Flow<ActionReturnType> {
+    if (subflows instanceof Flow) {
+      return this.flowFactory.createCascade({
+        subflow: subflows,
+        action: action as unknown as (input: FlowReturnType) => ActionReturnType
+      })
+    } else if (Array.isArray(subflows)) {
+      return this.flowFactory.createCascade({
+        subflow: this.flowFactory.createParallel(subflows),
+        action: action as (input: FlowsReturnType) => ActionReturnType
+      })
+    } else {
+      return this.flowFactory.createCascade({
+        subflow: this.flowFactory.createParallelDict(
+          subflows as { [key: string]: Flow<FlowReturnType> }
+        ),
+        action: action as unknown as (input: {
+          [key: string]: FlowReturnType
+        }) => ActionReturnType
+      })
+    }
+  }
+
   private buildTerm(input: TermParam): RDF.Term {
     if (typeof input === 'string') {
       const op = <Algebra.Bgp>(
