@@ -1,4 +1,4 @@
-<mxfile host="app.diagrams.net" modified="2022-01-13T09:46:21.304Z" agent="5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.110 Safari/537.36" etag="KDhAh1pQVic7PaIji6du" version="15.5.8" type="github" pages="22">
+<mxfile host="app.diagrams.net" modified="2022-01-13T09:53:11.394Z" agent="5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.110 Safari/537.36" etag="y3x7p2xaWgLC8ztn5IqO" version="15.5.8" type="github" pages="22">
   <diagram name="action" id="ZmgsTJwCSUVpYqHxVXld">
     <mxGraphModel dx="786" dy="523" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
@@ -189,7 +189,7 @@
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="rlijMssMlbkgLzOLZvpP-0" value="Ω" style="shape=mxgraph.bpmn.data;labelPosition=center;verticalLabelPosition=bottom;align=center;verticalAlign=top;whiteSpace=wrap;size=15;html=1;bpmnTransferType=input;isCollection=1;fontSize=20;" vertex="1" parent="mtPQD3GBz3dvf0cSw5bS-1">
+        <mxCell id="rlijMssMlbkgLzOLZvpP-0" value="&lt;i&gt;Ω&lt;/i&gt;" style="shape=mxgraph.bpmn.data;labelPosition=center;verticalLabelPosition=bottom;align=center;verticalAlign=top;whiteSpace=wrap;size=15;html=1;bpmnTransferType=input;isCollection=1;fontSize=20;" vertex="1" parent="mtPQD3GBz3dvf0cSw5bS-1">
           <mxGeometry x="240" y="920" width="40" height="60" as="geometry" />
         </mxCell>
         <mxCell id="rlijMssMlbkgLzOLZvpP-2" value="" style="points=[[0.145,0.145,0],[0.5,0,0],[0.855,0.145,0],[1,0.5,0],[0.855,0.855,0],[0.5,1,0],[0.145,0.855,0],[0,0.5,0]];shape=mxgraph.bpmn.event;html=1;verticalLabelPosition=bottom;labelBackgroundColor=#ffffff;verticalAlign=top;align=center;perimeter=ellipsePerimeter;outlineConnect=0;aspect=fixed;outline=standard;symbol=general;fontSize=20;" vertex="1" parent="mtPQD3GBz3dvf0cSw5bS-1">
@@ -242,7 +242,7 @@
             <mxPoint x="660" y="960" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="rlijMssMlbkgLzOLZvpP-10" value="X(Ω)" style="shape=mxgraph.bpmn.data;labelPosition=center;verticalLabelPosition=bottom;align=center;verticalAlign=top;whiteSpace=wrap;size=15;html=1;bpmnTransferType=none;isCollection=1;fontSize=20;" vertex="1" parent="mtPQD3GBz3dvf0cSw5bS-1">
+        <mxCell id="rlijMssMlbkgLzOLZvpP-10" value="&lt;font&gt;&lt;font face=&quot;Courier New&quot; size=&quot;1&quot;&gt;&lt;b style=&quot;font-size: 13px&quot;&gt;eval&lt;/b&gt;&lt;/font&gt;&lt;span style=&quot;font-size: 15px&quot;&gt;(&lt;/span&gt;&lt;i style=&quot;font-size: 15px&quot;&gt;D&lt;/i&gt;&lt;span style=&quot;font-size: 15px&quot;&gt;(&lt;/span&gt;&lt;i style=&quot;font-size: 15px&quot;&gt;G&lt;/i&gt;&lt;span style=&quot;font-size: 15px&quot;&gt;),&lt;/span&gt;&lt;i style=&quot;font-size: 15px&quot;&gt;X&lt;/i&gt;&lt;span style=&quot;font-size: 15px&quot;&gt;(&lt;/span&gt;&lt;i style=&quot;font-size: 15px&quot;&gt;Ω&lt;/i&gt;&lt;span style=&quot;font-size: 15px&quot;&gt;))&lt;/span&gt;&lt;/font&gt;" style="shape=mxgraph.bpmn.data;labelPosition=center;verticalLabelPosition=bottom;align=center;verticalAlign=top;whiteSpace=wrap;size=15;html=1;bpmnTransferType=none;isCollection=1;fontSize=20;" vertex="1" parent="mtPQD3GBz3dvf0cSw5bS-1">
           <mxGeometry x="440" y="920" width="40" height="60" as="geometry" />
         </mxCell>
         <mxCell id="rlijMssMlbkgLzOLZvpP-11" value="" style="edgeStyle=elbowEdgeStyle;fontSize=12;html=1;endFill=0;startFill=0;endSize=6;startSize=6;dashed=1;dashPattern=1 4;endArrow=openThin;startArrow=none;exitX=0.75;exitY=1;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="mtPQD3GBz3dvf0cSw5bS-1" source="rlijMssMlbkgLzOLZvpP-7" target="rlijMssMlbkgLzOLZvpP-10">
@@ -275,6 +275,25 @@
               <mxPoint x="633.5" y="1050" />
               <mxPoint x="663.5" y="1100" />
               <mxPoint x="693.5" y="1080" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="I0YLZmHu2buA1VgCKHsa-0" value="&lt;i&gt;D(G)&lt;/i&gt;" style="shape=mxgraph.bpmn.data;labelPosition=center;verticalLabelPosition=bottom;align=center;verticalAlign=top;whiteSpace=wrap;size=15;html=1;bpmnTransferType=input;isCollection=1;fontSize=20;" vertex="1" parent="mtPQD3GBz3dvf0cSw5bS-1">
+          <mxGeometry x="240" y="1040" width="40" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="I0YLZmHu2buA1VgCKHsa-1" value="" style="edgeStyle=elbowEdgeStyle;fontSize=12;html=1;endFill=0;startFill=0;endSize=6;startSize=6;dashed=1;dashPattern=1 4;endArrow=openThin;startArrow=none;exitX=0;exitY=0;exitDx=40;exitDy=37.5;exitPerimeter=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="mtPQD3GBz3dvf0cSw5bS-1" source="I0YLZmHu2buA1VgCKHsa-0" target="rlijMssMlbkgLzOLZvpP-7">
+          <mxGeometry width="160" relative="1" as="geometry">
+            <mxPoint x="290" y="967.5" as="sourcePoint" />
+            <mxPoint x="360" y="890" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="380" y="1030" />
+              <mxPoint x="360" y="940" />
+              <mxPoint x="370" y="940" />
+              <mxPoint x="390" y="950" />
+              <mxPoint x="423.5" y="990" />
+              <mxPoint x="393.5" y="1000" />
+              <mxPoint x="423.5" y="1050" />
+              <mxPoint x="453.5" y="1030" />
             </Array>
           </mxGeometry>
         </mxCell>
