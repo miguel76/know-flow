@@ -1,4 +1,4 @@
-<mxfile host="app.diagrams.net" modified="2022-01-13T10:43:56.508Z" agent="5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.110 Safari/537.36" etag="X1CEY7l9Yd-iK6JTrn9s" version="15.5.8" type="github" pages="4">
+<mxfile host="app.diagrams.net" modified="2022-01-13T10:56:03.554Z" agent="5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.110 Safari/537.36" etag="qHf8Oj1RF0qU09BmAUs9" version="15.5.8" type="github" pages="4">
   <diagram name="action" id="ZmgsTJwCSUVpYqHxVXld">
     <mxGraphModel dx="786" dy="523" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
@@ -176,7 +176,7 @@
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="rlijMssMlbkgLzOLZvpP-7" value="X" style="points=[[0.25,0,0],[0.5,0,0],[0.75,0,0],[1,0.25,0],[1,0.5,0],[1,0.75,0],[0.75,1,0],[0.5,1,0],[0.25,1,0],[0,0.75,0],[0,0.5,0],[0,0.25,0]];shape=mxgraph.bpmn.task;whiteSpace=wrap;rectStyle=rounded;size=10;taskMarker=businessRule;fontSize=20;" vertex="1" parent="mtPQD3GBz3dvf0cSw5bS-1">
+        <mxCell id="rlijMssMlbkgLzOLZvpP-7" value="φ" style="points=[[0.25,0,0],[0.5,0,0],[0.75,0,0],[1,0.25,0],[1,0.5,0],[1,0.75,0],[0.75,1,0],[0.5,1,0],[0.25,1,0],[0,0.75,0],[0,0.5,0],[0,0.25,0]];shape=mxgraph.bpmn.task;whiteSpace=wrap;rectStyle=rounded;size=10;taskMarker=businessRule;fontSize=20;fontStyle=2" vertex="1" parent="mtPQD3GBz3dvf0cSw5bS-1">
           <mxGeometry x="320" y="800" width="120" height="80" as="geometry" />
         </mxCell>
         <mxCell id="rlijMssMlbkgLzOLZvpP-8" value="F" style="points=[[0.25,0,0],[0.5,0,0],[0.75,0,0],[1,0.25,0],[1,0.5,0],[1,0.75,0],[0.75,1,0],[0.5,1,0],[0.25,1,0],[0,0.75,0],[0,0.5,0],[0,0.25,0]];shape=mxgraph.bpmn.task;whiteSpace=wrap;rectStyle=rounded;size=10;taskMarker=abstract;isLoopSub=1;fontSize=20;fontStyle=2" vertex="1" parent="mtPQD3GBz3dvf0cSw5bS-1">
