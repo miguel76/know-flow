@@ -78,7 +78,7 @@ export default class FlowBuilder {
     )
   }
 
-  action<ReturnType>(action: Action<Table, ReturnType>): Flow<ReturnType> {
+  action<ReturnType>(action: Action<RDF.Term, ReturnType>): Flow<ReturnType> {
     return this.next(this.flowFactory.createActionExecutor(action))
   }
 

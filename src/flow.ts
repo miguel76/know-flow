@@ -1,5 +1,5 @@
 import { Algebra } from 'sparqlalgebrajs'
-import { Table } from './table'
+import * as RDF from 'rdf-js'
 
 /**
  * Base class for flows, which are networks of know-flow operations
@@ -17,17 +17,35 @@ export type Action<InputType, OutputType> =
 
 /**
  * Action executors are flows composed of a single (potentially async) function
- * taking as input the current sequence of bindings.
+ * taking as input the current parameter bindings.
  */
 export class ActionExecutor<ReturnType> extends Flow<ReturnType> {
   /** Async/sync function to be excuted */
-  action: Action<Table, ReturnType>
+  action: Action<RDF.Term, ReturnType>
 
   /**
    * Creates a new action executor
    * @param action - Async/sync function to be excuted
    */
-  constructor(action: Action<Table, ReturnType>) {
+  constructor(action: Action<RDF.Term, ReturnType>) {
+    super()
+    this.action = action
+  }
+}
+
+/**
+ * Action executors are flows composed of a single (potentially async) function
+ * taking as input the current parameter bindings.
+ */
+ export class BlindActionExecutor<ReturnType> extends Flow<ReturnType> {
+  /** Async/sync function to be excuted */
+  action: Action<void, ReturnType>
+
+  /**
+   * Creates a new action executor
+   * @param action - Async/sync function to be excuted
+   */
+  constructor(action: Action<void, ReturnType>) {
     super()
     this.action = action
   }

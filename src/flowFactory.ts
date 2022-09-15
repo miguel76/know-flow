@@ -1,6 +1,5 @@
 import { Algebra, translate, Factory } from 'sparqlalgebrajs'
 import * as RDF from 'rdf-js'
-import { Table } from './table'
 import {
   Flow,
   ActionExecutor,
@@ -16,7 +15,8 @@ import {
   SingleInputDataOperation,
   MultiInputDataOperation,
   InputFromLeftDataOperation,
-  InputFromRightDataOperation
+  InputFromRightDataOperation,
+  BlindActionExecutor
 } from './flow'
 import * as Actions from './actions'
 import { canonVariablesSelector, VariablesSelector } from './selectors'
@@ -26,6 +26,12 @@ import {
   SubflowAndParams,
   withDefaults
 } from './paramUtils'
+import {
+  DEFAULT_INPUT_VAR_STR,
+  DEFAULT_OUTPUT_VAR_STR,
+  DEFAULT_INPUT_VARNAME,
+  DEFAULT_OUTPUT_VARNAME
+} from './constants'
 
 /**
  * Options object accepted by {@link sparqlalgebrajs#translate}
@@ -69,7 +75,7 @@ export type RenameParam = SingleVarRenameParam | SingleVarRenameParam[]
 
 function canonRenameConfig(renameParam: RenameParam): SingleVarRenameConfig[] {
   return asArray(renameParam).map(
-    withDefaults({ currVarname: '?_', newVarname: '?_', hideCurrVar: false })
+    withDefaults({ currVarname: DEFAULT_INPUT_VARNAME, newVarname: DEFAULT_INPUT_VARNAME, hideCurrVar: false })
   )
 }
 
@@ -114,8 +120,8 @@ export default class FlowFactory {
     this.algebraFactory =
       options.algebraFactory || new Factory(options.dataFactory)
     this.dataFactory = this.algebraFactory.dataFactory
-    this.defaultInput = this.dataFactory.variable('_')
-    this.defaultOutput = this.dataFactory.variable('_out')
+    this.defaultInput = this.dataFactory.variable(DEFAULT_INPUT_VAR_STR)
+    this.defaultOutput = this.dataFactory.variable(DEFAULT_INPUT_VAR_STR)
     this.options = options
   }
 
@@ -138,9 +144,20 @@ export default class FlowFactory {
    * @returns The new ActionExecutor instance.
    */
   createActionExecutor<ReturnType>(
-    action: Action<Table, ReturnType>
+    action: Action<RDF.Term, ReturnType>
   ): ActionExecutor<ReturnType> {
     return new ActionExecutor(action)
+  }
+
+  /**
+   * Creates an ActionExecutor.
+   * @param action - Action to be executed.
+   * @returns The new ActionExecutor instance.
+   */
+  createBlindActionExecutor<ReturnType>(
+    action: Action<void, ReturnType>
+  ): BlindActionExecutor<ReturnType> {
+    return new BlindActionExecutor(action)
   }
 
   /**
@@ -159,9 +176,9 @@ export default class FlowFactory {
    * @param subflowsDict - Dictionary of subflows to be executed.
    * @returns The new Parallel instance.
    */
-  createParallelDict<EachReturnType>(subflowsDict: {
-    [key: string]: Flow<EachReturnType>
-  }): Flow<{ [key: string]: EachReturnType }> {
+  createParallelDict<KeySet extends string, EachReturnType>(subflowsDict: {
+    [key in KeySet]: Flow<EachReturnType>
+  }): Flow<{ [key in KeySet]: EachReturnType }> {
     const keys: string[] = []
     const subflows: Flow<EachReturnType>[] = []
     Object.entries(subflowsDict).forEach(([key, subflow]) => {
@@ -176,6 +193,29 @@ export default class FlowFactory {
         )
     })
   }
+
+  // /**
+  //  * Creates a Parallel flow from a dictionary of subflows.
+  //  * @param subflowsDict - Dictionary of subflows to be executed.
+  //  * @returns The new Parallel instance.
+  //  */
+  //  createParallelDict<ReturnType, ReturnMapType extends { [key: string]:  ReturnType}>(subflowsDict: {
+  //   [key: string]: Flow<ReturnMapType[key]>
+  // }): Flow<{ [key: string]: EachReturnType }> {
+  //   const keys: string[] = []
+  //   const subflows: Flow<EachReturnType>[] = []
+  //   Object.entries(subflowsDict).forEach(([key, subflow]) => {
+  //     keys.push(key)
+  //     subflows.push(subflow)
+  //   })
+  //   return this.createCascade({
+  //     subflow: this.createParallel(subflows),
+  //     action: (resultArray: EachReturnType[]) =>
+  //       Object.fromEntries(
+  //         resultArray.map((singleRes, index) => [keys[index], singleRes])
+  //       )
+  //   })
+  // }
 
   /**
    * Creates a Parallel flow from a JS object containing nested subflows.
@@ -199,7 +239,7 @@ export default class FlowFactory {
         )
       )
     } else {
-      return this.createActionExecutor(Actions.constant(obj))
+      return this.createBlindActionExecutor(Actions.constant(obj))
     }
   }
 
@@ -473,6 +513,60 @@ export default class FlowFactory {
       config.input
     )
   }
+
+  /**
+   * Creates an action executor that works on an entire subset of the parameter bindings represented as an object
+   * @param varnames - Labels selecting the subset of bindings.
+   * @param fun - Action executed on the whole input sequence.
+   * @returns The new Action.
+   */
+  createActionExecutorOnTheseVariables<VarnameSet extends string, ReturnType>(
+    varnames: VarnameSet[],
+    fun: Action<{[key in VarnameSet]: RDF.Term}, ReturnType>
+  ): Flow<ReturnType> {
+    return this.createCascade({
+      subflow: this.createParallelDict(Object.fromEntries(varnames.map(varname => ([
+        varname,
+        this.createRename({
+          renamings: {currVarname: varname},
+          subflow: this.createActionExecutor((t:RDF.Term) => t)
+        })
+      ])))),
+      action: fun
+    })
+  }
+
+  /**
+   * Creates an action executor that works on an entire subset of the parameter bindings represented as an object
+   * and the default input sequence, considering another subset of bindings for each solution.
+   * @param paramVarnames - Labels selecting the subset of bindings from the parameters.
+   * @param inputVarnames - Labels selecting the subset of bindings from each solution in the input sequence.
+   * @param fun - Action executed on the whole input sequence.
+   * @returns The new Action.
+   */
+  createActionExecutorOnAllTheInputAndTheseVariables<ParamVarnameSet extends string, InputVarnameSet extends string, ReturnType>(
+    paramVarnames: ParamVarnameSet[],
+    inputVarnames: InputVarnameSet[],
+    fun: Action<{
+      parameterValues: {[key in ParamVarnameSet]: RDF.Term},
+      inputValues: {[key in InputVarnameSet]: RDF.Term}[]
+    }, ReturnType>
+  ): Flow<ReturnType> {
+    return this.createCascade({
+      subflow: this.createParallelDict<'parameterValues' | 'inputValues', any>({
+        parameterValues: this.createActionExecutorOnTheseVariables(paramVarnames, d => d),
+        inputValues: this.createForEach({
+          select: inputVarnames,
+          subflow: this.createActionExecutorOnTheseVariables(inputVarnames, d => d),
+        })
+      }),
+      action: fun
+    })
+  }
+
 }
 
 // Union
+
+
+

@@ -21,3 +21,8 @@ export const XSD_BOOLEAN = XSD + 'boolean'
 export const XSD_DOUBLE = XSD + 'double'
 export const XSD_INTEGER = XSD + 'integer'
 export const XSD_STRING = XSD + 'string'
+
+export const DEFAULT_INPUT_VAR_STR = '_'
+export const DEFAULT_OUTPUT_VAR_STR = '_out'
+export const DEFAULT_INPUT_VARNAME = '?' + DEFAULT_INPUT_VAR_STR
+export const DEFAULT_OUTPUT_VARNAME = '?' + DEFAULT_OUTPUT_VAR_STR

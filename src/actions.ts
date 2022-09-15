@@ -1,8 +1,11 @@
 import * as RDF from 'rdf-js'
 import { Table, TableSync, syncTable } from './table'
-import { Action } from './flow'
+import { Action, Flow } from './flow'
 import { Bindings } from '@comunica/types'
 import { Map } from 'immutable'
+import { DEFAULT_INPUT_VARNAME } from './constants'
+
+type ValueOf<T> = T[keyof T];
 
 /**
  * Creates an Action that returns a constant value.
@@ -11,7 +14,7 @@ import { Map } from 'immutable'
  */
 export function constant<ReturnType>(
   value: ReturnType
-): Action<Table, ReturnType> {
+): Action<void, ReturnType> {
   return () => value
 }
 
@@ -23,6 +26,19 @@ export function constant<ReturnType>(
 export function onAll<ReturnType>(
   fun: Action<TableSync, ReturnType>
 ): Action<Table, ReturnType> {
+  return async (table: Table) => fun(await syncTable(table))
+}
+
+/**
+ * Creates an Action that calls an inner action on the entire input sequence.
+ * @param action - Action executed on the whole input sequence.
+ * @returns The new Action.
+ */
+ export function onThisVariables<ReturnType, VarnameSet extends string>(
+  varnames: VarnameSet[],
+  fun: Action<Map<VarnameSet,RDF.Term>, ReturnType>
+): Flow<ReturnType> {
+
   return async (table: Table) => fun(await syncTable(table))
 }
 
@@ -61,5 +77,5 @@ export function onFirst<ReturnType>(
 export function onFirstDefault<ReturnType>(
   action: Action<RDF.Term, ReturnType>
 ): Action<Table, ReturnType> {
-  return onFirst(async (bindings: Bindings) => action(bindings.get('?_')))
+  return onFirst(async (bindings: Bindings) => action(bindings.get(DEFAULT_INPUT_VARNAME)))
 }

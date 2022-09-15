@@ -3,7 +3,6 @@ import * as RDF from 'rdf-js'
 import { TableSync } from './table'
 import { Flow } from './flow'
 import { RDFToValueOrObject } from './toNative'
-import * as Actions from './actions'
 import {
   canonValuesSelector,
   newVariablesFromTraversals,
@@ -15,6 +14,7 @@ import {
 } from './selectors'
 import FlowFactory, { FlowFactoryOptions } from './flowFactory'
 import { getFlowConfig, SubflowAndParams } from './paramUtils'
+import { DEFAULT_INPUT_VARNAME, DEFAULT_OUTPUT_VARNAME } from './constants'
 
 type literalOrNamedNodeParam = RDF.Literal | RDF.NamedNode | string
 
@@ -105,8 +105,8 @@ export default class TemplateFactory {
       const variables = variablesFromValuesSelector(selector)
       const traversals = selector.filter((s) => 'path' in s) as TraversalParam[]
       const traversalUseDefault = !traversals.every((t) => t.as)
-      if (traversalUseDefault && !variables.includes('?_')) {
-        variables.push('?_')
+      if (traversalUseDefault && !variables.includes(DEFAULT_INPUT_VARNAME)) {
+        variables.push(DEFAULT_INPUT_VARNAME)
       }
       const forEach = this.flowFactory.createForEach({
         subflow: config.subflow,
@@ -117,7 +117,7 @@ export default class TemplateFactory {
       } else {
         const join = this.flowFactory.createJoin({
           input: this.buildOpsForTraversals(traversals),
-          newDefault: traversalUseDefault ? '?_out' : undefined,
+          newDefault: traversalUseDefault ? DEFAULT_OUTPUT_VARNAME : undefined,
           hideCurrVar: true,
           subflow: forEach
         })
@@ -263,7 +263,7 @@ export default class TemplateFactory {
       const op = <Algebra.Values>(
         this.flowFactory.translateOperation('VALUES ?_ {' + input + '}')
       )
-      return op.bindings[0]['?_']
+      return op.bindings[0][DEFAULT_INPUT_VARNAME]
     } else {
       return input
     }
@@ -274,7 +274,7 @@ export default class TemplateFactory {
   ): { [key: string]: RDF.Literal | RDF.NamedNode } {
     if (typeof input === 'string' || 'termType' in input) {
       return {
-        '?_': this.buildLiteralOrNamedNode(input as literalOrNamedNodeParam)
+        DEFAULT_INPUT_VARNAME: this.buildLiteralOrNamedNode(input as literalOrNamedNodeParam)
       }
     } else {
       return Object.fromEntries(
@@ -328,8 +328,8 @@ export default class TemplateFactory {
   }
 
   buildOpForTraversal(traversal: TraversalParam): Algebra.Path | Algebra.Bgp {
-    const from = traversal.from || '?_'
-    const to = traversal.as || '?_out'
+    const from = traversal.from || DEFAULT_INPUT_VARNAME
+    const to = traversal.as || DEFAULT_OUTPUT_VARNAME
     if (typeof traversal.path === 'string') {
       const op = this.flowFactory.translateOperation(
         from + ' ' + traversal.path + ' ' + to
@@ -389,7 +389,7 @@ export default class TemplateFactory {
   }): Flow<ReturnType> {
     return this.flowFactory.createJoin({
       input: this.buildOpsForTraversals(config.traversals),
-      newDefault: config.traversals.every((t) => t.as) ? undefined : '?_out',
+      newDefault: config.traversals.every((t) => t.as) ? undefined : DEFAULT_OUTPUT_VARNAME,
       hideCurrVar: true,
       subflow: config.subflow
     })
@@ -402,19 +402,17 @@ export default class TemplateFactory {
   ): Flow<ReturnType> {
     return this.flowFactory.createJoin({
       input: this.buildOpForTraversal(config),
-      newDefault: config.as ? undefined : '?_out',
+      newDefault: config.as ? undefined : DEFAULT_OUTPUT_VARNAME,
       hideCurrVar: true,
       subflow: config.subflow
     })
   }
 
   createTermReader(config: TermReaderParam = {}): Flow<RDF.Term> {
-    const action = this.flowFactory.createActionExecutor(
-      Actions.onFirstDefault((x) => x)
-    )
+    const action = this.flowFactory.createActionExecutor(x => x)
     const actionIfLang = config.lang
       ? this.flowFactory.createFilter({
-          expression: 'langMatches( lang(?_), "' + config.lang + '" )',
+          expression: `langMatches( lang(${DEFAULT_INPUT_VARNAME}), '${config.lang}' )`,
           subflow: action
         })
       : action
@@ -477,21 +475,24 @@ export default class TemplateFactory {
   log<ReturnType>(next: Flow<ReturnType>, label?: string): Flow<ReturnType> {
     const logFlowId = ++this.logFlowCount
     let callCount = 0
-    const loggingFlow = this.flowFactory.createActionExecutor(
-      Actions.onAll((table: TableSync) => {
-        const callId = ++callCount
-        console.log(
-          '# Input of node ' +
-            logFlowId +
-            (label ? ' (' + label + ')' : '') +
-            ' call n. ' +
-            callId
-        )
-        console.log(table.bindingsArray)
-        console.log('')
-        return callId
-      })
-    )
+    const loggingFlow = this.flowFactory.createForEach({
+      subflow: this.flowFactory.createActionExecutor(()
+        Actions.onAll((table: TableSync) => {
+          const callId = ++callCount
+          console.log(
+            '# Input of node ' +
+              logFlowId +
+              (label ? ' (' + label + ')' : '') +
+              ' call n. ' +
+              callId
+          )
+          console.log(table.bindingsArray)
+          console.log('')
+          return callId
+        })
+      )
+    });
+    
     const seq = this.flowFactory.createParallelTwo([
       loggingFlow as Flow<number>,
       next

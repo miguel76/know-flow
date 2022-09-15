@@ -1,7 +1,8 @@
 import { Algebra } from 'sparqlalgebrajs'
 import * as RDF from 'rdf-js'
 import { asArray, withDefaults } from './paramUtils'
-
+import { DEFAULT_INPUT_VARNAME } from './constants'
+ 
 /**
  * Something used to represent a simple property path (on the default graph): a
  * full property path ({@link sparqlalgebrajs#Algebra.PropertyPathSymbol}), a
@@ -93,7 +94,7 @@ function canonSingleVariableParam(
   param: SingleVariableParam
 ): CanonSingleVariableParam {
   return param === undefined
-    ? { var: '?_' }
+    ? { var: DEFAULT_INPUT_VARNAME }
     : typeof param === 'string'
     ? { var: param }
     : canonSingleVariableParam(param.var)
@@ -110,14 +111,14 @@ export function canonSingleValuesSelector(
   selector: SingleValueSelector
 ): CanonSingleValueSelector {
   return selector === undefined
-    ? { var: '?_' }
+    ? { var: DEFAULT_INPUT_VARNAME }
     : typeof selector === 'string'
     ? { var: selector }
     : 'path' in selector
     ? (selector as TraversalParam)
     : 'var' in selector
     ? (selector as CanonSingleVariableParam)
-    : { var: '?_' }
+    : { var: DEFAULT_INPUT_VARNAME }
 }
 
 /**
