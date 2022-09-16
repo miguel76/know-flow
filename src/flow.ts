@@ -1,14 +1,45 @@
 import { Algebra } from 'sparqlalgebrajs'
 import * as RDF from 'rdf-js'
 
-type GenericDataInputType = {
-  scalars: { [key: string]: RDF.Term }
-  tuples: { [key: string]: RDF.Term }[]
+import { DEFAULT_INPUT_VARNAME } from './constants'
+
+type ScalarsInputType = {
+  scalars: { [varname: string]: RDF.Term }
 }
 
+type TuplesInputType = {
+  tuples: { [varname: string]: RDF.Term }[]
+}
+
+type ScalarDefaultInputType<DataItemType extends RDF.Term> = {
+  scalars: { [varname in typeof DEFAULT_INPUT_VARNAME]: DataItemType }
+}
+
+type EmptyInputType = {
+  scalars: {}
+}
+
+type GenericDataInputType = ScalarsInputType & Partial<TuplesInputType>
+
 type DataInputSpecType<DataInputType extends GenericDataInputType> = {
-  scalars: keyof DataInputType['scalars'][]
-  tuples: keyof DataInputType['tuples'][]
+  scalars: (keyof DataInputType['scalars'])[]
+} & (keyof DataInputType['tuples'] extends never
+  ? {}
+  : { tuples: keyof DataInputType['tuples'] })
+
+type JustScalarsInputType<DataInputType extends GenericDataInputType> = {
+  scalars: Pick<DataInputType, 'scalars'>
+  // Record<keyof DataInputType['scalars'], RDF.Term>
+}
+
+const SCALAR_DEFAULT_INPUT_SPEC: DataInputSpecType<
+  ScalarDefaultInputType<RDF.Term>
+> = {
+  scalars: [DEFAULT_INPUT_VARNAME]
+}
+
+const EMPTY_INPUT_SPEC: DataInputSpecType<EmptyInputType> = {
+  scalars: []
 }
 
 /**
@@ -34,15 +65,19 @@ export type Action<InputType, OutputType> =
  * Action executors are flows composed of a single (potentially async) function
  * taking as input the current parameter bindings.
  */
-export class ActionExecutor<ReturnType> extends Flow<ReturnType> {
+export class ActionExecutor<
+  DataItemType extends RDF.Term,
+  ReturnType
+> extends Flow<ScalarDefaultInputType<DataItemType>, ReturnType> {
   /** Async/sync function to be excuted */
-  action: Action<RDF.Term, ReturnType>
+  action: Action<DataItemType, ReturnType>
+  inputSpec = SCALAR_DEFAULT_INPUT_SPEC
 
   /**
    * Creates a new action executor
    * @param action - Async/sync function to be excuted
    */
-  constructor(action: Action<RDF.Term, ReturnType>) {
+  constructor(action: Action<DataItemType, ReturnType>) {
     super()
     this.action = action
   }
@@ -52,9 +87,13 @@ export class ActionExecutor<ReturnType> extends Flow<ReturnType> {
  * Action executors are flows composed of a single (potentially async) function
  * taking as input the current parameter bindings.
  */
-export class BlindActionExecutor<ReturnType> extends Flow<ReturnType> {
+export class BlindActionExecutor<ReturnType> extends Flow<
+  EmptyInputType,
+  ReturnType
+> {
   /** Async/sync function to be excuted */
   action: Action<void, ReturnType>
+  inputSpec = EMPTY_INPUT_SPEC
 
   /**
    * Creates a new action executor
@@ -70,11 +109,12 @@ export class BlindActionExecutor<ReturnType> extends Flow<ReturnType> {
  * taking as input the output of the former.
  */
 export class Cascade<
+  DataInputType extends GenericDataInputType,
   SubflowReturnType,
   ActionReturnType
-> extends Flow<ActionReturnType> {
+> extends Flow<DataInputType, ActionReturnType> {
   /** Subflow to be executed before the action */
-  subflow: Flow<SubflowReturnType>
+  subflow: Flow<DataInputType, SubflowReturnType>
   /** Function to be executed as action after the subflow */
   action: Action<SubflowReturnType, ActionReturnType>
 
@@ -84,12 +124,13 @@ export class Cascade<
    * @param action - Function to be executed as action after the subflow
    */
   constructor(
-    subflow: Flow<SubflowReturnType>,
+    subflow: Flow<DataInputType, SubflowReturnType>,
     action: Action<SubflowReturnType, ActionReturnType>
   ) {
     super()
     this.subflow = subflow
     this.action = action
+    this.inputSpec = subflow.inputSpec
   }
 }
 
@@ -97,17 +138,23 @@ export class Cascade<
  * Parallel flows are composed of an array of subflows executed in parallel.
  * The output is the array of the results of each subflow.
  */
-export class Parallel<ReturnType> extends Flow<ReturnType> {
+export class Parallel<
+  DataInputType extends GenericDataInputType,
+  ReturnType
+> extends Flow<DataInputType, ReturnType[]> {
   /** Array of subflows to be executed in parallel */
-  subflows: Flow<any>[]
+  subflows: Flow<DataInputType, ReturnType>[]
 
   /**
    * Creates a new Parallel
    * @param subflows - Array of subflows to be executed in parallel
    */
-  constructor(subflows: Flow<any>[]) {
+  constructor(subflows: Flow<DataInputType, ReturnType>[]) {
     super()
     this.subflows = subflows
+    this.inputSpec = {
+      scalars: [...new Set(subflows.flatMap((f) => f.inputSpec))]
+    }
   }
 }
 
@@ -129,9 +176,12 @@ export class ParallelN<EachReturnType> extends Parallel<EachReturnType[]> {
  * ParallelN, ParallelTwo and ParallelThree are subclasses of Parallel defined
  * to have more control on return types (using typescript) than using directly
  */
-export class ParallelTwo<ReturnType1, ReturnType2> extends Parallel<
-  [ReturnType1, ReturnType2]
-> {
+export class ParallelTwo<
+  DataInputType1 extends GenericDataInputType,
+  ReturnType1,
+  DataInputType2 extends GenericDataInputType,
+  ReturnType2
+> extends Flow<DataInputType1 | DataInputType2, [ReturnType1, ReturnType2]> {
   subflows: [Flow<ReturnType1>, Flow<ReturnType2>]
 }
 
