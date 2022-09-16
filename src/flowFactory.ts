@@ -26,12 +26,7 @@ import {
   SubflowAndParams,
   withDefaults
 } from './paramUtils'
-import {
-  DEFAULT_INPUT_VAR_STR,
-  DEFAULT_OUTPUT_VAR_STR,
-  DEFAULT_INPUT_VARNAME,
-  DEFAULT_OUTPUT_VARNAME
-} from './constants'
+import { DEFAULT_INPUT_VAR_STR, DEFAULT_INPUT_VARNAME } from './constants'
 
 /**
  * Options object accepted by {@link sparqlalgebrajs#translate}
@@ -75,7 +70,11 @@ export type RenameParam = SingleVarRenameParam | SingleVarRenameParam[]
 
 function canonRenameConfig(renameParam: RenameParam): SingleVarRenameConfig[] {
   return asArray(renameParam).map(
-    withDefaults({ currVarname: DEFAULT_INPUT_VARNAME, newVarname: DEFAULT_INPUT_VARNAME, hideCurrVar: false })
+    withDefaults({
+      currVarname: DEFAULT_INPUT_VARNAME,
+      newVarname: DEFAULT_INPUT_VARNAME,
+      hideCurrVar: false
+    })
   )
 }
 
@@ -522,19 +521,64 @@ export default class FlowFactory {
    */
   createActionExecutorOnTheseVariables<VarnameSet extends string, ReturnType>(
     varnames: VarnameSet[],
-    fun: Action<{[key in VarnameSet]: RDF.Term}, ReturnType>
+    fun: Action<{ [key in VarnameSet]: RDF.Term }, ReturnType>
   ): Flow<ReturnType> {
     return this.createCascade({
-      subflow: this.createParallelDict(Object.fromEntries(varnames.map(varname => ([
-        varname,
-        this.createRename({
-          renamings: {currVarname: varname},
-          subflow: this.createActionExecutor((t:RDF.Term) => t)
-        })
-      ])))),
+      subflow: this.createParallelDict(
+        Object.fromEntries(
+          varnames.map((varname) => [
+            varname,
+            this.createRename({
+              renamings: { currVarname: varname },
+              subflow: this.createActionExecutor((t: RDF.Term) => t)
+            })
+          ])
+        )
+      ),
       action: fun
     })
   }
+
+  // /**
+  //  * Creates an action executor that works on an entire subset of the parameter bindings represented as an object
+  //  * and the default input sequence, considering another subset of bindings for each solution.
+  //  * @param paramVarnames - Labels selecting the subset of bindings from the parameters.
+  //  * @param inputVarnames - Labels selecting the subset of bindings from each solution in the input sequence.
+  //  * @param fun - Action executed on the whole input sequence.
+  //  * @returns The new Action.
+  //  */
+  // createActionExecutorOnAllTheInputAndTheseVariables<
+  //   ParamVarnameSet extends string,
+  //   InputVarnameSet extends string,
+  //   ReturnType
+  // >(
+  //   paramVarnames: ParamVarnameSet[],
+  //   inputVarnames: InputVarnameSet[],
+  //   fun: Action<
+  //     {
+  //       parameterValues: { [key in ParamVarnameSet]: RDF.Term }
+  //       inputValues: { [key in InputVarnameSet]: RDF.Term }[]
+  //     },
+  //     ReturnType
+  //   >
+  // ): Flow<ParamVarnameSet, InputVarnameSet, ReturnType> {
+  //   return this.createCascade({
+  //     subflow: this.createParallelDict<'parameterValues' | 'inputValues', any>({
+  //       parameterValues: this.createActionExecutorOnTheseVariables(
+  //         paramVarnames,
+  //         (d) => d
+  //       ),
+  //       inputValues: this.createForEach({
+  //         select: inputVarnames,
+  //         subflow: this.createActionExecutorOnTheseVariables(
+  //           inputVarnames,
+  //           (d) => d
+  //         )
+  //       })
+  //     }),
+  //     action: fun
+  //   })
+  // }
 
   /**
    * Creates an action executor that works on an entire subset of the parameter bindings represented as an object
@@ -544,29 +588,31 @@ export default class FlowFactory {
    * @param fun - Action executed on the whole input sequence.
    * @returns The new Action.
    */
-  createActionExecutorOnAllTheInputAndTheseVariables<ParamVarnameSet extends string, InputVarnameSet extends string, ReturnType>(
-    paramVarnames: ParamVarnameSet[],
-    inputVarnames: InputVarnameSet[],
-    fun: Action<{
-      parameterValues: {[key in ParamVarnameSet]: RDF.Term},
-      inputValues: {[key in InputVarnameSet]: RDF.Term}[]
-    }, ReturnType>
-  ): Flow<ReturnType> {
+  createActionExecutorOnAllTheInputAndTheseVariables<
+    DataInputType extends GenericDataInputType,
+    ReturnType
+  >(
+    paramVarnames: keyof DataInputType['parameterValues'][],
+    inputVarnames: keyof DataInputType['inputValues'][],
+    fun: Action<DataInputType, ReturnType>
+  ): Flow<DataInputType, ReturnType> {
     return this.createCascade({
       subflow: this.createParallelDict<'parameterValues' | 'inputValues', any>({
-        parameterValues: this.createActionExecutorOnTheseVariables(paramVarnames, d => d),
+        parameterValues: this.createActionExecutorOnTheseVariables(
+          paramVarnames,
+          (d) => d
+        ),
         inputValues: this.createForEach({
           select: inputVarnames,
-          subflow: this.createActionExecutorOnTheseVariables(inputVarnames, d => d),
+          subflow: this.createActionExecutorOnTheseVariables(
+            inputVarnames,
+            (d) => d
+          )
         })
       }),
       action: fun
     })
   }
-
 }
 
 // Union
-
-
-

@@ -1,6 +1,16 @@
 import { Algebra } from 'sparqlalgebrajs'
 import * as RDF from 'rdf-js'
 
+type GenericDataInputType = {
+  scalars: { [key: string]: RDF.Term }
+  tuples: { [key: string]: RDF.Term }[]
+}
+
+type DataInputSpecType<DataInputType extends GenericDataInputType> = {
+  scalars: keyof DataInputType['scalars'][]
+  tuples: keyof DataInputType['tuples'][]
+}
+
 /**
  * Base class for flows, which are networks of know-flow operations
  * A flow take implicitly as input a sequence of RDF bindings and a knowledge
@@ -9,7 +19,12 @@ import * as RDF from 'rdf-js'
  * Flows can be composed of other flows (called subflows).
  */
 // eslint-disable-next-line no-unused-vars
-export abstract class Flow<ReturnType> {}
+export abstract class Flow<
+  DataInputType extends GenericDataInputType,
+  ReturnType
+> {
+  inputSpec: DataInputSpecType<DataInputType>
+}
 
 export type Action<InputType, OutputType> =
   | ((input: InputType) => Promise<OutputType>)
@@ -37,7 +52,7 @@ export class ActionExecutor<ReturnType> extends Flow<ReturnType> {
  * Action executors are flows composed of a single (potentially async) function
  * taking as input the current parameter bindings.
  */
- export class BlindActionExecutor<ReturnType> extends Flow<ReturnType> {
+export class BlindActionExecutor<ReturnType> extends Flow<ReturnType> {
   /** Async/sync function to be excuted */
   action: Action<void, ReturnType>
 
