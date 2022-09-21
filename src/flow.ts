@@ -3,6 +3,8 @@ import * as RDF from 'rdf-js'
 
 import { DEFAULT_INPUT_VARNAME } from './constants'
 
+type ArrayElement<A> = A extends readonly (infer T)[] ? T : never
+
 type ScalarsInputType = {
   scalars: { [varname: string]: RDF.Term }
 }
@@ -31,6 +33,9 @@ type JustScalarsInputType<DataInputType extends GenericDataInputType> = {
   scalars: Pick<DataInputType, 'scalars'>
   // Record<keyof DataInputType['scalars'], RDF.Term>
 }
+
+type TuplesTypeOf<DataInputType extends GenericDataInputType> =
+  DataInputType['tuples']
 
 const SCALAR_DEFAULT_INPUT_SPEC: DataInputSpecType<
   ScalarDefaultInputType<RDF.Term>
@@ -164,7 +169,10 @@ type DataInputTypeMergeTwo<
     : { tuples: DataInputType2['tuples'] }
   : keyof DataInputType2['tuples'] extends never
   ? { tuples: DataInputType1['tuples'] }
-  : { tuples: DataInputType1['tuples'] & DataInputType2['tuples'] })
+  : {
+      tuples: (ArrayElement<DataInputType1['tuples']> &
+        ArrayElement<DataInputType2['tuples']>)[]
+    })
 
 // } & (keyof DataInputType['tuples'] extends never
 // ? {}
@@ -179,14 +187,22 @@ function mergeTwoInputSpecs<
 ): DataInputSpecType<DataInputTypeMergeTwo<DataInputType1, DataInputType2>> {
   return {
     scalars: [...new Set([...inputSpecs1.scalars, ...inputSpecs2.scalars])],
-    ...('tuples' in inputSpecs1 ? 'tuples' in inputSpecs2 ?
-     {
-          tuples: [
-            ...('tuples' in inputSpecs1 ? inputSpecs1.tuples as (keyof DataInputType1[tuples])[]: [] as never[]) ,
-            ...('tuples' in inputSpecs2 ? inputSpecs2.tuples  as (keyof DataInputType2[tuples])[]: [] as never[])
-          ]
-        }
-      : {tuples: inputSpecs1.tuples} : 'tuples' in inputSpecs2 ? {tuples: inputSpecs2.tuples} : {})
+    ...('tuples' in inputSpecs1
+      ? 'tuples' in inputSpecs2
+        ? {
+            tuples: [
+              ...('tuples' in inputSpecs1
+                ? (inputSpecs1.tuples as (keyof DataInputType1[tuples])[])
+                : ([] as never[])),
+              ...('tuples' in inputSpecs2
+                ? (inputSpecs2.tuples as (keyof DataInputType2[tuples])[])
+                : ([] as never[]))
+            ]
+          }
+        : { tuples: inputSpecs1.tuples }
+      : 'tuples' in inputSpecs2
+      ? { tuples: inputSpecs2.tuples }
+      : {})
   }
 }
 
