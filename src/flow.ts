@@ -22,13 +22,36 @@ type EmptyInputType = {
   scalars: {}
 }
 
-type GenericDataInputType = ScalarsInputType & Partial<TuplesInputType>
+// type GenericDataInputType = ScalarsInputType & Partial<TuplesInputType>
+type GenericDataInputType = {
+  scalars: { [varname: string]: RDF.Term }
+  tuples?: { [varname: string]: RDF.Term }[]
+}
+
+// type DataInputSpecType<DataInputType extends GenericDataInputType> = {
+//   scalars: (keyof DataInputType['scalars'])[]
+// } & (DataInputType extends {tuples: unknown}
+//   ? {tuples: (keyof ArrayElement<DataInputType['tuples']>)[]}
+//   : {})
 
 type DataInputSpecType<DataInputType extends GenericDataInputType> = {
-  scalars: (keyof DataInputType['scalars'])[]
-} & (keyof DataInputType['tuples'] extends never
-  ? {}
-  : { tuples: (keyof ArrayElement<DataInputType['tuples']>)[] })
+  scalars:
+    keyof DataInputType['scalars'] extends never
+      ? Record<string,never>
+      : {
+        [ScalarVarname in keyof DataInputType['scalars']]: true
+      }
+} & (
+    DataInputType extends {tuples: unknown}
+    ? {
+      tuples: keyof DataInputType['tuples'] extends never
+        ? Record<string,never>
+        : {
+          [TuplesVarname in keyof ArrayElement<DataInputType['tuples']>]: true
+        }
+    }
+    : {})
+
 
 type JustScalarsInputType<DataInputType extends GenericDataInputType> = {
   scalars: Pick<DataInputType, 'scalars'>
@@ -41,11 +64,12 @@ type TuplesTypeOf<DataInputType extends GenericDataInputType> =
 const SCALAR_DEFAULT_INPUT_SPEC: DataInputSpecType<
   ScalarDefaultInputType<RDF.Term>
 > = {
-  scalars: [DEFAULT_INPUT_VARNAME]
+  // scalars: [DEFAULT_INPUT_VARNAME]
+  scalars: {[DEFAULT_INPUT_VARNAME]: true}
 }
 
 const EMPTY_INPUT_SPEC: DataInputSpecType<EmptyInputType> = {
-  scalars: []
+  scalars: {}
 }
 
 /**
@@ -164,18 +188,34 @@ type DataInputTypeMergeTwo<
   DataInputType2 extends GenericDataInputType
 > = {
   scalars: DataInputType1['scalars'] & DataInputType2['scalars']
-} & (keyof DataInputType1['tuples'] extends never
-  ? keyof DataInputType2['tuples'] extends never
-    ? {}
-    : { tuples: DataInputType2['tuples'] }
-  : keyof DataInputType2['tuples'] extends never
-  ? { tuples: DataInputType1['tuples'] }
+} & (DataInputType1 extends {tuples: unknown}
+  ? DataInputType2 extends {tuples: unknown}
+    ? { tuples: (ArrayElement<DataInputType1['tuples']> &
+    ArrayElement<DataInputType2['tuples']>)[]}
+    : { tuples: DataInputType1['tuples'] }
+  : DataInputType2 extends {tuples: unknown}
+  ? { tuples: DataInputType2['tuples'] }
   : {
-      tuples: (ArrayElement<DataInputType1['tuples']> &
-        ArrayElement<DataInputType2['tuples']>)[]
+      
     })
 
-
+  type DataInputTypeSpecMergeTwo<
+    DataInputType1 extends GenericDataInputType,
+    DataInputType2 extends GenericDataInputType
+  > = {
+    scalars: (keyof DataInputType1['scalars'] | keyof DataInputType2['scalars'])[]
+  } & (DataInputType1 extends {tuples: unknown}
+    ? DataInputType2 extends {tuples: unknown}
+      ? { tuples: (keyof ArrayElement<DataInputType1['tuples']> |
+      keyof ArrayElement<DataInputType2['tuples']>)[]}
+      : { tuples: DataInputType1['tuples'] }
+    : DataInputType2 extends {tuples: unknown}
+    ? { tuples: DataInputType2['tuples'] }
+    : {
+        
+      })
+  
+  
 
 type InputScalar1 = {
   scalars: { a: RDF.Literal, b: RDF.NamedNode}
@@ -218,6 +258,31 @@ var inputTuples2: InputTuples2 = {
     {vb: dataFactory.namedNode('http://v.b2.org/'), vc: dataFactory.literal('v_lc2')},
   ]
 }
+var inputSpecScalar1: DataInputSpecType<InputScalar1> = {
+  // scalars: ['a', 'b']
+  scalars: {
+    'a': true,
+    'b': true,
+  }
+}
+var inputSpecScalar2: DataInputSpecType<InputScalar2> = {
+  // scalars: ['b', 'c']
+  scalars: {
+    'c': true,
+    'b': true
+  }
+}
+var inputSpecTuples1: DataInputSpecType<InputTuples1> = {
+  scalars: {  },
+  tuples: {
+    'va': true,
+    'vb': true
+  }
+}
+var inputSpecTuples2: DataInputSpecType<InputTuples2> = {
+  scalars: {},
+  tuples: {'vb': true, 'vc': true}
+}
 
 var mergeScalar: MergeScalar
  = {
@@ -246,15 +311,65 @@ var mergeAll: MergeAll = {
   ]
 }
 
+// var spec1: DataInputSpecType<Merge1> = mergeTwoInputSpecs(inputSpecScalar1, inputSpecTuples1)
+var spec1 = mergeTwoInputSpecs(inputSpecTuples1, inputSpecScalar1)
+var spec1Bis = mergeTwoInputSpecs(inputSpecScalar1, inputSpecTuples1)
+
+var spec2 = mergeTwoInputSpecs(inputSpecScalar2, inputSpecTuples2)
+
 type SpecAll = DataInputSpecType<MergeAll>
-var specAll: SpecAll = {
+var specAllEx: SpecAll = {
   scalars: ['a'],
   tuples: ['vb']
 }
+// var specAll: SpecAll = mergeTwoInputSpecs(mergeTwoInputSpecs<InputScalar1, InputTuples1>(inputSpecScalar1, inputSpecTuples1), mergeTwoInputSpecs<InputScalar2, InputTuples2>(inputSpecScalar2, inputSpecTuples2))
+var specAll: SpecAll = mergeTwoInputSpecs(spec1, spec2)
+
+type SpecAllScalars = SpecAll['scalars']
+var specAllScalars: SpecAllScalars = ['a']
 
 // } & (keyof DataInputType['tuples'] extends never
 // ? {}
 // : { tuples: keyof DataInputType['tuples'] })
+
+// function mergeTwoInputSpecs<
+//   DataInputType1 extends GenericDataInputType,
+//   DataInputType2 extends GenericDataInputType
+// >(
+//   inputSpecs1: DataInputSpecType<DataInputType1>,
+//   inputSpecs2: DataInputSpecType<DataInputType2>
+// ): DataInputTypeSpecMergeTwo<DataInputType1, DataInputType2>
+// // DataInputSpecType<DataInputTypeMergeTwo<DataInputType1, DataInputType2>>
+// {
+//   return {
+//     scalars: [...new Set([...inputSpecs1.scalars, ...inputSpecs2.scalars])],
+//     ...('tuples' in inputSpecs1
+//       ? 'tuples' in inputSpecs2
+//         ? {
+//             tuples: [
+//               ...new Set([...inputSpecs1.tuples, ...inputSpecs2.tuples])
+//             ]
+//           }
+//         : { tuples: inputSpecs1.tuples }
+//       : 'tuples' in inputSpecs2
+//       ? { tuples: inputSpecs2.tuples }
+//       : {})
+//   } as DataInputTypeSpecMergeTwo<DataInputType1, DataInputType2> //as DataInputSpecType<DataInputTypeMergeTwo<DataInputType1, DataInputType2>>
+  
+//   // const scalars: DataInputSpecType<DataInputTypeMergeTwo<DataInputType1, DataInputType2>>['scalars'] = [...new Set([...inputSpecs1.scalars, ...inputSpecs2.scalars])] as DataInputSpecType<DataInputTypeMergeTwo<DataInputType1, DataInputType2>>['scalars']
+//   // return {
+//   //   scalars: [...new Set([...inputSpecs1.scalars, ...inputSpecs2.scalars])],
+//   //   ...('tuples' in inputSpecs1
+//   //     ? 'tuples' in inputSpecs2
+//   //       ? {
+//   //           tuples: []
+//   //         }
+//   //       : { tuples: [] }
+//   //     : 'tuples' in inputSpecs2
+//   //     ? { tuples: [] }
+//   //     : {})
+//   // }
+// }
 
 function mergeTwoInputSpecs<
   DataInputType1 extends GenericDataInputType,
@@ -262,21 +377,34 @@ function mergeTwoInputSpecs<
 >(
   inputSpecs1: DataInputSpecType<DataInputType1>,
   inputSpecs2: DataInputSpecType<DataInputType2>
-): DataInputSpecType<DataInputTypeMergeTwo<DataInputType1, DataInputType2>> {
+): DataInputSpecType<DataInputTypeMergeTwo<DataInputType1, DataInputType2>>
+{
   return {
-    scalars: [...new Set([...inputSpecs1.scalars, ...inputSpecs2.scalars])],
+    scalars: {...inputSpecs1.scalars, ...inputSpecs2.scalars},
     ...('tuples' in inputSpecs1
       ? 'tuples' in inputSpecs2
         ? {
-            tuples: [
-              ...inputSpecs1.tuples, ...inputSpecs2.tuples
-            ] as (keyof DataInputType1['tuples'] | keyof DataInputType2['tuples'])[]
+            tuples: {...inputSpecs1.tuples, ...inputSpecs2.tuples}
           }
         : { tuples: inputSpecs1.tuples }
       : 'tuples' in inputSpecs2
       ? { tuples: inputSpecs2.tuples }
       : {})
-  }
+  } //as DataInputTypeSpecMergeTwo<DataInputType1, DataInputType2> //as DataInputSpecType<DataInputTypeMergeTwo<DataInputType1, DataInputType2>>
+  
+  // const scalars: DataInputSpecType<DataInputTypeMergeTwo<DataInputType1, DataInputType2>>['scalars'] = [...new Set([...inputSpecs1.scalars, ...inputSpecs2.scalars])] as DataInputSpecType<DataInputTypeMergeTwo<DataInputType1, DataInputType2>>['scalars']
+  // return {
+  //   scalars: [...new Set([...inputSpecs1.scalars, ...inputSpecs2.scalars])],
+  //   ...('tuples' in inputSpecs1
+  //     ? 'tuples' in inputSpecs2
+  //       ? {
+  //           tuples: []
+  //         }
+  //       : { tuples: [] }
+  //     : 'tuples' in inputSpecs2
+  //     ? { tuples: [] }
+  //     : {})
+  // }
 }
 
 /**
