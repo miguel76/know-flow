@@ -134,6 +134,62 @@ export class Cascade<
   }
 }
 
+function mergeInputSpecs<DataInputType extends GenericDataInputType>(
+  inputSpecs: DataInputSpecType<DataInputType>[]
+): DataInputSpecType<DataInputType> {
+  return {
+    scalars: [...new Set(inputSpecs.flatMap((inputSpec) => inputSpec.scalars))]
+    // ...(inputSpecs.some((inputSpec) => 'tuples' in inputSpec)
+    //   ? {
+    //       tuples: [
+    //         ...new Set(
+    //           inputSpecs.flatMap((inputSpec) =>
+    //             'tuples' in inputSpec ? inputSpec.tuples : []
+    //           )
+    //         )
+    //       ]
+    //     }
+    //   : {})
+  }
+}
+
+type DataInputTypeMergeTwo<
+  DataInputType1 extends GenericDataInputType,
+  DataInputType2 extends GenericDataInputType
+> = {
+  scalars: DataInputType1['scalars'] & DataInputType2['scalars']
+} & (keyof DataInputType1['tuples'] extends never
+  ? keyof DataInputType2['tuples'] extends never
+    ? {}
+    : { tuples: DataInputType2['tuples'] }
+  : keyof DataInputType2['tuples'] extends never
+  ? { tuples: DataInputType1['tuples'] }
+  : { tuples: DataInputType1['tuples'] & DataInputType2['tuples'] })
+
+// } & (keyof DataInputType['tuples'] extends never
+// ? {}
+// : { tuples: keyof DataInputType['tuples'] })
+
+function mergeTwoInputSpecs<
+  DataInputType1 extends GenericDataInputType,
+  DataInputType2 extends GenericDataInputType
+>(
+  inputSpecs1: DataInputSpecType<DataInputType1>,
+  inputSpecs2: DataInputSpecType<DataInputType2>
+): DataInputSpecType<DataInputTypeMergeTwo<DataInputType1, DataInputType2>> {
+  return {
+    scalars: [...new Set([...inputSpecs1.scalars, ...inputSpecs2.scalars])],
+    ...('tuples' in inputSpecs1 ? 'tuples' in inputSpecs2 ?
+     {
+          tuples: [
+            ...('tuples' in inputSpecs1 ? inputSpecs1.tuples as (keyof DataInputType1[tuples])[]: [] as never[]) ,
+            ...('tuples' in inputSpecs2 ? inputSpecs2.tuples  as (keyof DataInputType2[tuples])[]: [] as never[])
+          ]
+        }
+      : {tuples: inputSpecs1.tuples} : 'tuples' in inputSpecs2 ? {tuples: inputSpecs2.tuples} : {})
+  }
+}
+
 /**
  * Parallel flows are composed of an array of subflows executed in parallel.
  * The output is the array of the results of each subflow.
@@ -153,7 +209,8 @@ export class Parallel<
     super()
     this.subflows = subflows
     this.inputSpec = {
-      scalars: [...new Set(subflows.flatMap((f) => f.inputSpec))]
+      scalars: [...new Set(subflows.flatMap((f) => f.inputSpec.scalars))],
+      tuples: [...new Set(subflows.flatMap((f) => f.inputSpec.tuples))]
     }
   }
 }
