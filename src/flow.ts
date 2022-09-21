@@ -1,5 +1,6 @@
 import { Algebra } from 'sparqlalgebrajs'
 import * as RDF from 'rdf-js'
+import dataFactory from '@rdfjs/data-model'
 
 import { DEFAULT_INPUT_VARNAME } from './constants'
 
@@ -27,7 +28,7 @@ type DataInputSpecType<DataInputType extends GenericDataInputType> = {
   scalars: (keyof DataInputType['scalars'])[]
 } & (keyof DataInputType['tuples'] extends never
   ? {}
-  : { tuples: keyof DataInputType['tuples'] })
+  : { tuples: (keyof ArrayElement<DataInputType['tuples']>)[] })
 
 type JustScalarsInputType<DataInputType extends GenericDataInputType> = {
   scalars: Pick<DataInputType, 'scalars'>
@@ -174,6 +175,83 @@ type DataInputTypeMergeTwo<
         ArrayElement<DataInputType2['tuples']>)[]
     })
 
+
+
+type InputScalar1 = {
+  scalars: { a: RDF.Literal, b: RDF.NamedNode}
+}
+
+type InputScalar2 = {
+  scalars: { b: RDF.NamedNode, c: RDF.Literal}
+}
+
+type MergeScalar = DataInputTypeMergeTwo<InputScalar1, InputScalar2>
+
+type InputTuples1 = {
+  scalars: {},
+  tuples: {va: RDF.Literal, vb: RDF.NamedNode}[]
+}
+
+type InputTuples2 = {
+  scalars: {},
+  tuples: {vb: RDF.NamedNode, vc: RDF.Literal}[]
+}
+
+type MergeTuples = DataInputTypeMergeTwo<InputTuples1, InputTuples2>
+type Merge1 = DataInputTypeMergeTwo<InputScalar1,InputTuples1>
+type Merge2 = DataInputTypeMergeTwo<InputScalar2,InputTuples2>
+
+var inputScalar1: InputScalar1 = {scalars: {a: dataFactory.literal('la'), b: dataFactory.namedNode('http://b1.org/')}}
+var inputScalar2: InputScalar2 = {scalars: {b: dataFactory.namedNode('http://b2.org/'), c: dataFactory.literal('lc')}}
+var inputTuples1: InputTuples1 = {
+  scalars: {},
+  tuples: [
+    {va: dataFactory.literal('v_la1'), vb: dataFactory.namedNode('http://v.b1.org/')},
+    {va: dataFactory.literal('v_la2'), vb: dataFactory.namedNode('http://v.b2.org/')},
+    {va: dataFactory.literal('v_la3'), vb: dataFactory.namedNode('http://v.b3.org/')},
+  ]
+}
+var inputTuples2: InputTuples2 = {
+  scalars: {},
+  tuples: [
+    {vb: dataFactory.namedNode('http://v.b1.org/'), vc: dataFactory.literal('v_lc1')},
+    {vb: dataFactory.namedNode('http://v.b2.org/'), vc: dataFactory.literal('v_lc2')},
+  ]
+}
+
+var mergeScalar: MergeScalar
+ = {
+  scalars: {
+    a: dataFactory.literal('la'), b: dataFactory.namedNode('http://b1.org/'), c: dataFactory.literal('lc')
+  }
+}
+
+var merge1: Merge1 = {
+  scalars: {a: dataFactory.literal('la_m'), b: dataFactory.namedNode('http://m.b1.org/')},
+  tuples: [
+    {va: dataFactory.literal('v_la1_m'), vb: dataFactory.namedNode('http://m.v.b1.org/')},
+    {va: dataFactory.literal('v_la2_m'), vb: dataFactory.namedNode('http://m.v.b2.org/')},
+  ]
+}
+
+type MergeAll = DataInputTypeMergeTwo<Merge1,Merge2>
+
+var mergeAll: MergeAll = {
+  scalars: {
+    a: dataFactory.literal('la'), b: dataFactory.namedNode('http://b1.org/'), c: dataFactory.literal('lc')
+  },
+  tuples: [
+    {va: dataFactory.literal('v_la1_m'), vb: dataFactory.namedNode('http://m.v.b1.org/'), vc: dataFactory.literal('v_lc1')},
+    {va: dataFactory.literal('v_la2_m'), vb: dataFactory.namedNode('http://m.v.b2.org/'), vc: dataFactory.literal('v_lc2')},
+  ]
+}
+
+type SpecAll = DataInputSpecType<MergeAll>
+var specAll: SpecAll = {
+  scalars: ['a'],
+  tuples: ['vb']
+}
+
 // } & (keyof DataInputType['tuples'] extends never
 // ? {}
 // : { tuples: keyof DataInputType['tuples'] })
@@ -191,13 +269,8 @@ function mergeTwoInputSpecs<
       ? 'tuples' in inputSpecs2
         ? {
             tuples: [
-              ...('tuples' in inputSpecs1
-                ? (inputSpecs1.tuples as (keyof DataInputType1[tuples])[])
-                : ([] as never[])),
-              ...('tuples' in inputSpecs2
-                ? (inputSpecs2.tuples as (keyof DataInputType2[tuples])[])
-                : ([] as never[]))
-            ]
+              ...inputSpecs1.tuples, ...inputSpecs2.tuples
+            ] as (keyof DataInputType1['tuples'] | keyof DataInputType2['tuples'])[]
           }
         : { tuples: inputSpecs1.tuples }
       : 'tuples' in inputSpecs2
