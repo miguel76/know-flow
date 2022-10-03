@@ -52,7 +52,27 @@ type DataInputSpecType<DataInputType extends GenericDataInputType> = {
         : {
           [TuplesVarname in keyof ArrayElement<DataInputType['tuples']>]: true
         }
-    })
+    }
+)
+
+type DataInputSpecTypeArrays<DataInputType extends GenericDataInputType> = {
+  scalars:
+    keyof DataInputType['scalars'] extends never
+      ? Record<string,never>
+      : {
+        [ScalarVarname in keyof DataInputType['scalars']]: true
+      }
+} & (
+    DataInputType['tuples'] extends null
+    ? {tuples: null}
+    : {
+      tuples: keyof DataInputType['tuples'] extends never
+        ? Record<string,never>
+        : {
+          [TuplesVarname in keyof ArrayElement<DataInputType['tuples']>]: true
+        }
+    }
+)
 
 
 type JustScalarsInputType<DataInputType extends GenericDataInputType> = {
@@ -151,6 +171,7 @@ export class Cascade<
   subflow: Flow<DataInputType, SubflowReturnType>
   /** Function to be executed as action after the subflow */
   action: Action<SubflowReturnType, ActionReturnType>
+  /** Function to be executed as action after the subflow */
 
   /**
    * Creates a new cascade
@@ -168,24 +189,24 @@ export class Cascade<
   }
 }
 
-function mergeInputSpecs<DataInputType extends GenericDataInputType>(
-  inputSpecs: DataInputSpecType<DataInputType>[]
-): DataInputSpecType<DataInputType> {
-  return {
-    scalars: [...new Set(inputSpecs.flatMap((inputSpec) => inputSpec.scalars))]
-    // ...(inputSpecs.some((inputSpec) => 'tuples' in inputSpec)
-    //   ? {
-    //       tuples: [
-    //         ...new Set(
-    //           inputSpecs.flatMap((inputSpec) =>
-    //             'tuples' in inputSpec ? inputSpec.tuples : []
-    //           )
-    //         )
-    //       ]
-    //     }
-    //   : {})
-  }
-}
+// function mergeInputSpecs<DataInputType extends GenericDataInputType>(
+//   inputSpecs: DataInputSpecType<DataInputType>[]
+// ): DataInputSpecType<DataInputType> {
+//   return {
+//     scalars: [...new Set(inputSpecs.flatMap((inputSpec) => inputSpec.scalars))]
+//     // ...(inputSpecs.some((inputSpec) => 'tuples' in inputSpec)
+//     //   ? {
+//     //       tuples: [
+//     //         ...new Set(
+//     //           inputSpecs.flatMap((inputSpec) =>
+//     //             'tuples' in inputSpec ? inputSpec.tuples : []
+//     //           )
+//     //         )
+//     //       ]
+//     //     }
+//     //   : {})
+//   }
+// }
 
 type DataInputTypeMergeTwo<
   DataInputType1 extends GenericDataInputType,
@@ -199,25 +220,38 @@ type DataInputTypeMergeTwo<
     : { tuples: DataInputType1['tuples'] }
   : DataInputType2 extends {tuples: unknown}
   ? { tuples: DataInputType2['tuples'] }
-  : {
-      
-    })
+  : {}
+)
 
-  type DataInputTypeSpecMergeTwo<
-    DataInputType1 extends GenericDataInputType,
-    DataInputType2 extends GenericDataInputType
-  > = {
-    scalars: (keyof DataInputType1['scalars'] | keyof DataInputType2['scalars'])[]
-  } & (DataInputType1 extends {tuples: unknown}
-    ? DataInputType2 extends {tuples: unknown}
-      ? { tuples: (keyof ArrayElement<DataInputType1['tuples']> |
-      keyof ArrayElement<DataInputType2['tuples']>)[]}
-      : { tuples: DataInputType1['tuples'] }
-    : DataInputType2 extends {tuples: unknown}
-    ? { tuples: DataInputType2['tuples'] }
-    : {
+type DataInputTypeExcept<
+  DataInputType1 extends GenericDataInputType,
+  DataInputType2 extends GenericDataInputType
+> = {
+  scalars: Omit<DataInputType1['scalars'], keyof DataInputType2['scalars']>
+} & (DataInputType1 extends {tuples: unknown}
+  ? DataInputType2 extends {tuples: unknown}
+    ? { 
+      tuples: Omit<DataInputType1['tuples'], keyof DataInputType2['tuples']>[]
+    }
+    : { tuples: DataInputType1['tuples'] }
+  : {}
+)
+  
+    // type DataInputTypeSpecMergeTwo<
+  //   DataInputType1 extends GenericDataInputType,
+  //   DataInputType2 extends GenericDataInputType
+  // > = {
+  //   scalars: (keyof DataInputType1['scalars'] | keyof DataInputType2['scalars'])[]
+  // } & (DataInputType1 extends {tuples: unknown}
+  //   ? DataInputType2 extends {tuples: unknown}
+  //     ? { tuples: (keyof ArrayElement<DataInputType1['tuples']> |
+  //     keyof ArrayElement<DataInputType2['tuples']>)[]}
+  //     : { tuples: DataInputType1['tuples'] }
+  //   : DataInputType2 extends {tuples: unknown}
+  //   ? { tuples: DataInputType2['tuples'] }
+  //   : {
         
-      })
+  //     })
   
   
 
@@ -357,7 +391,6 @@ var specAllEx2: DataInputSpecType<GenericDataInputType> = {
 var specAll: SpecAll = mergeTwoInputSpecs(spec1, spec2)
 
 type SpecAllScalars = SpecAll['scalars']
-var specAllScalars: SpecAllScalars = ['a']
 
 // } & (keyof DataInputType['tuples'] extends never
 // ? {}
@@ -422,42 +455,42 @@ function mergeTwoInputSpecs<
   } as DataInputSpecType<DataInputTypeMergeTwo<DataInputType1, DataInputType2>>
 }
 
-/**
- * Parallel flows are composed of an array of subflows executed in parallel.
- * The output is the array of the results of each subflow.
- */
-export class Parallel<
-  DataInputType extends GenericDataInputType,
-  ReturnType
-> extends Flow<DataInputType, ReturnType[]> {
-  /** Array of subflows to be executed in parallel */
-  subflows: Flow<DataInputType, ReturnType>[]
+// /**
+//  * Parallel flows are composed of an array of subflows executed in parallel.
+//  * The output is the array of the results of each subflow.
+//  */
+// export class Parallel<
+//   DataInputType extends GenericDataInputType,
+//   ReturnType
+// > extends Flow<DataInputType, ReturnType[]> {
+//   /** Array of subflows to be executed in parallel */
+//   subflows: Flow<DataInputType, ReturnType>[]
 
-  /**
-   * Creates a new Parallel
-   * @param subflows - Array of subflows to be executed in parallel
-   */
-  constructor(subflows: Flow<DataInputType, ReturnType>[]) {
-    super()
-    this.subflows = subflows
-    this.inputSpec = {
-      scalars: [...new Set(subflows.flatMap((f) => f.inputSpec.scalars))],
-      tuples: [...new Set(subflows.flatMap((f) => f.inputSpec.tuples))]
-    }
-  }
-}
+//   /**
+//    * Creates a new Parallel
+//    * @param subflows - Array of subflows to be executed in parallel
+//    */
+//   constructor(subflows: Flow<DataInputType, ReturnType>[]) {
+//     super()
+//     this.subflows = subflows
+//     this.inputSpec = {
+//       scalars: [...new Set(subflows.flatMap((f) => f.inputSpec.scalars))],
+//       tuples: [...new Set(subflows.flatMap((f) => f.inputSpec.tuples))]
+//     }
+//   }
+// }
 
-/**
- * ParallelN flows are composed of an array of subflows executed in parallel,
- * having all the same return type.
- * The output is the array of the results of each subflow.
- * ParallelN, ParallelTwo and ParallelThree are subclasses of Parallel defined
- * to have more control on return types (using typescript) than using directly
- * Parallel.
- */
-export class ParallelN<EachReturnType> extends Parallel<EachReturnType[]> {
-  subflows: Flow<EachReturnType>[]
-}
+// /**
+//  * ParallelN flows are composed of an array of subflows executed in parallel,
+//  * having all the same return type.
+//  * The output is the array of the results of each subflow.
+//  * ParallelN, ParallelTwo and ParallelThree are subclasses of Parallel defined
+//  * to have more control on return types (using typescript) than using directly
+//  * Parallel.
+//  */
+// export class ParallelN<EachReturnType> extends Parallel<EachReturnType[]> {
+//   subflows: Flow<EachReturnType>[]
+// }
 
 /**
  * ParallelTwo flows are composed of two subflows executed in parallel.
@@ -470,22 +503,110 @@ export class ParallelTwo<
   ReturnType1,
   DataInputType2 extends GenericDataInputType,
   ReturnType2
-> extends Flow<DataInputType1 | DataInputType2, [ReturnType1, ReturnType2]> {
-  subflows: [Flow<ReturnType1>, Flow<ReturnType2>]
+> extends Flow<DataInputTypeMergeTwo<DataInputType1, DataInputType2>, [ReturnType1, ReturnType2]> {
+  /** Array of subflows to be executed in parallel */
+  subflows: [Flow<DataInputType1, ReturnType1>, Flow<DataInputType1, ReturnType1>]
+
+  /**
+   * Creates a new export class ParallelTwo
+   * @param subflows - Array of subflows to be executed in parallel
+   */
+  constructor(subflows: [Flow<DataInputType1, ReturnType1>, Flow<DataInputType2, ReturnType2>]) {
+    super()
+    this.subflows = subflows
+    this.inputSpec = mergeTwoInputSpecs(subflows[0].inputSpec, subflows[1].inputSpec)
+    
+  }
 }
 
+type ForEachSpecOnTuplesType<TuplesType extends ArrayElement<GenericDataInputType['tuples']>> = {
+  [TuplesVarname in keyof TuplesType]?: true
+}
+
+type ForEachSpecOn<DataInputType extends GenericDataInputType> = {
+  [TuplesVarname in keyof ArrayElement<DataInputType['tuples']>]?: true
+}
+
+type Drivers<Si,So> = {
+  [P in (keyof Si) & (keyof So)]: Si[P]
+};
+
+type DataInputTypeForEachOne<
+  InnerDataInputType extends GenericDataInputType,
+  VarnameType extends keyof ArrayElement<InnerDataInputType['scalars']>
+> = {
+  scalars: Omit<InnerDataInputType['scalars'], VarnameType>
+  tuples: (ArrayElement<InnerDataInputType['tuples']> & Pick<ArrayElement<InnerDataInputType['scalars']>, VarnameType>)[]
+}
+
+type DataInputTypeForEach<
+  DataInputType extends GenericDataInputType,
+  ForEachSpec extends ForEachSpecOn<GenericDataInputType>
+> = {
+  scalars: Omit<DataInputType['scalars'], keyof ForEachSpec>,
+  tuples: ((DataInputType extends {tuples: unknown} ? DataInputType['tuples'] : {}) & {
+    [ForEachVarname in (keyof ForEachSpec) & (keyof ArrayElement<GenericDataInputType['scalars']>)]:
+        ArrayElement<GenericDataInputType['scalars']>[ForEachVarname]
+  })[]
+}
+
+
+// /**
+//  * ParallelThree flows are composed of three subflows executed in parallel.
+//  * The output is the array of the results of each subflow.
+//  * ParallelN, ParallelTwo and ParallelThree are subclasses of Parallel defined
+//  * to have more control on return types (using typescript) than using directly
+//  */
+// export class ParallelThree<
+//   ReturnType1,
+//   ReturnType2,
+//   ReturnType3
+// > extends Parallel<[ReturnType1, ReturnType2, ReturnType3]> {
+//   subflows: [Flow<ReturnType1>, Flow<ReturnType2>, Flow<ReturnType3>]
+// }
+
+type StringLiteral<T> = T extends string ? string extends T ? never : T : never;
+
 /**
- * ParallelThree flows are composed of three subflows executed in parallel.
- * The output is the array of the results of each subflow.
- * ParallelN, ParallelTwo and ParallelThree are subclasses of Parallel defined
- * to have more control on return types (using typescript) than using directly
+ * ForEach flows consist of a subflow that is executed mutiple times (in
+ * parallel), once for each input binding of either all the variables or a
+ * subset of them.
  */
-export class ParallelThree<
-  ReturnType1,
-  ReturnType2,
-  ReturnType3
-> extends Parallel<[ReturnType1, ReturnType2, ReturnType3]> {
-  subflows: [Flow<ReturnType1>, Flow<ReturnType2>, Flow<ReturnType3>]
+export class ForEachOne<
+  InnerDataInputType extends GenericDataInputType,
+  InnerReturnType,
+  VarnameType extends keyof ArrayElement<InnerDataInputType['scalars']>>
+extends Flow<DataInputTypeForEachOne<InnerDataInputType, VarnameType>, InnerReturnType> {
+  /** Subflow to be executed each time */
+  subflow: Flow<InnerDataInputType, InnerReturnType>
+  /** Variable used for the iteration. */
+  // variable: StringLiteral<VarnameType>
+  variable: VarnameType
+
+  /**
+   * Creates a new ForEachOne
+   * @param subflow - Subflow to be executed each time
+   * @param variable - If an arrary, the set of variables used for
+   * the iteration. If a boolean, all the variables in the input are
+   * considered and the boolean decides if repeated bindings are taken in the
+   * same iteration or not.
+   */
+  constructor(
+    subflow: Flow<InnerDataInputType, InnerReturnType>,
+    // variable: StringLiteral<VarnameType>
+    variable: VarnameType
+  ) {
+    super()
+    this.subflow = subflow
+    this.variable = variable
+    const {[variable]: x, ...otherScalars} = subflow.inputSpec.scalars
+    this.inputSpec = {
+      scalars: otherScalars,
+      tuples: { ...('tuples' in subflow.inputSpec ? subflow.inputSpec.tuples : {}),
+        [variable]: true
+      }
+    }
+  }
 }
 
 /**
@@ -493,12 +614,12 @@ export class ParallelThree<
  * parallel), once for each input binding of either all the variables or a
  * subset of them.
  */
-export class ForEach<EachReturnType> extends Flow<EachReturnType[]> {
+export class ForEach<InnerDataInputType extends GenericDataInputType, InnerReturnType> extends Flow<EachReturnType[]> {
   /** Subflow to be executed each time */
-  subflow: Flow<EachReturnType>
+  subflow: Flow<InnerDataInputType, InnerReturnType>
   /** Optionally, set of variables used for the iteration. If undefined all the
    * variables in the input sequence of bindings are considered. */
-  variables: string[] | undefined
+  forEachSpec: ForEachSpecOn<InnerDataInputType>
   /** In the case all the variables are selected for iteration, decides if
    * multiple indentical bindings are considered in the same iteration or not. */
   distinct: boolean
@@ -512,17 +633,12 @@ export class ForEach<EachReturnType> extends Flow<EachReturnType[]> {
    * same iteration or not.
    */
   constructor(
-    subflow: Flow<EachReturnType>,
-    variablesOrDistinct: string[] | boolean
+    subflow: Flow<InnerDataInputType, InnerReturnType>,
+    forEachSpec: ForEachSpecOn<InnerDataInputType>
   ) {
     super()
     this.subflow = subflow
-    if (Array.isArray(variablesOrDistinct)) {
-      this.variables = variablesOrDistinct
-      this.distinct = true
-    } else {
-      this.distinct = !!variablesOrDistinct
-    }
+    this.forEachSpec = forEachSpec
   }
 }
 
@@ -531,13 +647,20 @@ export class ForEach<EachReturnType> extends Flow<EachReturnType[]> {
  * Data operations manipulate in some way (depnding on the specific subclass)
  * the current sequence of bindings, without side effects.
  */
-export abstract class DataOperation<ReturnType> extends Flow<ReturnType> {
+export abstract class DataOperation<
+  InnerDataInputType extends GenericDataInputType,
+  OuterDataInputType extends GenericDataInputType,
+  ReturnType
+> extends Flow<OuterDataInputType, ReturnType> {
   /** Subflow executed after the operation. */
-  subflow: Flow<ReturnType>
+  subflow: Flow<InnerDataInputType, ReturnType>
 
-  constructor(subflow: Flow<ReturnType>) {
+  constructor(
+      subflow: Flow<InnerDataInputType, ReturnType>,
+      outerDataInputSpec: DataInputSpecType<OuterDataInputType>) {
     super()
     this.subflow = subflow
+    this.inputSpec = outerDataInputSpec
   }
 }
 
@@ -546,15 +669,26 @@ export abstract class DataOperation<ReturnType> extends Flow<ReturnType> {
  */
 export abstract class SPARQLAlgebraDataOperation<
   OpType extends Algebra.BaseOperation,
+  InnerDataInputType extends GenericDataInputType,
+  OperationDataInputType extends GenericDataInputType,
+  OperationDataOutputType extends GenericDataInputType,
+  // OuterDataInputType extends GenericDataInputType,
   ReturnType
-> extends DataOperation<ReturnType> {
+> extends DataOperation<
+    InnerDataInputType,
+    DataInputTypeMergeTwo<InnerDataInputType, DataInputTypeExcept<OperationDataInputType,OperationDataOutputType>>,
+    ReturnType> {
   /** Type of the algebra operation */
   dataOperationType: OpType['type']
-  /** Subflow executed after the operation. */
-  subflow: Flow<ReturnType>
+  // /** Subflow executed after the operation. */
+  // subflow: Flow<ReturnType>
 
-  constructor(type: Algebra.Operation['type'], subflow: Flow<ReturnType>) {
-    super(subflow)
+  constructor(
+      type: Algebra.Operation['type'],
+      subflow: Flow<InnerDataInputType, ReturnType>,
+      opDataInputSpec: DataInputSpecType<OperationDataInputType>,
+      opDataOutputSpec: DataInputSpecType<OperationDataOutputType>) {
+    super(subflow, )
     this.dataOperationType = type
   }
 }
@@ -565,14 +699,23 @@ export abstract class SPARQLAlgebraDataOperation<
  */
 export class SingleInputDataOperation<
   OpType extends Algebra.Single,
+  InnerDataInputType extends GenericDataInputType,
+  OperationDataInputType extends GenericDataInputType,
+  OperationDataOutputType extends GenericDataInputType,
   ReturnType
-> extends SPARQLAlgebraDataOperation<OpType, ReturnType> {
+> extends SPARQLAlgebraDataOperation<
+  OpType,
+  InnerDataInputType,
+  OperationDataInputType,
+  OperationDataOutputType,
+  ReturnType
+> {
   /** Parameters for the operation */
   params: Omit<OpType, 'type | input'>
 
   constructor(
     type: OpType['type'],
-    subflow: Flow<ReturnType>,
+    subflow: Flow<InnerDataInputType, ReturnType>,
     params: Omit<OpType, 'type | input'>
   ) {
     super(type, subflow)
@@ -587,8 +730,17 @@ export class SingleInputDataOperation<
  */
 export class InputFromLeftDataOperation<
   OpType extends Algebra.Double,
+  InnerDataInputType extends GenericDataInputType,
+  OperationDataInputType extends GenericDataInputType,
+  OperationDataOutputType extends GenericDataInputType,
   ReturnType
-> extends SPARQLAlgebraDataOperation<OpType, ReturnType> {
+> extends SPARQLAlgebraDataOperation<
+  OpType,
+  InnerDataInputType,
+  OperationDataInputType,
+  OperationDataOutputType,
+  ReturnType
+> {
   /** Parameters for the operation */
   params: Omit<OpType, 'type | input'>
   /** SPARQL subquery which is the 'right' input of the data operation. */
@@ -596,7 +748,7 @@ export class InputFromLeftDataOperation<
 
   constructor(
     type: OpType['type'],
-    subflow: Flow<ReturnType>,
+    subflow: Flow<InnerDataInputType, ReturnType>,
     rightInput: Algebra.Operation,
     params: Omit<OpType, 'type | input'>
   ) {
@@ -613,8 +765,17 @@ export class InputFromLeftDataOperation<
  */
 export class InputFromRightDataOperation<
   OpType extends Algebra.Double,
+  InnerDataInputType extends GenericDataInputType,
+  OperationDataInputType extends GenericDataInputType,
+  OperationDataOutputType extends GenericDataInputType,
   ReturnType
-> extends SPARQLAlgebraDataOperation<OpType, ReturnType> {
+> extends SPARQLAlgebraDataOperation<
+  OpType,
+  InnerDataInputType,
+  OperationDataInputType,
+  OperationDataOutputType,
+  ReturnType
+> {
   /** Parameters for the operation */
   params: Omit<OpType, 'type | input'>
   /** SPARQL subquery which is the 'left' input of the data operation. */
@@ -622,7 +783,7 @@ export class InputFromRightDataOperation<
 
   constructor(
     type: OpType['type'],
-    subflow: Flow<ReturnType>,
+    subflow: Flow<InnerDataInputType, ReturnType>,
     leftInput: Algebra.Operation,
     params: Omit<OpType, 'type | input'>
   ) {
@@ -639,8 +800,17 @@ export class InputFromRightDataOperation<
  */
 export class MultiInputDataOperation<
   OpType extends Algebra.Multi,
+  InnerDataInputType extends GenericDataInputType,
+  OperationDataInputType extends GenericDataInputType,
+  OperationDataOutputType extends GenericDataInputType,
   ReturnType
-> extends SPARQLAlgebraDataOperation<OpType, ReturnType> {
+> extends SPARQLAlgebraDataOperation<
+  OpType,
+  InnerDataInputType,
+  OperationDataInputType,
+  OperationDataOutputType,
+  ReturnType
+> {
   /** Parameters for the operation */
   params: Omit<OpType, 'type | input'>
   /** Set of SPARQL subqueries which are inputs of the data operation, along
@@ -649,7 +819,7 @@ export class MultiInputDataOperation<
 
   constructor(
     type: OpType['type'],
-    subflow: Flow<ReturnType>,
+    subflow: Flow<InnerDataInputType, ReturnType>,
     input: Algebra.Operation[],
     params: Omit<OpType, 'type | input'>
   ) {
