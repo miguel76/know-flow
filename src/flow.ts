@@ -1,7 +1,14 @@
 import { Algebra } from 'sparqlalgebrajs-input'
 import * as RDF from 'rdf-js'
 import dataFactory from '@rdfjs/data-model'
-import { GenericDataInputType, DataInputSpecType, ScalarDefaultInputType, EmptyInputType, SCALAR_DEFAULT_INPUT_SPEC, EMPTY_INPUT_SPEC } from './dataInput'
+import {
+  GenericDataInputType,
+  DataInputSpecType,
+  ScalarDefaultInputType,
+  EmptyInputType,
+  SCALAR_DEFAULT_INPUT_SPEC,
+  EMPTY_INPUT_SPEC
+} from './dataInput'
 
 import { DEFAULT_INPUT_VARNAME } from './constants'
 
@@ -124,144 +131,189 @@ type DataInputTypeMergeTwo<
   DataInputType2 extends GenericDataInputType
 > = {
   scalars: DataInputType1['scalars'] & DataInputType2['scalars']
-} & (DataInputType1 extends {tuples: unknown}
-  ? DataInputType2 extends {tuples: unknown}
-    ? { tuples: (ArrayElement<DataInputType1['tuples']> &
-    ArrayElement<DataInputType2['tuples']>)[]}
+} & (DataInputType1 extends { tuples: unknown }
+  ? DataInputType2 extends { tuples: unknown }
+    ? {
+        tuples: (ArrayElement<DataInputType1['tuples']> &
+          ArrayElement<DataInputType2['tuples']>)[]
+      }
     : { tuples: DataInputType1['tuples'] }
-  : DataInputType2 extends {tuples: unknown}
+  : DataInputType2 extends { tuples: unknown }
   ? { tuples: DataInputType2['tuples'] }
-  : {}
-)
+  : {})
 
 type DataInputTypeExcept<
   DataInputType1 extends GenericDataInputType,
   DataInputType2 extends GenericDataInputType
 > = {
   scalars: Omit<DataInputType1['scalars'], keyof DataInputType2['scalars']>
-} & (DataInputType1 extends {tuples: unknown}
-  ? DataInputType2 extends {tuples: unknown}
-    ? { 
-      tuples: Omit<DataInputType1['tuples'], keyof DataInputType2['tuples']>[]
-    }
+} & (DataInputType1 extends { tuples: unknown }
+  ? DataInputType2 extends { tuples: unknown }
+    ? {
+        tuples: Omit<DataInputType1['tuples'], keyof DataInputType2['tuples']>[]
+      }
     : { tuples: DataInputType1['tuples'] }
-  : {}
-)
-  
-    // type DataInputTypeSpecMergeTwo<
-  //   DataInputType1 extends GenericDataInputType,
-  //   DataInputType2 extends GenericDataInputType
-  // > = {
-  //   scalars: (keyof DataInputType1['scalars'] | keyof DataInputType2['scalars'])[]
-  // } & (DataInputType1 extends {tuples: unknown}
-  //   ? DataInputType2 extends {tuples: unknown}
-  //     ? { tuples: (keyof ArrayElement<DataInputType1['tuples']> |
-  //     keyof ArrayElement<DataInputType2['tuples']>)[]}
-  //     : { tuples: DataInputType1['tuples'] }
-  //   : DataInputType2 extends {tuples: unknown}
-  //   ? { tuples: DataInputType2['tuples'] }
-  //   : {
-        
-  //     })
-  
-  
+  : {})
+
+// type DataInputTypeSpecMergeTwo<
+//   DataInputType1 extends GenericDataInputType,
+//   DataInputType2 extends GenericDataInputType
+// > = {
+//   scalars: (keyof DataInputType1['scalars'] | keyof DataInputType2['scalars'])[]
+// } & (DataInputType1 extends {tuples: unknown}
+//   ? DataInputType2 extends {tuples: unknown}
+//     ? { tuples: (keyof ArrayElement<DataInputType1['tuples']> |
+//     keyof ArrayElement<DataInputType2['tuples']>)[]}
+//     : { tuples: DataInputType1['tuples'] }
+//   : DataInputType2 extends {tuples: unknown}
+//   ? { tuples: DataInputType2['tuples'] }
+//   : {
+
+//     })
 
 type InputScalar1 = {
-  scalars: { a: RDF.Literal, b: RDF.NamedNode},
+  scalars: { a: RDF.Literal; b: RDF.NamedNode }
   tuples: null
 }
 
 type InputScalar2 = {
-  scalars: { b: RDF.NamedNode, c: RDF.Literal}
+  scalars: { b: RDF.NamedNode; c: RDF.Literal }
   tuples: null
 }
 
 type MergeScalar = DataInputTypeMergeTwo<InputScalar1, InputScalar2>
 
 type InputTuples1 = {
-  scalars: {},
-  tuples: {va: RDF.Literal, vb: RDF.NamedNode}[]
+  scalars: {}
+  tuples: { va: RDF.Literal; vb: RDF.NamedNode }[]
 }
 
 type InputTuples2 = {
-  scalars: {},
-  tuples: {vb: RDF.NamedNode, vc: RDF.Literal}[]
+  scalars: {}
+  tuples: { vb: RDF.NamedNode; vc: RDF.Literal }[]
 }
 
 type MergeTuples = DataInputTypeMergeTwo<InputTuples1, InputTuples2>
-type Merge1 = DataInputTypeMergeTwo<InputScalar1,InputTuples1>
-type Merge2 = DataInputTypeMergeTwo<InputScalar2,InputTuples2>
+type Merge1 = DataInputTypeMergeTwo<InputScalar1, InputTuples1>
+type Merge2 = DataInputTypeMergeTwo<InputScalar2, InputTuples2>
 
-var inputScalar1: InputScalar1 = {scalars: {a: dataFactory.literal('la'), b: dataFactory.namedNode('http://b1.org/')}, tuples: null}
-var inputScalar2: InputScalar2 = {scalars: {b: dataFactory.namedNode('http://b2.org/'), c: dataFactory.literal('lc')}, tuples: null}
+var inputScalar1: InputScalar1 = {
+  scalars: {
+    a: dataFactory.literal('la'),
+    b: dataFactory.namedNode('http://b1.org/')
+  },
+  tuples: null
+}
+var inputScalar2: InputScalar2 = {
+  scalars: {
+    b: dataFactory.namedNode('http://b2.org/'),
+    c: dataFactory.literal('lc')
+  },
+  tuples: null
+}
 var inputTuples1: InputTuples1 = {
   scalars: {},
   tuples: [
-    {va: dataFactory.literal('v_la1'), vb: dataFactory.namedNode('http://v.b1.org/')},
-    {va: dataFactory.literal('v_la2'), vb: dataFactory.namedNode('http://v.b2.org/')},
-    {va: dataFactory.literal('v_la3'), vb: dataFactory.namedNode('http://v.b3.org/')},
+    {
+      va: dataFactory.literal('v_la1'),
+      vb: dataFactory.namedNode('http://v.b1.org/')
+    },
+    {
+      va: dataFactory.literal('v_la2'),
+      vb: dataFactory.namedNode('http://v.b2.org/')
+    },
+    {
+      va: dataFactory.literal('v_la3'),
+      vb: dataFactory.namedNode('http://v.b3.org/')
+    }
   ]
 }
 var inputTuples2: InputTuples2 = {
   scalars: {},
   tuples: [
-    {vb: dataFactory.namedNode('http://v.b1.org/'), vc: dataFactory.literal('v_lc1')},
-    {vb: dataFactory.namedNode('http://v.b2.org/'), vc: dataFactory.literal('v_lc2')},
+    {
+      vb: dataFactory.namedNode('http://v.b1.org/'),
+      vc: dataFactory.literal('v_lc1')
+    },
+    {
+      vb: dataFactory.namedNode('http://v.b2.org/'),
+      vc: dataFactory.literal('v_lc2')
+    }
   ]
 }
 var inputSpecScalar1: DataInputSpecType<InputScalar1> = {
   // scalars: ['a', 'b']
   scalars: {
-    'a': true,
-    'b': true,
+    a: true,
+    b: true
   },
   tuples: null
 }
 var inputSpecScalar2: DataInputSpecType<InputScalar2> = {
   // scalars: ['b', 'c']
   scalars: {
-    'c': true,
-    'b': true
+    c: true,
+    b: true
   },
   tuples: null
 }
 var inputSpecTuples1: DataInputSpecType<InputTuples1> = {
-  scalars: {  },
+  scalars: {},
   tuples: {
-    'va': true,
-    'vb': true
+    va: true,
+    vb: true
   }
 }
 var inputSpecTuples2: DataInputSpecType<InputTuples2> = {
   scalars: {},
-  tuples: {'vb': true, 'vc': true}
+  tuples: { vb: true, vc: true }
 }
 
-var mergeScalar: MergeScalar
- = {
+var mergeScalar: MergeScalar = {
   scalars: {
-    a: dataFactory.literal('la'), b: dataFactory.namedNode('http://b1.org/'), c: dataFactory.literal('lc')
+    a: dataFactory.literal('la'),
+    b: dataFactory.namedNode('http://b1.org/'),
+    c: dataFactory.literal('lc')
   },
   tuples: null
 }
 
 var merge1: Merge1 = {
-  scalars: {a: dataFactory.literal('la_m'), b: dataFactory.namedNode('http://m.b1.org/')},
+  scalars: {
+    a: dataFactory.literal('la_m'),
+    b: dataFactory.namedNode('http://m.b1.org/')
+  },
   tuples: [
-    {va: dataFactory.literal('v_la1_m'), vb: dataFactory.namedNode('http://m.v.b1.org/')},
-    {va: dataFactory.literal('v_la2_m'), vb: dataFactory.namedNode('http://m.v.b2.org/')},
+    {
+      va: dataFactory.literal('v_la1_m'),
+      vb: dataFactory.namedNode('http://m.v.b1.org/')
+    },
+    {
+      va: dataFactory.literal('v_la2_m'),
+      vb: dataFactory.namedNode('http://m.v.b2.org/')
+    }
   ]
 }
 
-type MergeAll = DataInputTypeMergeTwo<Merge1,Merge2>
+type MergeAll = DataInputTypeMergeTwo<Merge1, Merge2>
 
 var mergeAll: MergeAll = {
   scalars: {
-    a: dataFactory.literal('la'), b: dataFactory.namedNode('http://b1.org/'), c: dataFactory.literal('lc')
+    a: dataFactory.literal('la'),
+    b: dataFactory.namedNode('http://b1.org/'),
+    c: dataFactory.literal('lc')
   },
   tuples: [
-    {va: dataFactory.literal('v_la1_m'), vb: dataFactory.namedNode('http://m.v.b1.org/'), vc: dataFactory.literal('v_lc1')},
-    {va: dataFactory.literal('v_la2_m'), vb: dataFactory.namedNode('http://m.v.b2.org/'), vc: dataFactory.literal('v_lc2')},
+    {
+      va: dataFactory.literal('v_la1_m'),
+      vb: dataFactory.namedNode('http://m.v.b1.org/'),
+      vc: dataFactory.literal('v_lc1')
+    },
+    {
+      va: dataFactory.literal('v_la2_m'),
+      vb: dataFactory.namedNode('http://m.v.b2.org/'),
+      vc: dataFactory.literal('v_lc2')
+    }
   ]
 }
 
@@ -274,27 +326,27 @@ var spec2 = mergeTwoInputSpecs(inputSpecScalar2, inputSpecTuples2)
 type SpecAll = DataInputSpecType<MergeAll>
 var specAllEx: SpecAll = {
   scalars: {
-    'a': true,
-    'b': true,
-    'c': true
+    a: true,
+    b: true,
+    c: true
   },
   tuples: {
-    'va': true,
-    'vb': true,
-    'vc': true
+    va: true,
+    vb: true,
+    vc: true
   }
 }
 
 var specAllEx2: DataInputSpecType<GenericDataInputType> = {
   scalars: {
-    'a': true,
-    'b': true,
-    'c': true
+    a: true,
+    b: true,
+    c: true
   },
   tuples: {
-    'va': true,
-    'vb': true,
-    'vc': true
+    va: true,
+    vb: true,
+    vc: true
   }
 }
 
@@ -330,7 +382,7 @@ type SpecAllScalars = SpecAll['scalars']
 //       ? { tuples: inputSpecs2.tuples }
 //       : {})
 //   } as DataInputTypeSpecMergeTwo<DataInputType1, DataInputType2> //as DataInputSpecType<DataInputTypeMergeTwo<DataInputType1, DataInputType2>>
-  
+
 //   // const scalars: DataInputSpecType<DataInputTypeMergeTwo<DataInputType1, DataInputType2>>['scalars'] = [...new Set([...inputSpecs1.scalars, ...inputSpecs2.scalars])] as DataInputSpecType<DataInputTypeMergeTwo<DataInputType1, DataInputType2>>['scalars']
 //   // return {
 //   //   scalars: [...new Set([...inputSpecs1.scalars, ...inputSpecs2.scalars])],
@@ -352,17 +404,17 @@ function mergeTwoInputSpecs<
 >(
   inputSpecs1: DataInputSpecType<DataInputType1>,
   inputSpecs2: DataInputSpecType<DataInputType2>
-): DataInputSpecType<DataInputTypeMergeTwo<DataInputType1, DataInputType2>>
-{
+): DataInputSpecType<DataInputTypeMergeTwo<DataInputType1, DataInputType2>> {
   return {
-    scalars: {...inputSpecs1.scalars, ...inputSpecs2.scalars},
-    tuples: (inputSpecs1.tuples !== null)
-              ? ((inputSpecs2.tuples !== null)
-                ? {...inputSpecs1.tuples, ...inputSpecs2.tuples}
-                : inputSpecs1.tuples)
-              : ((inputSpecs2.tuples !== null)
-                ? inputSpecs2.tuples
-                : null)
+    scalars: { ...inputSpecs1.scalars, ...inputSpecs2.scalars },
+    tuples:
+      inputSpecs1.tuples !== null
+        ? inputSpecs2.tuples !== null
+          ? { ...inputSpecs1.tuples, ...inputSpecs2.tuples }
+          : inputSpecs1.tuples
+        : inputSpecs2.tuples !== null
+        ? inputSpecs2.tuples
+        : null
   } as DataInputSpecType<DataInputTypeMergeTwo<DataInputType1, DataInputType2>>
 }
 
@@ -414,23 +466,38 @@ export class ParallelTwo<
   ReturnType1,
   DataInputType2 extends GenericDataInputType,
   ReturnType2
-> extends Flow<DataInputTypeMergeTwo<DataInputType1, DataInputType2>, [ReturnType1, ReturnType2]> {
+> extends Flow<
+  DataInputTypeMergeTwo<DataInputType1, DataInputType2>,
+  [ReturnType1, ReturnType2]
+> {
   /** Array of subflows to be executed in parallel */
-  subflows: [Flow<DataInputType1, ReturnType1>, Flow<DataInputType1, ReturnType1>]
+  subflows: [
+    Flow<DataInputType1, ReturnType1>,
+    Flow<DataInputType1, ReturnType1>
+  ]
 
   /**
    * Creates a new export class ParallelTwo
    * @param subflows - Array of subflows to be executed in parallel
    */
-  constructor(subflows: [Flow<DataInputType1, ReturnType1>, Flow<DataInputType2, ReturnType2>]) {
+  constructor(
+    subflows: [
+      Flow<DataInputType1, ReturnType1>,
+      Flow<DataInputType2, ReturnType2>
+    ]
+  ) {
     super()
     this.subflows = subflows
-    this.inputSpec = mergeTwoInputSpecs(subflows[0].inputSpec, subflows[1].inputSpec)
-    
+    this.inputSpec = mergeTwoInputSpecs(
+      subflows[0].inputSpec,
+      subflows[1].inputSpec
+    )
   }
 }
 
-type ForEachSpecOnTuplesType<TuplesType extends ArrayElement<GenericDataInputType['tuples']>> = {
+type ForEachSpecOnTuplesType<
+  TuplesType extends ArrayElement<GenericDataInputType['tuples']>
+> = {
   [TuplesVarname in keyof TuplesType]?: true
 }
 
@@ -438,29 +505,33 @@ type ForEachSpecOn<DataInputType extends GenericDataInputType> = {
   [TuplesVarname in keyof ArrayElement<DataInputType['tuples']>]?: true
 }
 
-type Drivers<Si,So> = {
-  [P in (keyof Si) & (keyof So)]: Si[P]
-};
+type Drivers<Si, So> = {
+  [P in keyof Si & keyof So]: Si[P]
+}
 
 type DataInputTypeForEachOne<
   InnerDataInputType extends GenericDataInputType,
   VarnameType extends keyof ArrayElement<InnerDataInputType['scalars']>
 > = {
   scalars: Omit<InnerDataInputType['scalars'], VarnameType>
-  tuples: (ArrayElement<InnerDataInputType['tuples']> & Pick<ArrayElement<InnerDataInputType['scalars']>, VarnameType>)[]
+  tuples: (ArrayElement<InnerDataInputType['tuples']> &
+    Pick<ArrayElement<InnerDataInputType['scalars']>, VarnameType>)[]
 }
 
 type DataInputTypeForEach<
   DataInputType extends GenericDataInputType,
   ForEachSpec extends ForEachSpecOn<GenericDataInputType>
 > = {
-  scalars: Omit<DataInputType['scalars'], keyof ForEachSpec>,
-  tuples: ((DataInputType extends {tuples: unknown} ? DataInputType['tuples'] : {}) & {
-    [ForEachVarname in (keyof ForEachSpec) & (keyof ArrayElement<GenericDataInputType['scalars']>)]:
-        ArrayElement<GenericDataInputType['scalars']>[ForEachVarname]
+  scalars: Omit<DataInputType['scalars'], keyof ForEachSpec>
+  tuples: ((DataInputType extends { tuples: unknown }
+    ? DataInputType['tuples']
+    : {}) & {
+    [ForEachVarname in keyof ForEachSpec &
+      keyof ArrayElement<GenericDataInputType['scalars']>]: ArrayElement<
+      GenericDataInputType['scalars']
+    >[ForEachVarname]
   })[]
 }
-
 
 // /**
 //  * ParallelThree flows are composed of three subflows executed in parallel.
@@ -476,7 +547,11 @@ type DataInputTypeForEach<
 //   subflows: [Flow<ReturnType1>, Flow<ReturnType2>, Flow<ReturnType3>]
 // }
 
-type StringLiteral<T> = T extends string ? string extends T ? never : T : never;
+type StringLiteral<T> = T extends string
+  ? string extends T
+    ? never
+    : T
+  : never
 
 /**
  * ForEach flows consist of a subflow that is executed mutiple times (in
@@ -486,8 +561,11 @@ type StringLiteral<T> = T extends string ? string extends T ? never : T : never;
 export class ForEachOne<
   InnerDataInputType extends GenericDataInputType,
   InnerReturnType,
-  VarnameType extends keyof ArrayElement<InnerDataInputType['scalars']>>
-extends Flow<DataInputTypeForEachOne<InnerDataInputType, VarnameType>, InnerReturnType> {
+  VarnameType extends keyof ArrayElement<InnerDataInputType['scalars']>
+> extends Flow<
+  DataInputTypeForEachOne<InnerDataInputType, VarnameType>,
+  InnerReturnType
+> {
   /** Subflow to be executed each time */
   subflow: Flow<InnerDataInputType, InnerReturnType>
   /** Variable used for the iteration. */
@@ -510,10 +588,11 @@ extends Flow<DataInputTypeForEachOne<InnerDataInputType, VarnameType>, InnerRetu
     super()
     this.subflow = subflow
     this.variable = variable
-    const {[variable]: x, ...otherScalars} = subflow.inputSpec.scalars
+    const { [variable]: x, ...otherScalars } = subflow.inputSpec.scalars
     this.inputSpec = {
       scalars: otherScalars,
-      tuples: { ...('tuples' in subflow.inputSpec ? subflow.inputSpec.tuples : {}),
+      tuples: {
+        ...('tuples' in subflow.inputSpec ? subflow.inputSpec.tuples : {}),
         [variable]: true
       }
     }
@@ -525,7 +604,10 @@ extends Flow<DataInputTypeForEachOne<InnerDataInputType, VarnameType>, InnerRetu
  * parallel), once for each input binding of either all the variables or a
  * subset of them.
  */
-export class ForEach<InnerDataInputType extends GenericDataInputType, InnerReturnType> extends Flow<EachReturnType[]> {
+export class ForEach<
+  InnerDataInputType extends GenericDataInputType,
+  InnerReturnType
+> extends Flow<EachReturnType[]> {
   /** Subflow to be executed each time */
   subflow: Flow<InnerDataInputType, InnerReturnType>
   /** Optionally, set of variables used for the iteration. If undefined all the
@@ -567,8 +649,9 @@ export abstract class DataOperation<
   subflow: Flow<InnerDataInputType, ReturnType>
 
   constructor(
-      subflow: Flow<InnerDataInputType, ReturnType>,
-      outerDataInputSpec: DataInputSpecType<OuterDataInputType>) {
+    subflow: Flow<InnerDataInputType, ReturnType>,
+    outerDataInputSpec: DataInputSpecType<OuterDataInputType>
+  ) {
     super()
     this.subflow = subflow
     this.inputSpec = outerDataInputSpec
@@ -586,21 +669,26 @@ export abstract class SPARQLAlgebraDataOperation<
   // OuterDataInputType extends GenericDataInputType,
   ReturnType
 > extends DataOperation<
+  InnerDataInputType,
+  DataInputTypeMergeTwo<
     InnerDataInputType,
-    DataInputTypeMergeTwo<InnerDataInputType, DataInputTypeExcept<OperationDataInputType,OperationDataOutputType>>,
-    ReturnType> {
+    DataInputTypeExcept<OperationDataInputType, OperationDataOutputType>
+  >,
+  ReturnType
+> {
   /** Type of the algebra operation */
   op: Algebra.Operation
   // /** Subflow executed after the operation. */
   // subflow: Flow<ReturnType>
 
   constructor(
-      type: Algebra.Operation['type'],
-      subflow: Flow<InnerDataInputType, ReturnType>,
-      opDataInputSpec: DataInputSpecType<OperationDataInputType>,
-      op: Algebra.Operation,
-      opDataOutputSpec: DataInputSpecType<OperationDataOutputType>) {
-    super(subflow, )
+    type: Algebra.Operation['type'],
+    subflow: Flow<InnerDataInputType, ReturnType>,
+    opDataInputSpec: DataInputSpecType<OperationDataInputType>,
+    op: Algebra.Operation,
+    opDataOutputSpec: DataInputSpecType<OperationDataOutputType>
+  ) {
+    super(subflow)
     this.dataOperationType = type
   }
 }
