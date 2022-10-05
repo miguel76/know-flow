@@ -1,6 +1,6 @@
 import FlowFactory from './flowFactory'
 import * as RDF from 'rdf-js'
-import { Algebra, Factory } from 'sparqlalgebrajs'
+import { Algebra, Factory } from 'sparqlalgebrajs-input'
 import { Flow, Cascade, Action } from './flow'
 import { Table } from './table'
 

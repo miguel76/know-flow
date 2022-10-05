@@ -1,4 +1,4 @@
-import { Algebra } from 'sparqlalgebrajs'
+import { Algebra } from 'sparqlalgebrajs-input'
 import * as RDF from 'rdf-js'
 import { asArray, withDefaults } from './paramUtils'
 import { DEFAULT_INPUT_VARNAME } from './constants'

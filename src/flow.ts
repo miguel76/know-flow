@@ -1,100 +1,11 @@
-import { Algebra } from 'sparqlalgebrajs'
+import { Algebra } from 'sparqlalgebrajs-input'
 import * as RDF from 'rdf-js'
 import dataFactory from '@rdfjs/data-model'
+import { GenericDataInputType, DataInputSpecType, ScalarDefaultInputType, EmptyInputType, SCALAR_DEFAULT_INPUT_SPEC, EMPTY_INPUT_SPEC } from './dataInput'
 
 import { DEFAULT_INPUT_VARNAME } from './constants'
 
 type ArrayElement<A> = A extends readonly (infer T)[] ? T : never
-
-type ScalarsInputType = {
-  scalars: { [varname: string]: RDF.Term }
-}
-
-type TuplesInputType = {
-  tuples: { [varname: string]: RDF.Term }[]
-}
-
-type ScalarDefaultInputType<DataItemType extends RDF.Term> = {
-  scalars: { [varname in typeof DEFAULT_INPUT_VARNAME]: DataItemType },
-  tuples: null
-}
-
-type EmptyInputType = {
-  scalars: {},
-  tuples: null
-}
-
-// type GenericDataInputType = ScalarsInputType & Partial<TuplesInputType>
-type GenericDataInputType = {
-  scalars: { [varname: string]: RDF.Term }
-  tuples: { [varname: string]: RDF.Term }[] | null
-}
-
-// type DataInputSpecType<DataInputType extends GenericDataInputType> = {
-//   scalars: (keyof DataInputType['scalars'])[]
-// } & (DataInputType extends {tuples: unknown}
-//   ? {tuples: (keyof ArrayElement<DataInputType['tuples']>)[]}
-//   : {})
-
-type DataInputSpecType<DataInputType extends GenericDataInputType> = {
-  scalars:
-    keyof DataInputType['scalars'] extends never
-      ? Record<string,never>
-      : {
-        [ScalarVarname in keyof DataInputType['scalars']]: true
-      }
-} & (
-    DataInputType['tuples'] extends null
-    ? {tuples: null}
-    : {
-      tuples: keyof DataInputType['tuples'] extends never
-        ? Record<string,never>
-        : {
-          [TuplesVarname in keyof ArrayElement<DataInputType['tuples']>]: true
-        }
-    }
-)
-
-type DataInputSpecTypeArrays<DataInputType extends GenericDataInputType> = {
-  scalars:
-    keyof DataInputType['scalars'] extends never
-      ? Record<string,never>
-      : {
-        [ScalarVarname in keyof DataInputType['scalars']]: true
-      }
-} & (
-    DataInputType['tuples'] extends null
-    ? {tuples: null}
-    : {
-      tuples: keyof DataInputType['tuples'] extends never
-        ? Record<string,never>
-        : {
-          [TuplesVarname in keyof ArrayElement<DataInputType['tuples']>]: true
-        }
-    }
-)
-
-
-type JustScalarsInputType<DataInputType extends GenericDataInputType> = {
-  scalars: Pick<DataInputType, 'scalars'>
-  // Record<keyof DataInputType['scalars'], RDF.Term>
-}
-
-type TuplesTypeOf<DataInputType extends GenericDataInputType> =
-  DataInputType['tuples']
-
-const SCALAR_DEFAULT_INPUT_SPEC: DataInputSpecType<
-  ScalarDefaultInputType<RDF.Term>
-> = {
-  // scalars: [DEFAULT_INPUT_VARNAME]
-  scalars: {[DEFAULT_INPUT_VARNAME]: true},
-  tuples: null
-}
-
-const EMPTY_INPUT_SPEC: DataInputSpecType<EmptyInputType> = {
-  scalars: {},
-  tuples: null
-}
 
 /**
  * Base class for flows, which are networks of know-flow operations
@@ -679,7 +590,7 @@ export abstract class SPARQLAlgebraDataOperation<
     DataInputTypeMergeTwo<InnerDataInputType, DataInputTypeExcept<OperationDataInputType,OperationDataOutputType>>,
     ReturnType> {
   /** Type of the algebra operation */
-  dataOperationType: OpType['type']
+  op: Algebra.Operation
   // /** Subflow executed after the operation. */
   // subflow: Flow<ReturnType>
 
@@ -687,6 +598,7 @@ export abstract class SPARQLAlgebraDataOperation<
       type: Algebra.Operation['type'],
       subflow: Flow<InnerDataInputType, ReturnType>,
       opDataInputSpec: DataInputSpecType<OperationDataInputType>,
+      op: Algebra.Operation,
       opDataOutputSpec: DataInputSpecType<OperationDataOutputType>) {
     super(subflow, )
     this.dataOperationType = type

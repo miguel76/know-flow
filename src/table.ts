@@ -1,4 +1,4 @@
-import { Algebra, Factory } from 'sparqlalgebrajs'
+import { Algebra, Factory } from 'sparqlalgebrajs-input'
 import { Bindings, BindingsStream } from '@comunica/types'
 import * as RDF from '@rdfjs/types'
 import { ArrayIterator, SingletonIterator, UnionIterator } from 'asynciterator'

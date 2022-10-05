@@ -1,4 +1,4 @@
-import { Algebra, toSparql, Factory } from 'sparqlalgebrajs'
+import { Algebra, toSparql, Factory } from 'sparqlalgebrajs-input'
 import {
   Flow,
   ActionExecutor,

@@ -1,4 +1,4 @@
-import { Algebra, Factory } from 'sparqlalgebrajs'
+import { Algebra, Factory } from 'sparqlalgebrajs-input'
 import * as RDF from 'rdf-js'
 import { TableSync } from './table'
 import { Flow } from './flow'
